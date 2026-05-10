@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 
+import '../core/theme/zen_theme.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
 import '../engine/timer_controller.dart';
@@ -76,18 +76,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
 
     return Scaffold(
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
+          padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 4), // 32px
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Заголовок "ZenBalance"
               Text('ZenBalance', style: theme.textTheme.headlineLarge),
 
-              const Gap(40),
+              SizedBox(height: zen.gap(5)), // 40px
 
               // Приветствие с динамическим рангом
               Text(
@@ -97,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: theme.textTheme.headlineMedium,
               ),
 
-              const Gap(8),
+              SizedBox(height: zen.spacingUnit), // 8px
 
               // Статус уровня
               Text(
@@ -109,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              const Gap(48),
+              SizedBox(height: zen.gap(6)), // 48px
 
               // Выбор длительности медитации
               Text(
@@ -117,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: theme.textTheme.bodyLarge,
               ),
 
-              const Gap(8),
+              SizedBox(height: zen.spacingUnit), // 8px
 
               Slider(
                 value: _durationMinutes,
@@ -132,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
-              const Gap(24),
+              SizedBox(height: zen.gap(3)), // 24px
 
               // Кнопка "Начать практику"
               ElevatedButton(
@@ -140,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Text('Начать практику'),
               ),
 
-              const Gap(16),
+              SizedBox(height: zen.gap(2)), // 16px
 
               // Кнопка "Статистика"
               TextButton.icon(
@@ -158,8 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              const Gap(32),
-
+              SizedBox(height: zen.gap(4)), // 32px
             ],
           ),
         ),

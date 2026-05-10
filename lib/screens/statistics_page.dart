@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../core/theme/zen_theme.dart';
+import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
 import '../domain/analytics_result.dart';
@@ -21,9 +21,9 @@ import '../widgets/shimmer_loading.dart';
 /// - Heatmap: календарь активности за последние 30 дней
 /// - Area Chart: график с градиентной заливкой за 7 дней
 ///
-/// Типографика: GoogleFonts.roboto с адаптивным FontWeight.
+/// Типографика: через Theme.of(context).textTheme.
 /// Цвета: строго через Theme.of(context).colorScheme.
-/// Отступы: Gap вместо SizedBox.
+/// Отступы: через ZenStyles.spacingUnit.
 class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
 
@@ -94,6 +94,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final zen = theme.extension<ZenStyles>() ?? ZenStyles.defaults;
 
     return Scaffold(
       appBar: AppBar(
@@ -101,9 +102,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           _data != null
               ? '${_data!.progression.rank} · Ур. ${_data!.progression.level}'
               : 'Статистика',
-          style: GoogleFonts.roboto(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+          style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.onSurface,
           ),
         ),
@@ -112,11 +111,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
         elevation: 0,
         foregroundColor: theme.colorScheme.onSurface,
       ),
-      body: _buildBody(theme),
+      body: _buildBody(theme, zen),
     );
   }
 
-  Widget _buildBody(ThemeData theme) {
+  Widget _buildBody(ThemeData theme, ZenStyles zen) {
     switch (_pageState) {
       case _PageState.loading:
         return const ShimmerLoading();
@@ -136,49 +135,47 @@ class _StatisticsPageState extends State<StatisticsPage> {
           onRefresh: _loadStatistics,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 3),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Gap(8),
+                SizedBox(height: zen.spacingUnit),
 
                 // XP-Bar — шкала опыта под уровнем
-                _buildXpBar(theme, dto),
+                _buildXpBar(theme, zen, dto),
 
-                const Gap(24),
+                SizedBox(height: zen.gap(3)),
 
                 // Summary cards
-                _buildSummaryCards(theme, dto),
+                _buildSummaryCards(theme, zen, dto),
 
-                const Gap(24),
+                SizedBox(height: zen.gap(3)),
 
                 // Streak + Growth мини-карточки
-                _buildStreakGrowthCards(theme, dto),
+                _buildStreakGrowthCards(theme, zen, dto),
 
-                const Gap(32),
+                SizedBox(height: zen.gap(4)),
 
                 // Heatmap — календарь активности
-                _buildHeatmapSection(theme, dto.heatmapData),
+                _buildHeatmapSection(theme, zen, dto.heatmapData),
 
-                const Gap(32),
+                SizedBox(height: zen.gap(4)),
 
                 // Chart title
                 Text(
                   'Последние 7 дней',
-                  style: _adaptiveTextStyle(
-                    theme: theme,
-                    size: 18,
-                    weight: FontWeight.w600,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
-                const Gap(16),
+                SizedBox(height: zen.gap(2)),
 
                 // Area Chart
                 SizedBox(
                   height: 220,
                   child: _buildAreaChart(theme, dto.dailyStats),
                 ),
-                const Gap(24),
+                SizedBox(height: zen.gap(3)),
 
                 // Average info
                 Center(
@@ -189,7 +186,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     ),
                   ),
                 ),
-                const Gap(40),
+                SizedBox(height: zen.gap(5)),
               ],
             ),
           ),
@@ -197,34 +194,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
     }
   }
 
-  /// Возвращает адаптивный стиль текста с GoogleFonts.roboto.
-  ///
-  /// FontWeight зависит от MediaQuery.textScaleFactor:
-  ///   - > 1.2 → w900
-  ///   - > 1.0 → w800
-  ///   - иначе → w700
-  TextStyle _adaptiveTextStyle({
-    required ThemeData theme,
-    required double size,
-    required FontWeight weight,
-    Color? color,
-  }) {
-    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
-    final adaptiveWeight = textScale > 1.2
-        ? FontWeight.w900
-        : textScale > 1.0
-            ? FontWeight.w800
-            : weight;
-
-    return GoogleFonts.roboto(
-      fontSize: size,
-      fontWeight: adaptiveWeight,
-      color: color ?? theme.colorScheme.onSurface,
-    );
-  }
-
   /// XP-Bar: шкала опыта до следующего уровня.
-  Widget _buildXpBar(ThemeData theme, ExtendedStatisticsDTO dto) {
+  Widget _buildXpBar(ThemeData theme, ZenStyles zen, ExtendedStatisticsDTO dto) {
     final xp = dto.xpProgress;
     final primaryColor = theme.colorScheme.primary;
 
@@ -234,13 +205,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
         // Текст уровня
         Text(
           'Ур. ${dto.progression.level}',
-          style: _adaptiveTextStyle(
-            theme: theme,
-            size: 20,
-            weight: FontWeight.w600,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.onSurface,
           ),
         ),
-        const Gap(10),
+        SizedBox(height: zen.spacingUnit + 2),
 
         // Progress bar
         ClipRRect(
@@ -254,15 +223,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
           ),
         ),
-        const Gap(6),
+        SizedBox(height: zen.spacingUnit - 2),
 
         // Микро-текст: остаток до следующего уровня
         Text(
           'До следующего уровня: ${xp.remainingMinutes} мин',
-          style: theme.textTheme.bodyLarge?.copyWith(
-            fontSize: 12,
+          style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            fontWeight: FontWeight.w400,
           ),
         ),
       ],
@@ -270,14 +237,17 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   /// Карточки Streak и Growth.
-  Widget _buildStreakGrowthCards(ThemeData theme, ExtendedStatisticsDTO dto) {
-    final primary = theme.colorScheme.primary;
-
+  Widget _buildStreakGrowthCards(
+    ThemeData theme,
+    ZenStyles zen,
+    ExtendedStatisticsDTO dto,
+  ) {
     return Row(
       children: [
         Expanded(
           child: _MiniCard(
             theme: theme,
+            zen: zen,
             icon: Icons.local_fire_department_rounded,
             iconColor: Colors.deepOrange,
             label: 'Серия дней',
@@ -285,10 +255,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
             unit: dto.streak == 1 ? 'день' : 'дней',
           ),
         ),
-        const Gap(12),
+        SizedBox(width: zen.spacingUnit * 1.5),
         Expanded(
           child: _MiniCard(
             theme: theme,
+            zen: zen,
             icon: dto.growth != null && dto.growth! >= 0
                 ? Icons.trending_up_rounded
                 : Icons.trending_down_rounded,
@@ -311,21 +282,27 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   /// Summary cards row.
-  Widget _buildSummaryCards(ThemeData theme, ExtendedStatisticsDTO dto) {
+  Widget _buildSummaryCards(
+    ThemeData theme,
+    ZenStyles zen,
+    ExtendedStatisticsDTO dto,
+  ) {
     return Row(
       children: [
         Expanded(
           child: _SummaryCard(
             theme: theme,
+            zen: zen,
             label: 'Всего минут',
             value: TimeUtils.formatMinutes(dto.totalMinutes.toDouble()),
             icon: Icons.timer_outlined,
           ),
         ),
-        const Gap(12),
+        SizedBox(width: zen.spacingUnit * 1.5),
         Expanded(
           child: _SummaryCard(
             theme: theme,
+            zen: zen,
             label: 'Сессий',
             value: '${dto.sessionCount}',
             icon: Icons.spa_outlined,
@@ -336,7 +313,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   /// Секция Heatmap — календарь активности за последние 30 дней.
-  Widget _buildHeatmapSection(ThemeData theme, List<HeatmapDay> data) {
+  Widget _buildHeatmapSection(
+    ThemeData theme,
+    ZenStyles zen,
+    List<HeatmapDay> data,
+  ) {
     if (data.isEmpty) return const SizedBox.shrink();
 
     final primaryColor = theme.colorScheme.primary;
@@ -352,13 +333,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
       children: [
         Text(
           'Активность за 30 дней',
-          style: _adaptiveTextStyle(
-            theme: theme,
-            size: 18,
-            weight: FontWeight.w600,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
           ),
         ),
-        const Gap(12),
+        SizedBox(height: zen.spacingUnit * 1.5),
 
         // Легенда: дни недели
         Row(
@@ -370,7 +349,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 child: Center(
                   child: Text(
                     dayLabels[i],
-                    style: TextStyle(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontSize: 9,
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
@@ -380,27 +359,27 @@ class _StatisticsPageState extends State<StatisticsPage> {
             }),
           ],
         ),
-        const Gap(4),
+        SizedBox(height: zen.spacingUnit / 2),
 
         // Сетка heatmap
         ..._buildHeatmapGrid(theme, data, maxMinutes, primaryColor),
 
-        const Gap(8),
+        SizedBox(height: zen.spacingUnit),
 
         // Легенда интенсивности
         Row(
           children: [
             const Spacer(),
             _buildLegendChip(theme, 'Меньше', primaryColor.withValues(alpha: 0.1)),
-            const Gap(4),
+            const SizedBox(width: 4),
             _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.3)),
-            const Gap(4),
+            const SizedBox(width: 4),
             _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.55)),
-            const Gap(4),
+            const SizedBox(width: 4),
             _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.8)),
-            const Gap(4),
+            const SizedBox(width: 4),
             _buildLegendChip(theme, 'Больше', primaryColor),
-            const Gap(4),
+            const SizedBox(width: 4),
           ],
         ),
       ],
@@ -458,7 +437,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
               width: 28,
               child: Text(
                 'Н${weekIndex + 1}',
-                style: TextStyle(
+                style: theme.textTheme.bodySmall?.copyWith(
                   fontSize: 9,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
@@ -525,10 +504,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
           ),
         ),
         if (label.isNotEmpty) ...[
-          const Gap(3),
+          const SizedBox(width: 3),
           Text(
             label,
-            style: TextStyle(
+            style: theme.textTheme.bodySmall?.copyWith(
               fontSize: 9,
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
@@ -593,7 +572,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     stats[index].dayLabel,
-                    style: TextStyle(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontSize: 11,
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
@@ -681,6 +660,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 /// Мини-карточка для отображения streak/growth.
 class _MiniCard extends StatelessWidget {
   final ThemeData theme;
+  final ZenStyles zen;
   final IconData icon;
   final Color iconColor;
   final String label;
@@ -689,6 +669,7 @@ class _MiniCard extends StatelessWidget {
 
   const _MiniCard({
     required this.theme,
+    required this.zen,
     required this.icon,
     required this.iconColor,
     required this.label,
@@ -699,10 +680,10 @@ class _MiniCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(zen.spacingUnit * 2),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(zen.cardRadius * 2 / 3),
       ),
       child: Row(
         children: [
@@ -712,11 +693,11 @@ class _MiniCard extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(zen.spacingUnit * 1.5),
             ),
             child: Icon(icon, size: 20, color: iconColor),
           ),
-          const Gap(12),
+          SizedBox(width: zen.spacingUnit * 1.5),
           // Текст
           Expanded(
             child: Column(
@@ -724,31 +705,27 @@ class _MiniCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontSize: 11,
+                  style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const Gap(2),
+                SizedBox(height: zen.spacingUnit / 4),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       value,
-                      style: GoogleFonts.roboto(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: zen.metricWeight,
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
-                    const Gap(4),
+                    SizedBox(width: zen.spacingUnit / 2),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
+                      padding: EdgeInsets.only(bottom: 2),
                       child: Text(
                         unit,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontSize: 11,
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                       ),
@@ -767,12 +744,14 @@ class _MiniCard extends StatelessWidget {
 /// Карточка summary (всего минут / сессий).
 class _SummaryCard extends StatelessWidget {
   final ThemeData theme;
+  final ZenStyles zen;
   final String label;
   final String value;
   final IconData icon;
 
   const _SummaryCard({
     required this.theme,
+    required this.zen,
     required this.label,
     required this.value,
     required this.icon,
@@ -781,10 +760,10 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(zen.spacingUnit * 2),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(zen.cardRadius * 2 / 3),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -794,22 +773,19 @@ class _SummaryCard extends StatelessWidget {
             size: 20,
             color: theme.colorScheme.primary.withValues(alpha: 0.6),
           ),
-          const Gap(8),
+          SizedBox(height: zen.spacingUnit),
           Text(
             value,
-            style: GoogleFonts.roboto(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: zen.metricWeight,
               color: theme.colorScheme.onSurface,
             ),
           ),
-          const Gap(2),
+          SizedBox(height: zen.spacingUnit / 4),
           Text(
             label,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontSize: 12,
+            style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              fontWeight: FontWeight.w400,
             ),
           ),
         ],

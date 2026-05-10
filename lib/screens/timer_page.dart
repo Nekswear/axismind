@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/zen_theme.dart';
 import '../data/database_provider.dart';
 import '../data/analytics_repository.dart';
 import '../engine/timer_controller.dart';
@@ -123,6 +124,7 @@ class _TimerPageState extends State<TimerPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
 
     return PopScope(
       // Предотвращаем случайный выход (например, свайпом назад на iOS)
@@ -156,7 +158,7 @@ class _TimerPageState extends State<TimerPage> {
       child: Scaffold(
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 4), // 32px
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -167,7 +169,9 @@ class _TimerPageState extends State<TimerPage> {
                   builder: (context, seconds, _) {
                     return Text(
                       _formatTime(seconds),
-                      style: theme.textTheme.headlineLarge?.copyWith(
+                      // Таймер использует displayLarge из ZenTheme (36px, w900)
+                      // Для медитативного эффекта увеличиваем размер через copyWith
+                      style: theme.textTheme.displayLarge?.copyWith(
                         fontSize: 72,
                         fontWeight: FontWeight.w200,
                         letterSpacing: 4,
@@ -176,7 +180,7 @@ class _TimerPageState extends State<TimerPage> {
                   },
                 ),
 
-                const SizedBox(height: 48),
+                SizedBox(height: zen.gap(6)), // 48px
 
                 // Кнопка "Отмена" — визуально менее яркая (UX-тишина)
                 TextButton(

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import 'app/theme.dart';
+import 'core/theme/zen_theme.dart';
 import 'data/database_provider.dart';
 import 'screens/home_screen.dart';
 
@@ -41,7 +41,7 @@ class ZenBalanceApp extends StatelessWidget {
     return MaterialApp(
       title: 'ZenBalance',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      theme: ZenTheme.build(),
       home: const HomeScreen(),
     );
   }
