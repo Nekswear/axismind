@@ -58,7 +58,7 @@ class ZenStyles extends ThemeExtension<ZenStyles> {
   /// Статический fallback — используется, когда extension<ZenStyles>() == null.
   static const ZenStyles defaults = ZenStyles(
     cardRadius: 24.0,
-    metricWeight: FontWeight.w900,
+    metricWeight: FontWeight.w700,
     spacingUnit: 8.0,
     focusGradient: LinearGradient(
       colors: [Color(0xFF1A237E), Color(0xFFB0BEC5)], // индиго → серый

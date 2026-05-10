@@ -4,6 +4,7 @@ import '../core/theme/zen_theme.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
 import '../engine/timer_controller.dart';
+import 'meditation_guide_screen.dart';
 import 'timer_page.dart';
 import 'statistics_page.dart';
 
@@ -71,6 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     // После возврата со статистики — обновляем прогрессию
     _loadProgression();
+  }
+
+  Future<void> _navigateToGuide() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MeditationGuideScreen()),
+    );
   }
 
   @override
@@ -157,6 +165,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: theme.colorScheme.primary.withValues(alpha: 0.7),
                   ),
                 ),
+              ),
+
+              SizedBox(height: zen.gap(2)), // 16px
+
+              // Кнопка "Открыть путь к ясности" (MeditationGuide)
+              OutlinedButton(
+                onPressed: _navigateToGuide,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF0A192F),
+                  side: const BorderSide(color: Color(0xFFC5A059)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  textStyle: const TextStyle(
+                    fontFamily: 'Manrope',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+                child: const Text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'),
               ),
 
               SizedBox(height: zen.gap(4)), // 32px
