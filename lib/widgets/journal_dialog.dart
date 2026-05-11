@@ -29,22 +29,37 @@ class JournalResult {
 /// - Написать текстовую заметку
 /// - Выбрать тег (категорию) сессии
 ///
+/// Если передан [initialResult] — диалог работает в режиме **редактирования**,
+/// предзаполняя поля существующими данными.
+///
 /// Возвращает [JournalResult] при нажатии "Сохранить"
 /// или `null` при нажатии "Пропустить".
 class JournalDialog extends StatefulWidget {
   /// Длительность завершённой сессии в секундах (для отображения).
   final int durationSeconds;
 
-  const JournalDialog({super.key, required this.durationSeconds});
+  /// Опциональные начальные данные — для режима редактирования.
+  ///
+  /// Если передан, диалог предзаполняет поля и меняет заголовок на
+  /// "Редактировать запись".
+  final JournalResult? initialResult;
+
+  const JournalDialog({
+    super.key,
+    required this.durationSeconds,
+    this.initialResult,
+  });
 
   @override
   State<JournalDialog> createState() => _JournalDialogState();
 }
 
 class _JournalDialogState extends State<JournalDialog> {
-  final _noteController = TextEditingController();
-  int _moodRating = 3;
+  late final TextEditingController _noteController;
+  late int _moodRating;
   String? _selectedTag;
+
+  bool get _isEditing => widget.initialResult != null;
 
   static const _tags = [
     'Утро',
@@ -56,6 +71,15 @@ class _JournalDialogState extends State<JournalDialog> {
   ];
 
   static const _moodEmojis = ['😔', '😐', '🙂', '😊', '🧘'];
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialResult;
+    _noteController = TextEditingController(text: initial?.note ?? '');
+    _moodRating = initial?.moodRating ?? 3;
+    _selectedTag = initial?.tag;
+  }
 
   @override
   void dispose() {
@@ -82,7 +106,7 @@ class _JournalDialogState extends State<JournalDialog> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Запиши свои ощущения 📝'),
+          Text(_isEditing ? 'Редактировать запись ✏️' : 'Запиши свои ощущения 📝'),
           const SizedBox(height: 4),
           Text(
             'Сессия: $_durationLabel',

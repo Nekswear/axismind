@@ -4,11 +4,16 @@ import '../core/theme/zen_theme.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
 import '../data/session.dart';
+import '../widgets/journal_dialog.dart';
 
 /// Экран дневника медитаций.
 ///
 /// Отображает список завершённых сессий с заметками, оценкой настроения
-/// и тегами. Поддерживает пагинацию (подгрузка по 20 записей).
+/// и тегами. Поддерживает:
+/// - Пагинацию (подгрузка по 20 записей)
+/// - Фильтрацию по тегам
+/// - Поиск по заметкам
+/// - Редактирование и удаление записей
 class JournalScreen extends StatefulWidget {
   const JournalScreen({super.key});
 
@@ -24,16 +29,30 @@ class _JournalScreenState extends State<JournalScreen> {
   static const _pageSize = 20;
   AnalyticsRepository? _repository;
 
+  // === Фильтрация и поиск ===
+  final _searchController = TextEditingController();
+  List<String> _availableTags = [];
+  String? _selectedTag;
+  String? _searchQuery;
+  bool _showSearch = false;
+
   @override
   void initState() {
     super.initState();
     _initRepository();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _initRepository() async {
     try {
       final db = await DatabaseProvider.instance();
       _repository = AnalyticsRepository(db);
+      await _loadTags();
       await _loadSessions();
     } catch (e) {
       if (mounted) {
@@ -42,11 +61,22 @@ class _JournalScreenState extends State<JournalScreen> {
     }
   }
 
+  Future<void> _loadTags() async {
+    try {
+      final tags = await _repository!.getDistinctTags();
+      if (mounted) {
+        setState(() => _availableTags = tags);
+      }
+    } catch (_) {}
+  }
+
   Future<void> _loadSessions() async {
     if (!_hasMore || _repository == null) return;
 
     try {
-      final sessions = await _repository!.getJournalSessions(
+      final sessions = await _repository!.getFilteredJournalSessions(
+        tag: _selectedTag,
+        searchQuery: _searchQuery,
         limit: _pageSize,
         offset: _offset,
       );
@@ -68,6 +98,113 @@ class _JournalScreenState extends State<JournalScreen> {
     }
   }
 
+  Future<void> _refresh() async {
+    setState(() {
+      _sessions.clear();
+      _offset = 0;
+      _hasMore = true;
+      _loading = true;
+    });
+    await _loadTags();
+    await _loadSessions();
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchQuery = value.trim().isEmpty ? null : value.trim();
+      _sessions.clear();
+      _offset = 0;
+      _hasMore = true;
+      _loading = true;
+    });
+    _loadSessions();
+  }
+
+  void _onTagFilterChanged(String? tag) {
+    setState(() {
+      _selectedTag = tag;
+      _sessions.clear();
+      _offset = 0;
+      _hasMore = true;
+      _loading = true;
+    });
+    _loadSessions();
+  }
+
+  Future<void> _editSession(Session session) async {
+    final result = await showDialog<JournalResult>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => JournalDialog(
+        durationSeconds: session.seconds,
+        initialResult: JournalResult(
+          note: session.note,
+          moodRating: session.moodRating ?? 3,
+          tag: session.tag,
+        ),
+      ),
+    );
+
+    if (result != null && context.mounted) {
+      try {
+        await _repository!.updateSessionJournal(
+          session.id,
+          note: result.note,
+          moodRating: result.moodRating,
+          tag: result.tag,
+        );
+        await _refresh();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Не удалось обновить запись')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteSession(Session session) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Удалить запись?'),
+        content: const Text('Это действие нельзя отменить.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        await _repository!.deleteSession(session.id);
+        await _refresh();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Запись удалена')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Не удалось удалить запись')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
@@ -76,46 +213,128 @@ class _JournalScreenState extends State<JournalScreen> {
       appBar: AppBar(
         title: const Text('Дневник медитаций'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(_showSearch ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) {
+                  _searchController.clear();
+                  _searchQuery = null;
+                  _refresh();
+                }
+              });
+            },
+          ),
+        ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _sessions.isEmpty
-              ? const _EmptyJournal()
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    setState(() {
-                      _sessions.clear();
-                      _offset = 0;
-                      _hasMore = true;
-                      _loading = true;
-                    });
-                    await _loadSessions();
-                  },
-                  child: ListView.builder(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: zen.spacingUnit * 2,
-                      vertical: zen.spacingUnit * 2,
-                    ),
-                    itemCount: _sessions.length + (_hasMore ? 1 : 0),
-                    itemBuilder: (ctx, i) {
-                      if (i >= _sessions.length) {
-                        // Триггер подгрузки следующих страниц
-                        _loadSessions();
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                        );
-                      }
-                      return _JournalCard(session: _sessions[i]);
-                    },
+      body: Column(
+        children: [
+          // === Поисковая строка ===
+          if (_showSearch)
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                zen.spacingUnit * 2,
+                zen.spacingUnit,
+                zen.spacingUnit * 2,
+                0,
+              ),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Поиск по заметкам...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  isDense: true,
                 ),
+                onChanged: _onSearchChanged,
+              ),
+            ),
+
+          // === Фильтр по тегам ===
+          if (_availableTags.isNotEmpty)
+            SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(
+                  horizontal: zen.spacingUnit * 2,
+                  vertical: 8,
+                ),
+                children: [
+                  _buildTagChip(null, 'Все'),
+                  ..._availableTags.map((tag) => _buildTagChip(tag, tag)),
+                ],
+              ),
+            ),
+
+          // === Список сессий ===
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _sessions.isEmpty
+                    ? const _EmptyJournal()
+                    : RefreshIndicator(
+                        onRefresh: _refresh,
+                        child: ListView.builder(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: zen.spacingUnit * 2,
+                            vertical: zen.spacingUnit * 2,
+                          ),
+                          itemCount: _sessions.length + (_hasMore ? 1 : 0),
+                          itemBuilder: (ctx, i) {
+                            if (i >= _sessions.length) {
+                              _loadSessions();
+                              return const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            return _JournalCard(
+                              session: _sessions[i],
+                              onEdit: () => _editSession(_sessions[i]),
+                              onDelete: () => _deleteSession(_sessions[i]),
+                            );
+                          },
+                        ),
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTagChip(String? tag, String label) {
+    final isSelected = _selectedTag == tag;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: isSelected ? Colors.white : null,
+          ),
+        ),
+        selected: isSelected,
+        selectedColor: Theme.of(context).colorScheme.primary,
+        onSelected: (_) => _onTagFilterChanged(isSelected ? null : tag),
+      ),
     );
   }
 }
@@ -123,8 +342,14 @@ class _JournalScreenState extends State<JournalScreen> {
 /// Карточка одной записи в дневнике.
 class _JournalCard extends StatelessWidget {
   final Session session;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-  const _JournalCard({required this.session});
+  const _JournalCard({
+    required this.session,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   static const _moodEmojis = ['😔', '😐', '🙂', '😊', '🧘'];
 
@@ -342,6 +567,33 @@ class _JournalCard extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 24),
+
+              // === Кнопки действий ===
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      onEdit();
+                    },
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('Редактировать'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      onDelete();
+                    },
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text('Удалить'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         );

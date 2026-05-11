@@ -319,6 +319,80 @@ class DatabaseProvider {
     }
   }
 
+  /// Удаляет сессию по её ID.
+  ///
+  /// Возвращает `true`, если запись была удалена, `false` — если не найдена.
+  Future<bool> deleteSession(String sessionId) async {
+    try {
+      final count = await db.delete(
+        tableSessions,
+        where: 'id = ?',
+        whereArgs: [sessionId],
+      );
+      return count > 0;
+    } catch (e) {
+      throw DatabaseException('Не удалось удалить сессию: $e');
+    }
+  }
+
+  /// Возвращает список уникальных тегов всех сессий.
+  ///
+  /// Используется для фильтрации записей в дневнике.
+  Future<List<String>> getDistinctTags() async {
+    try {
+      final result = await db.rawQuery('''
+        SELECT DISTINCT tag FROM $tableSessions
+        WHERE tag IS NOT NULL
+        ORDER BY tag ASC
+      ''');
+      return result.map((r) => r['tag'] as String).toList();
+    } catch (e) {
+      throw DatabaseException('Не удалось получить список тегов: $e');
+    }
+  }
+
+  /// Возвращает сессии, отфильтрованные по тегу и/или поисковому запросу.
+  ///
+  /// [tag] — фильтр по тегу (null = все теги).
+  /// [searchQuery] — поиск по заметке (регистронезависимый, null = без фильтра).
+  /// [limit] — максимальное количество записей (пагинация).
+  /// [offset] — смещение от начала.
+  Future<List<Session>> getFilteredSessions({
+    String? tag,
+    String? searchQuery,
+    int? limit,
+    int? offset,
+  }) async {
+    try {
+      final conditions = <String>[];
+      final args = <dynamic>[];
+
+      if (tag != null) {
+        conditions.add('tag = ?');
+        args.add(tag);
+      }
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        conditions.add('note LIKE ?');
+        args.add('%$searchQuery%');
+      }
+
+      final where = conditions.isNotEmpty ? conditions.join(' AND ') : null;
+
+      final maps = await db.query(
+        tableSessions,
+        where: where,
+        whereArgs: args.isNotEmpty ? args : null,
+        orderBy: 'timestamp DESC',
+        limit: limit,
+        offset: offset,
+      );
+      return maps.map((m) => Session.fromMap(m)).toList();
+    } catch (e) {
+      throw DatabaseException('Не удалось выполнить поиск сессий: $e');
+    }
+  }
+
   /// Closes the database connection.
   ///
   /// Call this only when the application is terminating.

@@ -55,6 +55,9 @@ dependencies:
   # Audio playback (gong sounds for meditation start/end)
   audioplayers: ^6.1.0
 
+  # Keep screen on during meditation
+  wakelock_plus: ^1.2.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

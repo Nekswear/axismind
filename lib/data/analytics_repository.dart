@@ -161,10 +161,9 @@ class AnalyticsRepository {
     }
   }
 
-  /// Обновляет заметку, оценку настроения и тег последней сессии.
+  /// Обновляет заметку, оценку настроения и тег существующей сессии.
   ///
   /// Вызывается после [JournalDialog], когда пользователь ввёл свои ощущения.
-  /// Находит последнюю сессию по ID (передаётся из диалога).
   Future<void> updateSessionJournal(
     String sessionId, {
     String? note,
@@ -180,6 +179,50 @@ class AnalyticsRepository {
       );
     } catch (e) {
       throw AnalyticsException('Не удалось обновить запись дневника: $e');
+    }
+  }
+
+  /// Удаляет сессию по её ID.
+  ///
+  /// Возвращает `true`, если запись была удалена.
+  Future<bool> deleteSession(String sessionId) async {
+    try {
+      return await _dbProvider.deleteSession(sessionId);
+    } catch (e) {
+      throw AnalyticsException('Не удалось удалить запись: $e');
+    }
+  }
+
+  /// Возвращает список уникальных тегов всех сессий.
+  Future<List<String>> getDistinctTags() async {
+    try {
+      return await _dbProvider.getDistinctTags();
+    } catch (e) {
+      throw AnalyticsException('Не удалось получить теги: $e');
+    }
+  }
+
+  /// Возвращает сессии с фильтрацией по тегу и/или поисковому запросу.
+  ///
+  /// [tag] — фильтр по тегу (null = все теги).
+  /// [searchQuery] — поиск по заметке (null = без фильтра).
+  /// [limit] — максимальное количество записей (пагинация).
+  /// [offset] — смещение от начала.
+  Future<List<Session>> getFilteredJournalSessions({
+    String? tag,
+    String? searchQuery,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      return await _dbProvider.getFilteredSessions(
+        tag: tag,
+        searchQuery: searchQuery,
+        limit: limit,
+        offset: offset,
+      );
+    } catch (e) {
+      throw AnalyticsException('Не удалось загрузить отфильтрованные сессии: $e');
     }
   }
 

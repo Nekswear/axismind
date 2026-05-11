@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/theme/zen_theme.dart';
 import '../data/database_provider.dart';
@@ -45,6 +46,9 @@ class _TimerPageState extends State<TimerPage> {
     // Звон гонга в начале сессии
     _gongService.playStartGong();
 
+    // Не даём экрану гаснуть во время медитации
+    WakelockPlus.enable();
+
     // Listen for timer completion to auto-save session
     _controller.remainingSeconds.addListener(_onTimerTick);
   }
@@ -56,6 +60,8 @@ class _TimerPageState extends State<TimerPage> {
     // Строгая очистка ресурсов: отмена Timer и удаление слушателей
     _controller.dispose();
     _gongService.dispose();
+    // Возвращаем стандартное поведение гашения экрана
+    WakelockPlus.disable();
     super.dispose();
   }
 
