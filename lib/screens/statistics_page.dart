@@ -488,13 +488,16 @@ class _StatisticsPageState extends State<StatisticsPage>
   }
 
   // ===========================================================================
-  // Heatmap
+  // Activity Overview — комбинированный блок: мини-календарь + точечный график
   // ===========================================================================
 
-  /// Секция Heatmap — календарь активности за последние 30 дней.
+  /// Комбинированная секция «Активность за 30 дней».
   ///
-  /// Если дней больше 30, сетка heatmap помещается в горизонтальный
-  /// SingleChildScrollView, чтобы не сжимать ячейки.
+  /// Содержит:
+  ///   1. Мини-календарь — компактная сетка 5×6 с цветовыми ячейками
+  ///      и подписями дат слева.
+  ///   2. Точечный график (dot chart) — динамика минут за 30 дней.
+  ///   3. Сводка: серия дней, среднее, лучший день.
   Widget _buildHeatmapSection(
     ThemeData theme,
     ZenStyles zen,
@@ -503,12 +506,25 @@ class _StatisticsPageState extends State<StatisticsPage>
     if (data.isEmpty) return const SizedBox.shrink();
 
     final primaryColor = theme.colorScheme.primary;
+    final onSurface = theme.colorScheme.onSurface;
 
     // Находим максимум минут для нормализации интенсивности
     final maxMinutes = data.fold<double>(
       0.0,
       (max, d) => d.minutes > max ? d.minutes : max,
     );
+
+    // Рассчитываем статистику
+    final totalMinutes = data.fold<double>(0.0, (sum, d) => sum + d.minutes);
+    final average = data.isEmpty ? 0.0 : totalMinutes / data.length;
+    final bestDay = data.fold<HeatmapDay?>(null, (best, d) {
+      if (best == null || d.minutes > best.minutes) return d;
+      return best;
+    });
+    final daysWithActivity = data.where((d) => d.minutes > 0).length;
+    final regularity = data.isEmpty
+        ? 0.0
+        : daysWithActivity / data.length;
 
     return ZenSurface(
       child: Column(
@@ -518,79 +534,57 @@ class _StatisticsPageState extends State<StatisticsPage>
           Text(
             'Активность за 30 дней',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
+              color: onSurface,
             ),
           ),
           SizedBox(height: zen.spacingUnit * 2),
 
-          // Сетка heatmap (с горизонтальным скроллом при необходимости)
-          _buildHeatmapGridWrapper(theme, data, maxMinutes, primaryColor),
+          // 1. Мини-календарь
+          _buildMiniCalendar(theme, zen, data, maxMinutes, primaryColor),
 
-          SizedBox(height: zen.spacingUnit),
+          SizedBox(height: zen.spacingUnit * 2),
 
-          // Легенда интенсивности
-          Row(
-            children: [
-              const Spacer(),
-              _buildLegendChip(theme, 'Меньше', primaryColor.withValues(alpha: 0.1)),
-              const SizedBox(width: 4),
-              _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.3)),
-              const SizedBox(width: 4),
-              _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.55)),
-              const SizedBox(width: 4),
-              _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.8)),
-              const SizedBox(width: 4),
-              _buildLegendChip(theme, 'Больше', primaryColor),
-              const SizedBox(width: 4),
-            ],
+          // 2. Точечный график
+          _buildDotChart(theme, zen, data, primaryColor),
+
+          SizedBox(height: zen.spacingUnit * 2),
+
+          // 3. Сводка
+          _buildActivitySummary(
+            theme, zen,
+            regularity: regularity,
+            average: average,
+            bestDay: bestDay,
+            daysWithActivity: daysWithActivity,
+            totalDays: data.length,
           ),
         ],
       ),
     );
   }
 
-  /// Оборачивает сетку heatmap в горизонтальный скролл, если дней > 30.
-  Widget _buildHeatmapGridWrapper(
+  /// Мини-календарь — компактная сетка 5×6 (или 6×5) с цветовыми ячейками.
+  ///
+  /// Слева — подписи с датами начала недели (например, «12.04», «19.04»).
+  /// Ячейки окрашены по интенсивности медитации.
+  Widget _buildMiniCalendar(
     ThemeData theme,
+    ZenStyles zen,
     List<HeatmapDay> data,
     double maxMinutes,
     Color primaryColor,
   ) {
-    final grid = _buildHeatmapGrid(theme, data, maxMinutes, primaryColor);
-
-    // Если данных больше 30 дней, включаем горизонтальный скролл
-    if (data.length > 30) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: grid,
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: grid,
-    );
-  }
-
-  /// Строит строки heatmap-сетки.
-  List<Widget> _buildHeatmapGrid(
-    ThemeData theme,
-    List<HeatmapDay> data,
-    double maxMinutes,
-    Color primaryColor,
-  ) {
-    if (data.isEmpty) return [];
+    if (data.isEmpty) return const SizedBox.shrink();
 
     final firstDate = DateTime.tryParse(data.first.date);
-    if (firstDate == null) return [];
+    if (firstDate == null) return const SizedBox.shrink();
 
+    // Группируем данные по неделям
     final List<List<HeatmapDay?>> weeks = [];
     List<HeatmapDay?> currentWeek = [];
 
-    final firstWeekday = firstDate.weekday;
+    // Добавляем пустые ячейки до первого дня недели
+    final firstWeekday = firstDate.weekday; // 1=Пн ... 7=Вс
     for (int i = 1; i < firstWeekday; i++) {
       currentWeek.add(null);
     }
@@ -607,6 +601,7 @@ class _StatisticsPageState extends State<StatisticsPage>
       }
     }
 
+    // Дополняем последнюю неделю
     if (currentWeek.isNotEmpty) {
       while (currentWeek.length < 7) {
         currentWeek.add(null);
@@ -614,91 +609,147 @@ class _StatisticsPageState extends State<StatisticsPage>
       weeks.add(currentWeek);
     }
 
-    // Подписи дней недели
+    // Подписи дней недели (сокращённые)
     const dayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-    return [
-      // Шапка с днями недели
-      Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(
-          children: [
-            const SizedBox(width: 32),
-            ...dayLabels.map((label) {
-              return Expanded(
-                child: Center(
-                  child: Text(
-                    label,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: 11,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Шапка с днями недели
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: [
+              const SizedBox(width: 40), // место для подписи даты
+              ...dayLabels.map((label) {
+                return Expanded(
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-
-      // Строки heatmap
-      ...weeks.asMap().entries.map((entry) {
-        final week = entry.value;
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Row(
-            children: week.map((day) {
-              return Expanded(
-                child: Center(
-                  child: _buildHeatmapCell(day, maxMinutes, primaryColor),
-                ),
-              );
-            }).toList(),
+                );
+              }),
+            ],
           ),
-        );
-      }),
-    ];
+        ),
+
+        // Строки календаря
+        ...weeks.asMap().entries.map((entry) {
+          final week = entry.value;
+
+          // Дата начала недели (первый не-null день в неделе)
+          final weekStartDate = week.firstWhere(
+            (d) => d != null,
+            orElse: () => null,
+          );
+          final weekLabel = weekStartDate != null
+              ? _formatShortDate(weekStartDate.date)
+              : '';
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                // Подпись даты слева
+                SizedBox(
+                  width: 40,
+                  child: Text(
+                    weekLabel,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 9,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                // Ячейки недели
+                ...week.map((day) {
+                  return Expanded(
+                    child: Center(
+                      child: _buildCalendarCell(
+                        theme, day, maxMinutes, primaryColor,
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
   }
 
-  /// Ячейка heatmap (увеличенная до 24x24).
-  Widget _buildHeatmapCell(
+  /// Форматирует ISO-дату в короткий формат «ДД.ММ».
+  String _formatShortDate(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Ячейка мини-календаря (28×28).
+  Widget _buildCalendarCell(
+    ThemeData theme,
     HeatmapDay? day,
     double maxMinutes,
     Color primaryColor,
   ) {
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final isToday = day != null && day.date == todayStr;
+
     if (day == null || day.minutes == 0) {
       return Container(
-        width: 24,
-        height: 24,
+        width: 28,
+        height: 28,
         decoration: BoxDecoration(
-          color: primaryColor.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(4),
+          color: primaryColor.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isToday
+                ? primaryColor.withValues(alpha: 0.5)
+                : primaryColor.withValues(alpha: 0.08),
+            width: isToday ? 2 : 1,
+          ),
         ),
       );
     }
 
     final intensity = maxMinutes > 0
-        ? (day.minutes / maxMinutes).clamp(0.1, 1.0)
-        : 0.1;
+        ? (day.minutes / maxMinutes).clamp(0.15, 1.0)
+        : 0.15;
 
     return Tooltip(
       message: '${day.date}: ${TimeUtils.formatMinutes(day.minutes)}',
       child: Container(
-        width: 24,
-        height: 24,
+        width: 28,
+        height: 28,
         decoration: BoxDecoration(
-          color: primaryColor.withValues(alpha: intensity * 0.85),
-          borderRadius: BorderRadius.circular(4),
+          color: primaryColor.withValues(alpha: intensity * 0.9),
+          borderRadius: BorderRadius.circular(6),
+          border: isToday
+              ? Border.all(
+                  color: primaryColor,
+                  width: 2,
+                )
+              : null,
         ),
         alignment: Alignment.center,
         child: Text(
           '${day.minutes.toInt()}',
           style: TextStyle(
-            fontSize: 8,
-            color: intensity > 0.5
+            fontSize: 9,
+            color: intensity > 0.35
                 ? Colors.white
-                : primaryColor.withValues(alpha: 0.8),
+                : theme.colorScheme.onSurface.withValues(alpha: 0.7),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -706,29 +757,160 @@ class _StatisticsPageState extends State<StatisticsPage>
     );
   }
 
-  /// Чип легенды heatmap.
-  Widget _buildLegendChip(ThemeData theme, String label, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+  /// Точечный график (dot chart) — динамика минут за 30 дней.
+  ///
+  /// Каждая точка — один день. Точки соединены линией.
+  /// Высота графика — 60px, компактно помещается под календарём.
+  Widget _buildDotChart(
+    ThemeData theme,
+    ZenStyles zen,
+    List<HeatmapDay> data,
+    Color primaryColor,
+  ) {
+    if (data.isEmpty) return const SizedBox.shrink();
+
+    final maxMinutes = data.fold<double>(
+      0.0,
+      (max, d) => d.minutes > max ? d.minutes : max,
+    );
+    final chartMaxY = maxMinutes < 5 ? 5.0 : maxMinutes * 1.2;
+
+    // Среднее значение для reference line
+    final total = data.fold<double>(0.0, (sum, d) => sum + d.minutes);
+    final average = total / data.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
+        // Подпись графика
+        Text(
+          'Динамика',
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontSize: 11,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
-        if (label.isNotEmpty) ...[
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 11,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
+        SizedBox(height: zen.spacingUnit),
+        // Контейнер графика
+        SizedBox(
+          height: 60,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final stepX = data.length > 1
+                  ? width / (data.length - 1)
+                  : width;
+
+              // Нормализуем значения по высоте
+              final points = <Offset>[];
+              for (int i = 0; i < data.length; i++) {
+                final x = i * stepX;
+                final normalizedY = chartMaxY > 0
+                    ? (data[i].minutes / chartMaxY)
+                    : 0.0;
+                // Инвертируем Y (0 внизу, max вверху) + отступ 4px
+                final y = 56 - (normalizedY * 52).clamp(0.0, 52.0);
+                points.add(Offset(x, y));
+              }
+
+              // Y позиция средней линии
+              final avgY = chartMaxY > 0
+                  ? 56 - ((average / chartMaxY) * 52).clamp(0.0, 52.0)
+                  : 56.0;
+
+              return CustomPaint(
+                size: Size(width, 60),
+                painter: _DotChartPainter(
+                  points: points,
+                  averageY: avgY,
+                  primaryColor: primaryColor,
+                  surfaceColor: theme.colorScheme.surface,
+                  onSurfaceColor: theme.colorScheme.onSurface,
+                ),
+              );
+            },
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  /// Сводка активности — серия дней, регулярность, среднее, лучший день.
+  Widget _buildActivitySummary(
+    ThemeData theme,
+    ZenStyles zen, {
+    required double regularity,
+    required double average,
+    required HeatmapDay? bestDay,
+    required int daysWithActivity,
+    required int totalDays,
+  }) {
+    return Row(
+      children: [
+        // Регулярность
+        Expanded(
+          child: _buildSummaryItem(
+            theme: theme,
+            icon: Icons.spa_outlined,
+            iconColor: theme.colorScheme.primary,
+            value: '${(regularity * 100).round()}%',
+            label: 'регулярность',
+          ),
+        ),
+        // Среднее
+        Expanded(
+          child: _buildSummaryItem(
+            theme: theme,
+            icon: Icons.timer_outlined,
+            iconColor: Colors.green,
+            value: TimeUtils.formatMinutes(average),
+            label: 'в среднем',
+          ),
+        ),
+        // Лучший день
+        Expanded(
+          child: _buildSummaryItem(
+            theme: theme,
+            icon: Icons.emoji_events_outlined,
+            iconColor: Colors.amber.shade700,
+            value: bestDay != null
+                ? TimeUtils.formatMinutes(bestDay.minutes)
+                : '—',
+            label: 'лучший',
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Элемент сводки: иконка + значение + подпись.
+  Widget _buildSummaryItem({
+    required ThemeData theme,
+    required IconData icon,
+    required Color iconColor,
+    required String value,
+    required String label,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: iconColor.withValues(alpha: 0.7)),
+        SizedBox(height: 4),
+        Text(
+          value,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontSize: 11,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+        ),
       ],
     );
   }
@@ -1243,5 +1425,125 @@ class _SummaryCard extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+// =============================================================================
+// Dot Chart Painter
+// =============================================================================
+
+/// Кастомный painter для точечного графика динамики активности.
+///
+/// Рисует:
+/// - Пунктирную линию среднего значения
+/// - Соединительные линии между точками
+/// - Кружки-точки для каждого дня
+/// - Градиентную заливку под линией
+class _DotChartPainter extends CustomPainter {
+  final List<Offset> points;
+  final double averageY;
+  final Color primaryColor;
+  final Color surfaceColor;
+  final Color onSurfaceColor;
+
+  _DotChartPainter({
+    required this.points,
+    required this.averageY,
+    required this.primaryColor,
+    required this.surfaceColor,
+    required this.onSurfaceColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (points.isEmpty) return;
+
+    final dotPaint = Paint()
+      ..color = primaryColor
+      ..style = PaintingStyle.fill;
+
+    final linePaint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+
+    // 1. Рисуем пунктирную линию среднего значения
+    final dashPaint = Paint()
+      ..color = primaryColor.withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    // Рисуем пунктир вручную
+    const dashWidth = 4.0;
+    const dashSpace = 3.0;
+    double startX = 0;
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, averageY),
+        Offset((startX + dashWidth).clamp(0, size.width), averageY),
+        dashPaint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+
+    // 2. Рисуем градиентную заливку под линией
+    if (points.length >= 2) {
+      final gradientPaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            primaryColor.withValues(alpha: 0.12),
+            primaryColor.withValues(alpha: 0.02),
+          ],
+        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+      final fillPath = Path();
+      fillPath.moveTo(points.first.dx, 56);
+      for (final point in points) {
+        fillPath.lineTo(point.dx, point.dy);
+      }
+      fillPath.lineTo(points.last.dx, 56);
+      fillPath.close();
+
+      canvas.drawPath(fillPath, gradientPaint);
+    }
+
+    // 3. Рисуем соединительные линии
+    if (points.length >= 2) {
+      final linePath = Path();
+      linePath.moveTo(points.first.dx, points.first.dy);
+      for (int i = 1; i < points.length; i++) {
+        linePath.lineTo(points[i].dx, points[i].dy);
+      }
+      canvas.drawPath(linePath, linePaint);
+    }
+
+    // 4. Рисуем точки
+    for (int i = 0; i < points.length; i++) {
+      final point = points[i];
+      final isActive = point.dy < 54; // есть активность (не 0)
+
+      if (isActive) {
+        // Внешний круг (белый)
+        canvas.drawCircle(point, 3.5, Paint()
+          ..color = surfaceColor
+          ..style = PaintingStyle.fill);
+        // Внутренний круг (primary)
+        canvas.drawCircle(point, 2.5, dotPaint);
+      } else {
+        // Маленькая точка для дней без активности
+        canvas.drawCircle(point, 1.5, Paint()
+          ..color = onSurfaceColor.withValues(alpha: 0.15)
+          ..style = PaintingStyle.fill);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DotChartPainter oldDelegate) {
+    return oldDelegate.points != points ||
+        oldDelegate.averageY != averageY;
   }
 }

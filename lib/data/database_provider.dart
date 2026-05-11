@@ -172,7 +172,7 @@ class DatabaseProvider {
           UNION ALL
           SELECT date(date, '+1 day')
           FROM dates
-          WHERE date < date('now', 'localtime')
+          WHERE date <= date('now', 'localtime')
         )
         SELECT
           d.date,
@@ -200,7 +200,7 @@ class DatabaseProvider {
           UNION ALL
           SELECT date(date, '+1 day')
           FROM dates
-          WHERE date < date('now', 'localtime')
+          WHERE date <= date('now', 'localtime')
         )
         SELECT
           d.date,
