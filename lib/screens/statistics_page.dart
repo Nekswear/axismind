@@ -5,7 +5,6 @@ import '../core/theme/zen_theme.dart';
 import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
-import '../domain/analytics_result.dart';
 import '../utils/time_utils.dart';
 import '../widgets/empty_dashboard.dart';
 import '../widgets/error_view.dart';
@@ -15,11 +14,12 @@ import '../widgets/shimmer_loading.dart';
 ///
 /// Компоненты:
 /// - 4 состояния: ShimmerLoading → EmptyDashboard / ErrorView / ActiveDashboard
-/// - Streak/Growth: мини-карточки над графиком
-/// - XP-Bar: шкала опыта под уровнем пользователя
+/// - Hero-секция: градиентная карточка с RankIcon, XP-Bar, Streak
 /// - Summary Cards: карточки с общими минутами и сессиями
+/// - Streak/Growth: мини-карточки над графиком
 /// - Heatmap: календарь активности за последние 30 дней
 /// - Area Chart: график с градиентной заливкой за 7 дней
+/// - Average Metric: блок среднего времени в день
 ///
 /// Типографика: через Theme.of(context).textTheme.
 /// Цвета: строго через Theme.of(context).colorScheme.
@@ -34,16 +34,58 @@ class StatisticsPage extends StatefulWidget {
 /// Состояния загрузки страницы статистики.
 enum _PageState { loading, empty, error, active }
 
-class _StatisticsPageState extends State<StatisticsPage> {
+class _StatisticsPageState extends State<StatisticsPage>
+    with TickerProviderStateMixin {
   AnalyticsRepository? _repository;
   _PageState _pageState = _PageState.loading;
   ExtendedStatisticsDTO? _data;
   String _errorMessage = '';
 
+  /// Контроллеры для staggered-анимации появления блоков.
+  late final List<AnimationController> _animControllers;
+  late final List<Animation<double>> _fadeAnimations;
+  late final List<Animation<Offset>> _slideAnimations;
+
   @override
   void initState() {
     super.initState();
     _loadStatistics();
+    _initAnimations();
+  }
+
+  void _initAnimations() {
+    _animControllers = List.generate(6, (i) {
+      return AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 400),
+      );
+    });
+    _fadeAnimations = _animControllers.map((c) {
+      return CurvedAnimation(parent: c, curve: Curves.easeOut);
+    }).toList();
+    _slideAnimations = _animControllers.map((c) {
+      return Tween<Offset>(
+        begin: const Offset(0, 0.15),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: c, curve: Curves.easeOutCubic));
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    for (final c in _animControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  /// Запускает staggered-анимацию появления блоков.
+  void _startStaggeredAnimation() {
+    for (int i = 0; i < _animControllers.length; i++) {
+      Future.delayed(Duration(milliseconds: 80 * i), () {
+        if (mounted) _animControllers[i].forward();
+      });
+    }
   }
 
   Future<void> _loadStatistics() async {
@@ -74,6 +116,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           _data = dto;
           _pageState = _PageState.active;
         });
+        _startStaggeredAnimation();
       }
     } catch (e) {
       if (!mounted) return;
@@ -99,9 +142,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _data != null
-              ? '${_data!.progression.rank} · Ур. ${_data!.progression.level}'
-              : 'Статистика',
+          'Статистика',
           style: theme.textTheme.titleMedium?.copyWith(
             color: theme.colorScheme.onSurface,
           ),
@@ -141,51 +182,58 @@ class _StatisticsPageState extends State<StatisticsPage> {
               children: [
                 SizedBox(height: zen.spacingUnit),
 
-                // XP-Bar — шкала опыта под уровнем
-                _buildXpBar(theme, zen, dto),
+                // 1. Hero-секция: градиент + RankIcon + XP-Bar + Streak
+                _AnimatedSection(
+                  animation: _fadeAnimations[0],
+                  slideAnimation: _slideAnimations[0],
+                  child: _buildHeroSection(theme, zen, dto),
+                ),
 
                 SizedBox(height: zen.gap(3)),
 
-                // Summary cards
-                _buildSummaryCards(theme, zen, dto),
+                // 2. Summary cards
+                _AnimatedSection(
+                  animation: _fadeAnimations[1],
+                  slideAnimation: _slideAnimations[1],
+                  child: _buildSummaryCards(theme, zen, dto),
+                ),
 
                 SizedBox(height: zen.gap(3)),
 
-                // Streak + Growth мини-карточки
-                _buildStreakGrowthCards(theme, zen, dto),
+                // 3. Streak + Growth мини-карточки
+                _AnimatedSection(
+                  animation: _fadeAnimations[2],
+                  slideAnimation: _slideAnimations[2],
+                  child: _buildStreakGrowthCards(theme, zen, dto),
+                ),
 
                 SizedBox(height: zen.gap(4)),
 
-                // Heatmap — календарь активности
-                _buildHeatmapSection(theme, zen, dto.heatmapData),
+                // 4. Heatmap — календарь активности
+                _AnimatedSection(
+                  animation: _fadeAnimations[3],
+                  slideAnimation: _slideAnimations[3],
+                  child: _buildHeatmapSection(theme, zen, dto.heatmapData),
+                ),
 
                 SizedBox(height: zen.gap(4)),
 
-                // Chart title
-                Text(
-                  'Последние 7 дней',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                  ),
+                // 5. Area Chart
+                _AnimatedSection(
+                  animation: _fadeAnimations[4],
+                  slideAnimation: _slideAnimations[4],
+                  child: _buildChartSection(theme, zen, dto),
                 ),
-                SizedBox(height: zen.gap(2)),
 
-                // Area Chart
-                SizedBox(
-                  height: 220,
-                  child: _buildAreaChart(theme, dto.dailyStats),
-                ),
                 SizedBox(height: zen.gap(3)),
 
-                // Average info
-                Center(
-                  child: Text(
-                    'В среднем ${TimeUtils.formatMinutes(dto.dailyStats.isEmpty ? 0.0 : dto.dailyStats.fold<double>(0.0, (sum, d) => sum + d.minutes) / dto.dailyStats.length)} в день',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
+                // 6. Average metric
+                _AnimatedSection(
+                  animation: _fadeAnimations[5],
+                  slideAnimation: _slideAnimations[5],
+                  child: _buildAverageMetric(theme, zen, dto),
                 ),
+
                 SizedBox(height: zen.gap(5)),
               ],
             ),
@@ -194,123 +242,210 @@ class _StatisticsPageState extends State<StatisticsPage> {
     }
   }
 
-  /// XP-Bar: шкала опыта до следующего уровня.
-  Widget _buildXpBar(ThemeData theme, ZenStyles zen, ExtendedStatisticsDTO dto) {
-    final xp = dto.xpProgress;
-    final primaryColor = theme.colorScheme.primary;
+  // ===========================================================================
+  // Hero-секция
+  // ===========================================================================
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Текст уровня
-        Text(
-          'Ур. ${dto.progression.level}',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        SizedBox(height: zen.spacingUnit + 2),
-
-        // Progress bar
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: xp.progress,
-            minHeight: 8,
-            backgroundColor: primaryColor.withValues(alpha: 0.12),
-            valueColor: AlwaysStoppedAnimation<Color>(
-              primaryColor.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
-        SizedBox(height: zen.spacingUnit - 2),
-
-        // Микро-текст: остаток до следующего уровня
-        Text(
-          'До следующего уровня: ${xp.remainingMinutes} мин',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Карточки Streak и Growth.
-  Widget _buildStreakGrowthCards(
+  /// Hero-секция с градиентом, рангом, XP bar и streak.
+  Widget _buildHeroSection(
     ThemeData theme,
     ZenStyles zen,
     ExtendedStatisticsDTO dto,
   ) {
-    return Row(
+    final progression = dto.progression;
+    final xp = dto.xpProgress;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: zen.focusGradient,
+        borderRadius: BorderRadius.circular(zen.cardRadius),
+      ),
+      padding: EdgeInsets.all(zen.spacingUnit * 3),
+      child: Column(
+        children: [
+          // Ранг + иконка
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RankIcon(level: progression.level, size: 48),
+              SizedBox(width: zen.spacingUnit * 2),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    progression.rank,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Уровень ${progression.level}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          SizedBox(height: zen.gap(3)),
+
+          // XP Progress Bar (анимированный)
+          _buildHeroXpBar(theme, zen, xp),
+
+          SizedBox(height: zen.gap(2)),
+
+          // Streak
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.local_fire_department,
+                color: Colors.orange[300],
+                size: 24,
+              ),
+              SizedBox(width: zen.spacingUnit),
+              Text(
+                '${dto.streak} дней подряд',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// XP Progress Bar с анимированным заполнением (на градиентном фоне).
+  Widget _buildHeroXpBar(ThemeData theme, ZenStyles zen, XpProgress xp) {
+    return Column(
       children: [
-        Expanded(
-          child: _MiniCard(
-            theme: theme,
-            zen: zen,
-            icon: Icons.local_fire_department_rounded,
-            iconColor: Colors.deepOrange,
-            label: 'Серия дней',
-            value: '${dto.streak}',
-            unit: dto.streak == 1 ? 'день' : 'дней',
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: xp.progress),
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) {
+              return LinearProgressIndicator(
+                value: value,
+                minHeight: 12,
+                backgroundColor: Colors.white.withValues(alpha: 0.3),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.white.withValues(alpha: 0.9),
+                ),
+              );
+            },
           ),
         ),
-        SizedBox(width: zen.spacingUnit * 1.5),
-        Expanded(
-          child: _MiniCard(
-            theme: theme,
-            zen: zen,
-            icon: dto.growth != null && dto.growth! >= 0
-                ? Icons.trending_up_rounded
-                : Icons.trending_down_rounded,
-            iconColor: dto.growth != null && dto.growth! >= 0
-                ? Colors.green
-                : theme.colorScheme.error,
-            label: 'Рост за неделю',
-            value: dto.growth != null
-                ? '${(dto.growth! * 100).round()}%'
-                : '—',
-            unit: dto.growth != null
-                ? dto.growth! >= 0
-                    ? 'больше'
-                    : 'меньше'
-                : 'нет данных',
+        SizedBox(height: zen.spacingUnit),
+        Text(
+          'Осталось ${xp.remainingMinutes} мин до следующего уровня',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: 13,
           ),
         ),
       ],
     );
   }
 
-  /// Summary cards row.
+  // ===========================================================================
+  // Summary Cards
+  // ===========================================================================
+
+  /// Summary cards row, обёрнутая в ZenSurface.
   Widget _buildSummaryCards(
     ThemeData theme,
     ZenStyles zen,
     ExtendedStatisticsDTO dto,
   ) {
-    return Row(
-      children: [
-        Expanded(
-          child: _SummaryCard(
-            theme: theme,
-            zen: zen,
-            label: 'Всего минут',
-            value: TimeUtils.formatMinutes(dto.totalMinutes.toDouble()),
-            icon: Icons.timer_outlined,
+    return ZenSurface(
+      child: Row(
+        children: [
+          Expanded(
+            child: _SummaryCard(
+              theme: theme,
+              zen: zen,
+              label: 'Всего минут',
+              value: TimeUtils.formatMinutes(dto.totalMinutes.toDouble()),
+              icon: Icons.timer_outlined,
+            ),
           ),
-        ),
-        SizedBox(width: zen.spacingUnit * 1.5),
-        Expanded(
-          child: _SummaryCard(
-            theme: theme,
-            zen: zen,
-            label: 'Сессий',
-            value: '${dto.sessionCount}',
-            icon: Icons.spa_outlined,
+          SizedBox(width: zen.spacingUnit * 1.5),
+          Expanded(
+            child: _SummaryCard(
+              theme: theme,
+              zen: zen,
+              label: 'Сессий',
+              value: '${dto.sessionCount}',
+              icon: Icons.spa_outlined,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+
+  // ===========================================================================
+  // Streak + Growth mini-cards
+  // ===========================================================================
+
+  /// Карточки Streak и Growth, обёрнутые в ZenSurface.
+  Widget _buildStreakGrowthCards(
+    ThemeData theme,
+    ZenStyles zen,
+    ExtendedStatisticsDTO dto,
+  ) {
+    return ZenSurface(
+      child: Row(
+        children: [
+          Expanded(
+            child: _MiniCard(
+              theme: theme,
+              zen: zen,
+              icon: Icons.local_fire_department_rounded,
+              iconColor: Colors.deepOrange,
+              label: 'Серия дней',
+              value: '${dto.streak}',
+              unit: dto.streak == 1 ? 'день' : 'дней',
+            ),
+          ),
+          SizedBox(width: zen.spacingUnit * 1.5),
+          Expanded(
+            child: _MiniCard(
+              theme: theme,
+              zen: zen,
+              icon: dto.growth != null && dto.growth! >= 0
+                  ? Icons.trending_up_rounded
+                  : Icons.trending_down_rounded,
+              iconColor: dto.growth != null && dto.growth! >= 0
+                  ? Colors.green
+                  : theme.colorScheme.error,
+              label: 'Рост за неделю',
+              value: dto.growth != null
+                  ? '${(dto.growth! * 100).round()}%'
+                  : '—',
+              unit: dto.growth != null
+                  ? dto.growth! >= 0
+                      ? 'больше'
+                      : 'меньше'
+                  : 'нет данных',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // Heatmap
+  // ===========================================================================
 
   /// Секция Heatmap — календарь активности за последние 30 дней.
   Widget _buildHeatmapSection(
@@ -328,61 +463,42 @@ class _StatisticsPageState extends State<StatisticsPage> {
       (max, d) => d.minutes > max ? d.minutes : max,
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Активность за 30 дней',
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.onSurface,
+    return ZenSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Заголовок секции
+          Text(
+            'Активность за 30 дней',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
           ),
-        ),
-        SizedBox(height: zen.spacingUnit * 1.5),
+          SizedBox(height: zen.spacingUnit * 2),
 
-        // Легенда: дни недели
-        Row(
-          children: [
-            const SizedBox(width: 28),
-            ...List.generate(7, (i) {
-              const dayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-              return Expanded(
-                child: Center(
-                  child: Text(
-                    dayLabels[i],
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: 9,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ],
-        ),
-        SizedBox(height: zen.spacingUnit / 2),
+          // Сетка heatmap
+          ..._buildHeatmapGrid(theme, data, maxMinutes, primaryColor),
 
-        // Сетка heatmap
-        ..._buildHeatmapGrid(theme, data, maxMinutes, primaryColor),
+          SizedBox(height: zen.spacingUnit),
 
-        SizedBox(height: zen.spacingUnit),
-
-        // Легенда интенсивности
-        Row(
-          children: [
-            const Spacer(),
-            _buildLegendChip(theme, 'Меньше', primaryColor.withValues(alpha: 0.1)),
-            const SizedBox(width: 4),
-            _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.3)),
-            const SizedBox(width: 4),
-            _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.55)),
-            const SizedBox(width: 4),
-            _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.8)),
-            const SizedBox(width: 4),
-            _buildLegendChip(theme, 'Больше', primaryColor),
-            const SizedBox(width: 4),
-          ],
-        ),
-      ],
+          // Легенда интенсивности
+          Row(
+            children: [
+              const Spacer(),
+              _buildLegendChip(theme, 'Меньше', primaryColor.withValues(alpha: 0.1)),
+              const SizedBox(width: 4),
+              _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.3)),
+              const SizedBox(width: 4),
+              _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.55)),
+              const SizedBox(width: 4),
+              _buildLegendChip(theme, '', primaryColor.withValues(alpha: 0.8)),
+              const SizedBox(width: 4),
+              _buildLegendChip(theme, 'Больше', primaryColor),
+              const SizedBox(width: 4),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -425,38 +541,54 @@ class _StatisticsPageState extends State<StatisticsPage> {
       weeks.add(currentWeek);
     }
 
-    return weeks.asMap().entries.map((entry) {
-      final weekIndex = entry.key;
-      final week = entry.value;
+    // Подписи дней недели
+    const dayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 3),
+    return [
+      // Шапка с днями недели
+      Padding(
+        padding: const EdgeInsets.only(bottom: 6),
         child: Row(
           children: [
-            SizedBox(
-              width: 28,
-              child: Text(
-                'Н${weekIndex + 1}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontSize: 9,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                ),
-              ),
-            ),
-            ...week.map((day) {
+            const SizedBox(width: 32),
+            ...dayLabels.map((label) {
               return Expanded(
                 child: Center(
-                  child: _buildHeatmapCell(day, maxMinutes, primaryColor),
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
                 ),
               );
             }),
           ],
         ),
-      );
-    }).toList();
+      ),
+
+      // Строки heatmap
+      ...weeks.asMap().entries.map((entry) {
+        final week = entry.value;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            children: week.map((day) {
+              return Expanded(
+                child: Center(
+                  child: _buildHeatmapCell(day, maxMinutes, primaryColor),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      }),
+    ];
   }
 
-  /// Ячейка heatmap.
+  /// Ячейка heatmap (увеличенная до 24×24).
   Widget _buildHeatmapCell(
     HeatmapDay? day,
     double maxMinutes,
@@ -464,11 +596,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
   ) {
     if (day == null || day.minutes == 0) {
       return Container(
-        width: 14,
-        height: 14,
+        width: 24,
+        height: 24,
         decoration: BoxDecoration(
           color: primaryColor.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(3),
+          borderRadius: BorderRadius.circular(4),
         ),
       );
     }
@@ -480,11 +612,22 @@ class _StatisticsPageState extends State<StatisticsPage> {
     return Tooltip(
       message: '${day.date}: ${TimeUtils.formatMinutes(day.minutes)}',
       child: Container(
-        width: 14,
-        height: 14,
+        width: 24,
+        height: 24,
         decoration: BoxDecoration(
           color: primaryColor.withValues(alpha: intensity * 0.85),
-          borderRadius: BorderRadius.circular(3),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          '${day.minutes.toInt()}',
+          style: TextStyle(
+            fontSize: 8,
+            color: intensity > 0.5
+                ? Colors.white
+                : primaryColor.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
@@ -496,24 +639,57 @@ class _StatisticsPageState extends State<StatisticsPage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 10,
-          height: 10,
+          width: 12,
+          height: 12,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(3),
           ),
         ),
         if (label.isNotEmpty) ...[
-          const SizedBox(width: 3),
+          const SizedBox(width: 4),
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
-              fontSize: 9,
+              fontSize: 11,
               color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ],
       ],
+    );
+  }
+
+  // ===========================================================================
+  // Chart Section
+  // ===========================================================================
+
+  /// Секция с графиком и заголовком.
+  Widget _buildChartSection(
+    ThemeData theme,
+    ZenStyles zen,
+    ExtendedStatisticsDTO dto,
+  ) {
+    return ZenSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Заголовок
+          Text(
+            'Последние 7 дней',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          SizedBox(height: zen.gap(2)),
+
+          // Area Chart
+          SizedBox(
+            height: 240,
+            child: _buildAreaChart(theme, dto.dailyStats),
+          ),
+        ],
+      ),
     );
   }
 
@@ -529,7 +705,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
       0.0,
       (max, s) => s.minutes > max ? s.minutes : max,
     );
-    final chartMaxY = (maxY < 5 ? 5.0 : maxY) * 1.2;
+    final chartMaxY = (maxY < 5 ? 5.0 : maxY) * 1.3;
+
+    // Среднее значение
+    final average = stats.fold<double>(0.0, (sum, s) => sum + s.minutes) /
+        stats.length;
 
     final peakIndices = <int>{};
     if (maxY > 0) {
@@ -546,11 +726,46 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
     return LineChart(
       LineChartData(
-        gridData: const FlGridData(show: false),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: chartMaxY > 10 ? 5 : 2,
+          getDrawingHorizontalLine: (value) {
+            // Reference line для среднего значения
+            if ((value - average).abs() < 0.5) {
+              return FlLine(
+                color: primaryColor.withValues(alpha: 0.3),
+                strokeWidth: 1.5,
+                dashArray: [6, 4],
+              );
+            }
+            return FlLine(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+              strokeWidth: 1,
+            );
+          },
+        ),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
-          leftTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 32,
+              interval: chartMaxY > 10 ? 5 : 2,
+              getTitlesWidget: (value, meta) {
+                if (value == meta.min) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Text(
+                    '${value.toInt()}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 10,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
           topTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: false),
@@ -651,11 +866,92 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
           ),
         ],
+        // Подпись reference line
+        extraLinesData: ExtraLinesData(
+          horizontalLines: [
+            HorizontalLine(
+              y: average,
+              color: primaryColor.withValues(alpha: 0.4),
+              strokeWidth: 1.5,
+              dashArray: [6, 4],
+              label: HorizontalLineLabel(
+                show: true,
+                alignment: Alignment.topRight,
+                padding: const EdgeInsets.only(right: 4, bottom: 4),
+                style: TextStyle(
+                  color: primaryColor.withValues(alpha: 0.5),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+                labelResolver: (_) =>
+                    'сред. ${TimeUtils.formatMinutes(average)}',
+              ),
+            ),
+          ],
+        ),
       ),
       duration: const Duration(milliseconds: 300),
     );
   }
+
+  // ===========================================================================
+  // Average Metric
+  // ===========================================================================
+
+  /// Блок "В среднем X в день" в виде ZenMetricBlock.
+  Widget _buildAverageMetric(
+    ThemeData theme,
+    ZenStyles zen,
+    ExtendedStatisticsDTO dto,
+  ) {
+    final average = dto.dailyStats.isEmpty
+        ? 0.0
+        : dto.dailyStats.fold<double>(0.0, (sum, d) => sum + d.minutes) /
+            dto.dailyStats.length;
+
+    return Center(
+      child: ZenMetricBlock(
+        value: TimeUtils.formatMinutes(average),
+        label: 'в среднем в день',
+        valueStyle: theme.textTheme.headlineLarge?.copyWith(
+          color: theme.colorScheme.primary,
+        ),
+      ),
+    );
+  }
 }
+
+// =============================================================================
+// Анимированная секция
+// =============================================================================
+
+/// Оборачивает дочерний виджет в staggered-анимацию появления.
+class _AnimatedSection extends StatelessWidget {
+  final Animation<double> animation;
+  final Animation<Offset> slideAnimation;
+  final Widget child;
+
+  const _AnimatedSection({
+    required this.animation,
+    required this.slideAnimation,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: slideAnimation,
+        child: child,
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Мини-карточка
+// =============================================================================
 
 /// Мини-карточка для отображения streak/growth.
 class _MiniCard extends StatelessWidget {
@@ -679,67 +975,64 @@ class _MiniCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(zen.spacingUnit * 2),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(zen.cardRadius * 2 / 3),
-      ),
-      child: Row(
-        children: [
-          // Иконка
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(zen.spacingUnit * 1.5),
-            ),
-            child: Icon(icon, size: 20, color: iconColor),
+    return Row(
+      children: [
+        // Иконка
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(zen.spacingUnit * 1.5),
           ),
-          SizedBox(width: zen.spacingUnit * 1.5),
-          // Текст
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          child: Icon(icon, size: 20, color: iconColor),
+        ),
+        SizedBox(width: zen.spacingUnit * 1.5),
+        // Текст
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+              ),
+              SizedBox(height: zen.spacingUnit / 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    value,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: zen.metricWeight,
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
-                ),
-                SizedBox(height: zen.spacingUnit / 4),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      value,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: zen.metricWeight,
-                        color: theme.colorScheme.onSurface,
+                  SizedBox(width: zen.spacingUnit / 2),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      unit,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
-                    SizedBox(width: zen.spacingUnit / 2),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 2),
-                      child: Text(
-                        unit,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
+
+// =============================================================================
+// Summary Card
+// =============================================================================
 
 /// Карточка summary (всего минут / сессий).
 class _SummaryCard extends StatelessWidget {
@@ -759,37 +1052,30 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(zen.spacingUnit * 2),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(zen.cardRadius * 2 / 3),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            size: 20,
-            color: theme.colorScheme.primary.withValues(alpha: 0.6),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: theme.colorScheme.primary.withValues(alpha: 0.6),
+        ),
+        SizedBox(height: zen.spacingUnit),
+        Text(
+          value,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: zen.metricWeight,
+            color: theme.colorScheme.onSurface,
           ),
-          SizedBox(height: zen.spacingUnit),
-          Text(
-            value,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: zen.metricWeight,
-              color: theme.colorScheme.onSurface,
-            ),
+        ),
+        SizedBox(height: zen.spacingUnit / 4),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
-          SizedBox(height: zen.spacingUnit / 4),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
