@@ -8,22 +8,19 @@ void main() {
   ) async {
     await tester.pumpWidget(const ZenBalanceApp());
 
-    // Проверяем, что заголовок отображается
-    expect(find.text('ZenBalance'), findsOneWidget);
-
-    // Приветствие теперь динамическое — показывается "Загрузка..." или финальный ранг
-    // Проверяем, что хотя бы один из вариантов отображается
-    final greetingFinder = find.text('Приветствую, Новичок осознанности');
-    final loadingFinder = find.text('Загрузка...');
-    expect(
-      greetingFinder.evaluate().isNotEmpty ||
-          loadingFinder.evaluate().isNotEmpty,
-      isTrue,
-      reason:
-          'Ожидается либо "Загрузка...", либо "Приветствую, {ранг}" после загрузки',
-    );
-
-    // Проверяем кнопку
+    // В состоянии загрузки отображается скелетон (ранг ещё не загружен)
+    // Проверяем, что кнопка "Начать практику" присутствует
     expect(find.text('Начать практику'), findsOneWidget);
+
+    // Проверяем, что пресеты длительности отображаются
+    expect(find.text('Выбери длительность:'), findsOneWidget);
+    expect(find.text('5 мин'), findsOneWidget);
+    expect(find.text('10 мин'), findsOneWidget);
+    expect(find.text('15 мин'), findsOneWidget);
+    expect(find.text('20 мин'), findsOneWidget);
+
+    // Проверяем вторичные кнопки
+    expect(find.text('Статистика'), findsOneWidget);
+    expect(find.text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'), findsOneWidget);
   });
 }

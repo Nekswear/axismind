@@ -119,7 +119,7 @@ class AnalyticsRepository {
     return ProgressCalculator.getRank(level);
   }
 
-  /// Загружает уровень и ранг пользователя.
+  /// Загружает уровень, ранг и streak пользователя.
   ///
   /// Возвращает [UserProgression] с актуальными данными.
   Future<UserProgression> getUserProgression() async {
@@ -127,7 +127,14 @@ class AnalyticsRepository {
       final minutes = await getTotalMinutes();
       final level = ProgressCalculator.calculateLevel(minutes);
       final rank = ProgressCalculator.getRank(level);
-      return UserProgression(minutes: minutes, level: level, rank: rank);
+      final dates = await _dbProvider.getDistinctSessionDates();
+      final streak = ProgressCalculator.calculateStreak(dates);
+      return UserProgression(
+        minutes: minutes,
+        level: level,
+        rank: rank,
+        streak: streak,
+      );
     } catch (e) {
       throw AnalyticsException('Не удалось загрузить прогрессию пользователя: $e');
     }
@@ -375,7 +382,7 @@ class StaleRequestException implements Exception {
   String toString() => 'Запрос устарел — был заменён более новым';
 }
 
-/// Модель прогрессии пользователя: минуты, уровень, ранг.
+/// Модель прогрессии пользователя: минуты, уровень, ранг, серия дней.
 class UserProgression {
   /// Общее количество минут медитации.
   final int minutes;
@@ -386,10 +393,14 @@ class UserProgression {
   /// Название ранга.
   final String rank;
 
+  /// Количество дней подряд с медитацией (streak).
+  final int streak;
+
   const UserProgression({
     required this.minutes,
     required this.level,
     required this.rank,
+    this.streak = 0,
   });
 }
 

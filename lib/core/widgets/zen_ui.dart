@@ -7,8 +7,10 @@ import '../theme/zen_theme.dart';
 // =============================================================================
 //
 // Содержит примитивные переиспользуемые виджеты:
-//   - ZenSurface  — универсальный контейнер
-//   - ZenMetricBlock — блок "число + подпись"
+//   - ZenSurface       — универсальный контейнер
+//   - ZenMetricBlock   — блок "число + подпись"
+//   - RankIcon         — иконка ранга по уровню
+//   - DurationPreset   — карточка выбора длительности
 //
 // Все виджеты получают токены через ZenStyles, а не хардкод.
 // =============================================================================
@@ -119,6 +121,155 @@ class ZenMetricBlock extends StatelessWidget {
           maxLines: 1,
         ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// RankIcon
+// ---------------------------------------------------------------------------
+
+/// Иконка ранга, меняющаяся в зависимости от уровня пользователя.
+///
+/// Маппинг:
+///   0      → 🌱 (Новичок осознанности)
+///   1–2    → 🌿 (Искатель спокойствия)
+///   3–5    → 🪷 (Хранитель тишины)
+///   6+     → 🌸 (Мастер баланса)
+class RankIcon extends StatelessWidget {
+  /// Текущий уровень пользователя.
+  final int level;
+
+  /// Размер иконки (по умолчанию 48).
+  final double size;
+
+  const RankIcon({super.key, required this.level, this.size = 48});
+
+  @override
+  Widget build(BuildContext context) {
+    final emoji = _emojiForLevel(level);
+    return Text(
+      emoji,
+      style: TextStyle(fontSize: size),
+    );
+  }
+
+  String _emojiForLevel(int level) {
+    if (level >= 6) return '🌸';
+    if (level >= 3) return '🪷';
+    if (level >= 1) return '🌿';
+    return '🌱';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DurationPreset
+// ---------------------------------------------------------------------------
+
+/// Карточка-пресет для выбора длительности медитации.
+///
+/// Отображает иконку, длительность, название и подпись.
+/// В выбранном состоянии — обводка primary цветом и тень.
+class DurationPreset extends StatelessWidget {
+  /// Длительность в минутах.
+  final int minutes;
+
+  /// Иконка пресета.
+  final IconData icon;
+
+  /// Короткое название (например, "Быстрая").
+  final String label;
+
+  /// Подпись (например, "Перерыв").
+  final String subtitle;
+
+  /// Выбран ли данный пресет.
+  final bool isSelected;
+
+  /// Коллбэк при нажатии.
+  final VoidCallback onTap;
+
+  const DurationPreset({
+    super.key,
+    required this.minutes,
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: zen.animationDuration,
+        curve: zen.animationCurve,
+        width: 80,
+        padding: EdgeInsets.symmetric(
+          vertical: zen.spacingUnit * 1.5,
+          horizontal: zen.spacingUnit,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? primaryColor.withValues(alpha: 0.1)
+              : theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(zen.cardRadius / 2),
+          border: Border.all(
+            color: isSelected ? primaryColor : Colors.grey.withValues(alpha: 0.3),
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: primaryColor.withValues(alpha: 0.2),
+                    blurRadius: zen.elevationLevels[2],
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: zen.elevationLevels[1],
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: isSelected ? primaryColor : Colors.grey[600]),
+            SizedBox(height: zen.spacingUnit),
+            Text(
+              '$minutes мин',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                color: isSelected ? primaryColor : null,
+              ),
+            ),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? primaryColor : Colors.grey[600],
+              ),
+            ),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                color: Colors.grey[400],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/zen_theme.dart';
+import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
 import '../engine/timer_controller.dart';
@@ -15,7 +16,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   /// Текущая выбранная длительность медитации в минутах.
   double _durationMinutes = minDuration.toDouble();
 
@@ -25,22 +27,53 @@ class _HomeScreenState extends State<HomeScreen> {
     level: 0,
     rank: 'Новичок осознанности',
   );
+  XpProgress _xpProgress = const XpProgress(
+    currentXp: 0,
+    nextLevelXp: 100,
+    progress: 0.0,
+    remainingMinutes: 0,
+  );
   bool _loading = true;
+
+  /// Анимация пульсации для CTA-кнопки.
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     _loadProgression();
+
+    // Пульсация кнопки "Начать практику"
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProgression() async {
     try {
       final db = await DatabaseProvider.instance();
       _repository = AnalyticsRepository(db);
-      final progression = await _repository!.getUserProgression();
+
+      final results = await Future.wait([
+        _repository!.getUserProgression(),
+        _repository!.getXpProgress(),
+      ]);
+
       if (mounted) {
         setState(() {
-          _progression = progression;
+          _progression = results[0] as UserProgression;
+          _xpProgress = results[1] as XpProgress;
           _loading = false;
         });
       }
@@ -70,7 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (_) => const StatisticsPage()),
     );
-    // После возврата со статистики — обновляем прогрессию
     _loadProgression();
   }
 
@@ -87,110 +119,300 @@ class _HomeScreenState extends State<HomeScreen> {
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
 
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 4), // 32px
-          child: Column(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxHeight < 600;
+
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 4),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // =====================================================
+                      // Hero-секция: ранг + XP + streak
+                      // =====================================================
+                      if (_loading)
+                        _buildLoadingState(zen)
+                      else
+                        _buildHeroSection(theme, zen, isCompact),
+
+                      SizedBox(height: zen.gap(5)), // 40px
+
+                      // =====================================================
+                      // Action-секция: пресеты + CTA
+                      // =====================================================
+                      _buildDurationPresets(theme, zen),
+
+                      SizedBox(height: zen.gap(3)), // 24px
+
+                      // Кнопка "Начать практику" с пульсацией
+                      AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _pulseAnimation.value,
+                            child: child,
+                          );
+                        },
+                        child: ElevatedButton(
+                          onPressed: _navigateToTimer,
+                          child: const Text('Начать практику'),
+                        ),
+                      ),
+
+                      SizedBox(height: zen.gap(2)), // 16px
+
+                      // Кнопка "Статистика"
+                      TextButton.icon(
+                        onPressed: _navigateToStatistics,
+                        icon: Icon(
+                          Icons.bar_chart_outlined,
+                          size: 18,
+                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                        ),
+                        label: Text(
+                          'Статистика',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: zen.gap(2)), // 16px
+
+                      // Кнопка "Открыть путь к ясности"
+                      OutlinedButton(
+                        onPressed: _navigateToGuide,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF0A192F),
+                          side: const BorderSide(color: Color(0xFFC5A059)),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                          textStyle: const TextStyle(
+                            fontFamily: 'Manrope',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                        child: const Text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'),
+                      ),
+
+                      SizedBox(height: zen.gap(4)), // 32px
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Состояние загрузки — Shimmer-подобный скелетон.
+  Widget _buildLoadingState(ZenStyles zen) {
+    return ZenSurface(
+      padding: EdgeInsets.all(zen.spacingUnit * 3),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          SizedBox(height: zen.spacingUnit * 2),
+          Container(
+            width: 200,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          SizedBox(height: zen.spacingUnit),
+          Container(
+            width: 140,
+            height: 16,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Hero-секция с градиентом, рангом, XP bar и streak.
+  Widget _buildHeroSection(ThemeData theme, ZenStyles zen, bool isCompact) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: zen.focusGradient,
+        borderRadius: BorderRadius.circular(zen.cardRadius),
+      ),
+      padding: EdgeInsets.all(zen.spacingUnit * 3),
+      child: Column(
+        children: [
+          // Ранг + иконка
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Заголовок "ZenBalance"
-              Text('ZenBalance', style: theme.textTheme.headlineLarge),
-
-              SizedBox(height: zen.gap(5)), // 40px
-
-              // Приветствие с динамическим рангом
-              Text(
-                _loading
-                    ? 'Загрузка...'
-                    : 'Приветствую, ${_progression.rank}',
-                style: theme.textTheme.headlineMedium,
-              ),
-
-              SizedBox(height: zen.spacingUnit), // 8px
-
-              // Статус уровня
-              Text(
-                _loading
-                    ? ''
-                    : 'Уровень ${_progression.level} · ${_progression.minutes} мин',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-
-              SizedBox(height: zen.gap(6)), // 48px
-
-              // Выбор длительности медитации
-              Text(
-                'Длительность: ${_durationMinutes.toInt()} мин',
-                style: theme.textTheme.bodyLarge,
-              ),
-
-              SizedBox(height: zen.spacingUnit), // 8px
-
-              Slider(
-                value: _durationMinutes,
-                min: minDuration.toDouble(),
-                max: maxDuration.toDouble(),
-                divisions: maxDuration - minDuration,
-                label: '${_durationMinutes.toInt()} мин',
-                onChanged: (value) {
-                  setState(() {
-                    _durationMinutes = value;
-                  });
-                },
-              ),
-
-              SizedBox(height: zen.gap(3)), // 24px
-
-              // Кнопка "Начать практику"
-              ElevatedButton(
-                onPressed: _navigateToTimer,
-                child: const Text('Начать практику'),
-              ),
-
-              SizedBox(height: zen.gap(2)), // 16px
-
-              // Кнопка "Статистика"
-              TextButton.icon(
-                onPressed: _navigateToStatistics,
-                icon: Icon(
-                  Icons.bar_chart_outlined,
-                  size: 18,
-                  color: theme.colorScheme.primary.withValues(alpha: 0.7),
-                ),
-                label: Text(
-                  'Статистика',
-                  style: TextStyle(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.7),
+              RankIcon(level: _progression.level, size: isCompact ? 36 : 48),
+              SizedBox(width: zen.spacingUnit * 2),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _progression.rank,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                      fontSize: isCompact ? 18 : 22,
+                    ),
                   ),
-                ),
-              ),
-
-              SizedBox(height: zen.gap(2)), // 16px
-
-              // Кнопка "Открыть путь к ясности" (MeditationGuide)
-              OutlinedButton(
-                onPressed: _navigateToGuide,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF0A192F),
-                  side: const BorderSide(color: Color(0xFFC5A059)),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  textStyle: const TextStyle(
-                    fontFamily: 'Manrope',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    letterSpacing: 2.0,
+                  Text(
+                    'Уровень ${_progression.level}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                   ),
-                ),
-                child: const Text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'),
+                ],
               ),
-
-              SizedBox(height: zen.gap(4)), // 32px
             ],
           ),
-        ),
+
+          if (!isCompact) ...[
+            SizedBox(height: zen.gap(3)), // 24px
+
+            // XP Progress Bar
+            _buildXpBar(theme, zen),
+
+            SizedBox(height: zen.gap(2)), // 16px
+
+            // Streak
+            _buildStreakRow(theme, zen),
+          ],
+        ],
       ),
+    );
+  }
+
+  /// XP Progress Bar с анимированным заполнением.
+  Widget _buildXpBar(ThemeData theme, ZenStyles zen) {
+    return Column(
+      children: [
+        // Шкала прогресса
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: _xpProgress.progress),
+            duration: const Duration(milliseconds: 1000),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) {
+              return LinearProgressIndicator(
+                value: value,
+                minHeight: 12,
+                backgroundColor: Colors.white.withValues(alpha: 0.3),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Colors.white.withValues(alpha: 0.9),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: zen.spacingUnit),
+        // Текст прогресса
+        Text(
+          'Осталось ${_xpProgress.remainingMinutes} мин до следующего уровня',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Строка с streak (серия дней).
+  Widget _buildStreakRow(ThemeData theme, ZenStyles zen) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.local_fire_department,
+          color: Colors.orange[300],
+          size: 24,
+        ),
+        SizedBox(width: zen.spacingUnit),
+        Text(
+          '${_progression.streak} дней подряд',
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Пресеты длительности вместо Slider.
+  Widget _buildDurationPresets(ThemeData theme, ZenStyles zen) {
+    return Column(
+      children: [
+        Text(
+          'Выбери длительность:',
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
+        SizedBox(height: zen.spacingUnit * 2),
+        Wrap(
+          spacing: zen.spacingUnit * 1.5,
+          runSpacing: zen.spacingUnit * 1.5,
+          alignment: WrapAlignment.center,
+          children: [
+            DurationPreset(
+              minutes: 5,
+              icon: Icons.coffee_outlined,
+              label: 'Быстрая',
+              subtitle: 'Перерыв',
+              isSelected: _durationMinutes == 5,
+              onTap: () => setState(() => _durationMinutes = 5),
+            ),
+            DurationPreset(
+              minutes: 10,
+              icon: Icons.self_improvement,
+              label: 'Стандарт',
+              subtitle: 'Ежедневная',
+              isSelected: _durationMinutes == 10,
+              onTap: () => setState(() => _durationMinutes = 10),
+            ),
+            DurationPreset(
+              minutes: 15,
+              icon: Icons.water_drop_outlined,
+              label: 'Глубокая',
+              subtitle: 'Вечерняя',
+              isSelected: _durationMinutes == 15,
+              onTap: () => setState(() => _durationMinutes = 15),
+            ),
+            DurationPreset(
+              minutes: 20,
+              icon: Icons.auto_awesome_outlined,
+              label: 'Мастер',
+              subtitle: 'Выходная',
+              isSelected: _durationMinutes == 20,
+              onTap: () => setState(() => _durationMinutes = 20),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
