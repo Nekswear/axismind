@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/zen_theme.dart';
 import '../data/database_provider.dart';
 import '../data/analytics_repository.dart';
+import '../engine/gong_service.dart';
 import '../engine/timer_controller.dart';
 import '../widgets/level_up_dialog.dart';
 
@@ -29,14 +30,19 @@ class TimerPage extends StatefulWidget {
 
 class _TimerPageState extends State<TimerPage> {
   late final TimerController _controller;
+  late final GongService _gongService;
   AnalyticsRepository? _repository;
   bool _sessionSaved = false;
 
   @override
   void initState() {
     super.initState();
+    _gongService = GongService();
     _controller = TimerController(durationInMinutes: widget.durationInMinutes);
     _controller.start();
+
+    // Звон гонга в начале сессии
+    _gongService.playStartGong();
 
     // Listen for timer completion to auto-save session
     _controller.remainingSeconds.addListener(_onTimerTick);
@@ -48,6 +54,7 @@ class _TimerPageState extends State<TimerPage> {
     _controller.remainingSeconds.removeListener(_onTimerTick);
     // Строгая очистка ресурсов: отмена Timer и удаление слушателей
     _controller.dispose();
+    _gongService.dispose();
     super.dispose();
   }
 
@@ -59,6 +66,8 @@ class _TimerPageState extends State<TimerPage> {
     );
     if (_controller.isFinished && !_sessionSaved) {
       _sessionSaved = true;
+      // Звон гонга в конце сессии
+      _gongService.playEndGong();
       _saveSession();
     }
   }
@@ -156,54 +165,239 @@ class _TimerPageState extends State<TimerPage> {
         }
       },
       child: Scaffold(
-        body: Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 4), // 32px
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: zen.focusGradient,
+          ),
+          child: SafeArea(
+            child: Stack(
               children: [
-                // Отображение таймера — подписан на ValueNotifier<int>
-                // Перерисовывается только этот текст, а не весь экран
-                ValueListenableBuilder<int>(
-                  valueListenable: _controller.remainingSeconds,
-                  builder: (context, seconds, _) {
-                    return Text(
-                      _formatTime(seconds),
-                      // Таймер использует displayLarge из ZenTheme (36px, w900)
-                      // Для медитативного эффекта увеличиваем размер через copyWith
-                      style: theme.textTheme.displayLarge?.copyWith(
-                        fontSize: 72,
-                        fontWeight: FontWeight.w200,
-                        letterSpacing: 4,
-                      ),
-                    );
-                  },
-                ),
-
-                SizedBox(height: zen.gap(6)), // 48px
-
-                // Кнопка "Отмена" — визуально менее яркая (UX-тишина)
-                TextButton(
-                  onPressed: () {
-                    _controller.stop();
-                    Navigator.of(context).pop();
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: theme.colorScheme.onSurface.withValues(
-                      alpha: 0.35,
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
+                // === Кнопка закрытия ✕ в правом верхнем углу ===
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    iconSize: 28,
+                    onPressed: () {
+                      _controller.stop();
+                      Navigator.of(context).pop();
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
-                  child: const Text('Отмена'),
+                ),
+
+                // === Центральный контент ===
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 4), // 32px
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // === Карточка таймера ===
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 40,
+                            horizontal: 32,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(zen.cardRadius),
+                          ),
+                          child: Column(
+                            children: [
+                              // Время
+                              ValueListenableBuilder<int>(
+                                valueListenable: _controller.remainingSeconds,
+                                builder: (context, seconds, _) {
+                                  return Text(
+                                    _formatTime(seconds),
+                                    style: theme.textTheme.displayLarge?.copyWith(
+                                      fontSize: 72,
+                                      fontWeight: FontWeight.w200,
+                                      letterSpacing: 4,
+                                      color: Colors.white,
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              SizedBox(height: zen.gap(3)), // 24px
+
+                              // Прогресс-бар
+                              ValueListenableBuilder<int>(
+                                valueListenable: _controller.remainingSeconds,
+                                builder: (context, seconds, _) {
+                                  final progress = _controller.totalSeconds > 0
+                                      ? seconds / _controller.totalSeconds
+                                      : 0.0;
+                                  final elapsed = _controller.totalSeconds - seconds;
+                                  return Column(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: LinearProgressIndicator(
+                                          value: progress,
+                                          minHeight: 4,
+                                          backgroundColor:
+                                              Colors.white.withValues(alpha: 0.15),
+                                          valueColor: const AlwaysStoppedAnimation<Color>(
+                                            Color(0xFFC5A059),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '${_formatTime(elapsed)} / ${_formatTime(_controller.totalSeconds)}',
+                                        style: TextStyle(
+                                          fontFamily: 'Manrope',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w400,
+                                          letterSpacing: 1,
+                                          color: Colors.white.withValues(alpha: 0.4),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: zen.gap(5)), // 40px
+
+                        // Напоминание о позе и взгляде
+                        Text(
+                          'Спина прямая\nВзгляд вниз 45°\nФокус размыт',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.50),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 0.5,
+                            height: 1.8,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        SizedBox(height: zen.gap(5)), // 40px
+
+                        // === Кнопки управления: Пауза + Стоп ===
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Кнопка Пауза / Продолжить
+                            ValueListenableBuilder<int>(
+                              valueListenable: _controller.remainingSeconds,
+                              builder: (context, seconds, _) {
+                                final isRunning = _controller.isRunning;
+                                return _TimerControlButton(
+                                  icon: isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                  label: isRunning ? 'ПАУЗА' : 'ПРОДОЛЖИТЬ',
+                                  onPressed: () {
+                                    if (isRunning) {
+                                      _controller.stop();
+                                    } else {
+                                      _controller.start();
+                                    }
+                                    // Триггерим перерисовку через setState,
+                                    // так как isRunning не ValueNotifier
+                                    setState(() {});
+                                  },
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            // Кнопка Стоп
+                            _TimerControlButton(
+                              icon: Icons.stop_rounded,
+                              label: 'СТОП',
+                              isOutlined: true,
+                              onPressed: () {
+                                _controller.stop();
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Кнопка управления таймером (Пауза/Продолжить/Стоп).
+class _TimerControlButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+  final bool isOutlined;
+
+  const _TimerControlButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.isOutlined = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: isOutlined
+          ? OutlinedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: 20),
+              label: Text(label),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white.withValues(alpha: 0.6),
+                side: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.25),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                textStyle: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            )
+          : ElevatedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: 20),
+              label: Text(label),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC5A059),
+                foregroundColor: const Color(0xFF0A192F),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                elevation: 0,
+                textStyle: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
     );
   }
 }

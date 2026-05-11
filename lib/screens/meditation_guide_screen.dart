@@ -21,6 +21,7 @@
 import 'package:flutter/material.dart';
 
 import '../engine/breath_counter.dart';
+import 'statistics_page.dart';
 
 // =============================================================================
 // 1. ДИЗАЙН-ТОКЕНЫ ЭКРАНА (изолированная палитра)
@@ -38,12 +39,12 @@ class _GuideColors {
   static const Color navyDivider = Color(0x1A0A192F); // navy с 10% opacity
 
   // Цвета таблицы диагностики
-  static const Color problemBg = Color(0xFFFFF5F5);
-  static const Color problemText = Color(0xFF9B2C2C);
-  static const Color logicBg = Color(0xFFEBF8FF);
-  static const Color logicText = Color(0xFF2C5282);
-  static const Color actionBg = Color(0xFFF0FFF4);
-  static const Color actionText = Color(0xFF276749);
+  static const Color problemBg = Color(0xFFFEE2E2);
+  static const Color problemText = Color(0xFF991B1B);
+  static const Color logicBg = Color(0xFFDBEAFE);
+  static const Color logicText = Color(0xFF1E40AF);
+  static const Color actionBg = Color(0xFFD1FAE5);
+  static const Color actionText = Color(0xFF065F46);
 }
 
 // =============================================================================
@@ -211,22 +212,60 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
             Container(height: 1, color: _GuideColors.navyDivider),
             const SizedBox(height: 40),
 
-            // Описание алгоритма
-            RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  fontFamily: 'Manrope',
-                  fontSize: 18,
-                  height: 1.5,
-                  color: _GuideColors.navy,
-                ),
+            // Шаг 1: Посадка
+            _buildInstructionStep(
+              icon: Icons.airline_seat_legroom_normal,
+              title: 'ПОСАДКА',
+              description:
+                  'Сядьте на край стула или в дзадзен. Спина прямая, но без напряжения. '
+                  'Плечи расслаблены, руки в мудре (овальный замок).',
+            ),
+            const SizedBox(height: 20),
+
+            // Шаг 2: Взгляд
+            _buildInstructionStep(
+              icon: Icons.remove_red_eye_outlined,
+              title: 'ВЗГЛЯД',
+              description:
+                  'Глаза приоткрыты, взгляд направлен вниз под углом ~45° '
+                  'на пол перед собой (1–1.5 метра). Не закрывайте глаза — '
+                  'это уводит в сонливость и грёзы.',
+            ),
+            const SizedBox(height: 20),
+
+            // Шаг 3: Фокус
+            _buildInstructionStep(
+              icon: Icons.blur_on_outlined,
+              title: 'ФОКУС',
+              description:
+                  'Размойте зрение — не всматривайтесь в текстуру пола, '
+                  'не фиксируйтесь на точках. Используйте периферическое зрение. '
+                  'Вы смотрите, но не видите деталей.',
+            ),
+            const SizedBox(height: 24),
+
+            // Шаг 4: Алгоритм
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: _GuideColors.navy,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
                 children: [
-                  const TextSpan(
-                    text: 'Алгоритм: ',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  const TextSpan(
-                    text: 'Считайте каждый выдох. Дойдя до 10, начните обратный отсчет до 1. Если мысль прервала счёт — вернитесь к единице.',
+                  const Icon(Icons.repeat, color: _GuideColors.gold, size: 24),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      'Считайте каждый выдох. Дойдя до 10, начните обратный отсчёт до 1. '
+                      'Если мысль прервала счёт — вернитесь к единице.',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 16,
+                        height: 1.5,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -315,6 +354,55 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Строит шаг инструкции с иконкой, заголовком и описанием.
+  Widget _buildInstructionStep({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: _GuideColors.goldLight,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 24, color: _GuideColors.gold),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  letterSpacing: 2,
+                  color: _GuideColors.gold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                description,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 16,
+                  height: 1.5,
+                  color: _GuideColors.navy,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -437,7 +525,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
                 ),
                 _buildZazenCard(
                   title: 'Взгляд',
-                  description: 'Глаза приоткрыты. Вы не уходите в мир грез, вы остаетесь здесь и сейчас.',
+                  description: 'Глаза приоткрыты, взгляд под 45° вниз, фокус размыт. Вы не уходите в мир грёз, вы остаётесь здесь и сейчас.',
                   borderColor: _GuideColors.navy,
                 ),
                 _buildZazenCard(
@@ -600,7 +688,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   Widget _tableCellSmall(String text, Color bg, Color fg) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(12),
@@ -609,8 +697,9 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
         text,
         style: TextStyle(
           fontFamily: 'Manrope',
-          fontSize: 14,
-          height: 1.4,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          height: 1.5,
           color: fg,
         ),
       ),
@@ -664,7 +753,11 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
                   label: 'УЗНАТЬ БОЛЬШЕ',
                   isOutlined: true,
                   onPressed: () {
-                    // Заглушка — можно добавить URL позже
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const StatisticsPage(),
+                      ),
+                    );
                   },
                 ),
                 _buildFinalButton(
