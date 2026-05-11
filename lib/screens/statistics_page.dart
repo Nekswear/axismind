@@ -34,12 +34,16 @@ class StatisticsPage extends StatefulWidget {
 /// Состояния загрузки страницы статистики.
 enum _PageState { loading, empty, error, active }
 
+/// Период отображения графика.
+enum _ChartPeriod { days7, days14, days30 }
+
 class _StatisticsPageState extends State<StatisticsPage>
     with TickerProviderStateMixin {
   AnalyticsRepository? _repository;
   _PageState _pageState = _PageState.loading;
   ExtendedStatisticsDTO? _data;
   String _errorMessage = '';
+  _ChartPeriod _selectedPeriod = _ChartPeriod.days7;
 
   /// Контроллеры для staggered-анимации появления блоков.
   late final List<AnimationController> _animControllers;
@@ -88,6 +92,14 @@ class _StatisticsPageState extends State<StatisticsPage>
     }
   }
 
+  int get _chartDays => switch (_selectedPeriod) {
+        _ChartPeriod.days7 => 7,
+        _ChartPeriod.days14 => 14,
+        _ChartPeriod.days30 => 30,
+      };
+
+  /// Полная загрузка всей статистики (init, pull-to-refresh, retry).
+  /// Показывает ShimmerLoading и сбрасывает скролл.
   Future<void> _loadStatistics() async {
     setState(() => _pageState = _PageState.loading);
 
@@ -95,12 +107,15 @@ class _StatisticsPageState extends State<StatisticsPage>
       final db = await DatabaseProvider.instance();
       _repository = AnalyticsRepository(db);
 
-      // Сегодняшняя дата и 7 дней назад
       final now = DateTime.now();
-      final start = DateTime(now.year, now.month, now.day - 6);
+      final days = _chartDays;
+      final start = DateTime(now.year, now.month, now.day - (days - 1));
       final range = DateRange(start: start, end: now);
 
-      final result = await _repository!.fetchStatistics(range);
+      final result = await _repository!.fetchStatistics(
+        range,
+        chartDays: days,
+      );
 
       if (!mounted) return;
 
@@ -121,7 +136,6 @@ class _StatisticsPageState extends State<StatisticsPage>
     } catch (e) {
       if (!mounted) return;
 
-      // StaleRequest — не показываем ошибку, просто ждём новый запрос
       if (e is StaleRequestException) return;
 
       setState(() {
@@ -131,6 +145,36 @@ class _StatisticsPageState extends State<StatisticsPage>
         );
         _pageState = _PageState.error;
       });
+    }
+  }
+
+  /// Лёгкое обновление только данных графика при смене периода.
+  /// Не сбрасывает _pageState и не трогает скролл.
+  Future<void> _reloadChartData() async {
+    if (_repository == null) return;
+
+    try {
+      final now = DateTime.now();
+      final days = _chartDays;
+      final start = DateTime(now.year, now.month, now.day - (days - 1));
+      final range = DateRange(start: start, end: now);
+
+      final result = await _repository!.fetchStatistics(
+        range,
+        chartDays: days,
+      );
+
+      if (!mounted) return;
+
+      final dto = result.data;
+
+      setState(() {
+        _data = dto;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      if (e is StaleRequestException) return;
+      debugPrint('Ошибка обновления графика: $e');
     }
   }
 
@@ -427,7 +471,7 @@ class _StatisticsPageState extends State<StatisticsPage>
               iconColor: dto.growth != null && dto.growth! >= 0
                   ? Colors.green
                   : theme.colorScheme.error,
-              label: 'Рост за неделю',
+              label: 'Рост за $_chartDays дней',
               value: dto.growth != null
                   ? '${(dto.growth! * 100).round()}%'
                   : '—',
@@ -448,6 +492,9 @@ class _StatisticsPageState extends State<StatisticsPage>
   // ===========================================================================
 
   /// Секция Heatmap — календарь активности за последние 30 дней.
+  ///
+  /// Если дней больше 30, сетка heatmap помещается в горизонтальный
+  /// SingleChildScrollView, чтобы не сжимать ячейки.
   Widget _buildHeatmapSection(
     ThemeData theme,
     ZenStyles zen,
@@ -476,8 +523,8 @@ class _StatisticsPageState extends State<StatisticsPage>
           ),
           SizedBox(height: zen.spacingUnit * 2),
 
-          // Сетка heatmap
-          ..._buildHeatmapGrid(theme, data, maxMinutes, primaryColor),
+          // Сетка heatmap (с горизонтальным скроллом при необходимости)
+          _buildHeatmapGridWrapper(theme, data, maxMinutes, primaryColor),
 
           SizedBox(height: zen.spacingUnit),
 
@@ -499,6 +546,32 @@ class _StatisticsPageState extends State<StatisticsPage>
           ),
         ],
       ),
+    );
+  }
+
+  /// Оборачивает сетку heatmap в горизонтальный скролл, если дней > 30.
+  Widget _buildHeatmapGridWrapper(
+    ThemeData theme,
+    List<HeatmapDay> data,
+    double maxMinutes,
+    Color primaryColor,
+  ) {
+    final grid = _buildHeatmapGrid(theme, data, maxMinutes, primaryColor);
+
+    // Если данных больше 30 дней, включаем горизонтальный скролл
+    if (data.length > 30) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: grid,
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: grid,
     );
   }
 
@@ -588,7 +661,7 @@ class _StatisticsPageState extends State<StatisticsPage>
     ];
   }
 
-  /// Ячейка heatmap (увеличенная до 24×24).
+  /// Ячейка heatmap (увеличенная до 24x24).
   Widget _buildHeatmapCell(
     HeatmapDay? day,
     double maxMinutes,
@@ -674,12 +747,18 @@ class _StatisticsPageState extends State<StatisticsPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Заголовок
-          Text(
-            'Последние 7 дней',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
+          // Заголовок + переключатель периода
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Последние $_chartDays дней',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              _buildPeriodToggle(theme, zen),
+            ],
           ),
           SizedBox(height: zen.gap(2)),
 
@@ -690,6 +769,33 @@ class _StatisticsPageState extends State<StatisticsPage>
           ),
         ],
       ),
+    );
+  }
+
+  /// Переключатель периода графика: 7д / 14д / 30д.
+  Widget _buildPeriodToggle(ThemeData theme, ZenStyles zen) {
+    return ToggleButtons(
+      isSelected: [
+        _selectedPeriod == _ChartPeriod.days7,
+        _selectedPeriod == _ChartPeriod.days14,
+        _selectedPeriod == _ChartPeriod.days30,
+      ],
+      onPressed: (index) {
+        setState(() {
+          _selectedPeriod = _ChartPeriod.values[index];
+        });
+        _reloadChartData();
+      },
+      borderRadius: BorderRadius.circular(zen.cardRadius / 2),
+      constraints: const BoxConstraints(minWidth: 36, minHeight: 28),
+      textStyle: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+      selectedColor: theme.colorScheme.primary,
+      fillColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+      children: const [
+        Text('7д'),
+        Text('14д'),
+        Text('30д'),
+      ],
     );
   }
 
@@ -726,6 +832,7 @@ class _StatisticsPageState extends State<StatisticsPage>
 
     return LineChart(
       LineChartData(
+        clipData: FlClipData.all(),
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
@@ -748,24 +855,7 @@ class _StatisticsPageState extends State<StatisticsPage>
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 32,
-              interval: chartMaxY > 10 ? 5 : 2,
-              getTitlesWidget: (value, meta) {
-                if (value == meta.min) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Text(
-                    '${value.toInt()}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontSize: 10,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                    ),
-                  ),
-                );
-              },
-            ),
+            sideTitles: SideTitles(showTitles: false),
           ),
           topTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: false),
@@ -898,7 +988,10 @@ class _StatisticsPageState extends State<StatisticsPage>
   // Average Metric
   // ===========================================================================
 
-  /// Блок "В среднем X в день" в виде ZenMetricBlock.
+  /// Блок "В среднем X в день" с анимированным счётчиком.
+  ///
+  /// Число анимированно увеличивается от 0 до финального значения
+  /// при появлении блока или смене периода.
   Widget _buildAverageMetric(
     ThemeData theme,
     ZenStyles zen,
@@ -910,13 +1003,86 @@ class _StatisticsPageState extends State<StatisticsPage>
             dto.dailyStats.length;
 
     return Center(
-      child: ZenMetricBlock(
-        value: TimeUtils.formatMinutes(average),
+      child: _AnimatedMetricBlock(
+        target: average,
         label: 'в среднем в день',
         valueStyle: theme.textTheme.headlineLarge?.copyWith(
           color: theme.colorScheme.primary,
         ),
       ),
+    );
+  }
+}
+
+// =============================================================================
+// Анимированный блок метрики
+// =============================================================================
+
+/// Блок метрики с анимированным счётчиком от 0 до [target].
+///
+/// Использует [TweenAnimationBuilder] для плавного увеличения числа
+/// при появлении или смене значения [target].
+class _AnimatedMetricBlock extends StatelessWidget {
+  /// Целевое значение, до которого анимируется счётчик.
+  final double target;
+
+  /// Подпись под числом.
+  final String label;
+
+  /// Стиль для числа.
+  final TextStyle? valueStyle;
+
+  const _AnimatedMetricBlock({
+    required this.target,
+    required this.label,
+    this.valueStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Анимированное число
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 0),
+            child: TweenAnimationBuilder<double>(
+              key: ValueKey(target),
+              tween: Tween<double>(begin: 0, end: target),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, _) {
+                return Text(
+                  TimeUtils.formatMinutes(value),
+                  style: (valueStyle ??
+                          theme.textTheme.displayLarge ?? const TextStyle())
+                      .copyWith(
+                    fontWeight: zen.metricWeight,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                );
+              },
+            ),
+          ),
+        ),
+        SizedBox(height: zen.spacingUnit), // 8px
+        // Подпись
+        Text(
+          label,
+          style: (theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+      ],
     );
   }
 }
@@ -953,7 +1119,7 @@ class _AnimatedSection extends StatelessWidget {
 // Мини-карточка
 // =============================================================================
 
-/// Мини-карточка для отображения streak/growth.
+/// Мини-карточка для отображения Streak / Growth.
 class _MiniCard extends StatelessWidget {
   final ThemeData theme;
   final ZenStyles zen;

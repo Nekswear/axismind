@@ -25,13 +25,13 @@ class AnalyticsRepository {
   /// Creates an [AnalyticsRepository] with the given [DatabaseProvider].
   AnalyticsRepository(this._dbProvider);
 
-  /// Returns daily meditation minutes for the last 7 days.
+  /// Returns daily meditation minutes for the last [days] days.
   ///
   /// Every day is represented, including days with zero sessions
   /// (thanks to the LEFT JOIN + date generation in SQL).
-  Future<List<DailyStats>> getLast7Days() async {
+  Future<List<DailyStats>> getDailyStatsForDays(int days) async {
     try {
-      final rows = await _dbProvider.getDailyMinutes(7);
+      final rows = await _dbProvider.getDailyMinutes(days);
       return rows.map((row) {
         return DailyStats(
           date: row['date'] as String,
@@ -39,8 +39,16 @@ class AnalyticsRepository {
         );
       }).toList();
     } catch (e) {
-      throw AnalyticsException('Не удалось получить данные за 7 дней: $e');
+      throw AnalyticsException('Не удалось получить данные за $days дней: $e');
     }
+  }
+
+  /// Returns daily meditation minutes for the last 7 days.
+  ///
+  /// Every day is represented, including days with zero sessions
+  /// (thanks to the LEFT JOIN + date generation in SQL).
+  Future<List<DailyStats>> getLast7Days() async {
+    return getDailyStatsForDays(7);
   }
 
   /// Saves a completed meditation session.
@@ -301,8 +309,9 @@ class AnalyticsRepository {
   /// номер запроса. Если приходит новый запрос до завершения старого,
   /// старый результат отбрасывается выбрасыванием [StaleRequestException].
   Future<AnalyticsResult<ExtendedStatisticsDTO>> fetchStatistics(
-    DateRange range,
-  ) async {
+    DateRange range, {
+    int chartDays = 7,
+  }) async {
     final requestId = ++_requestCounter;
     final timestamp = DateTime.now();
 
@@ -311,12 +320,12 @@ class AnalyticsRepository {
       final results = await Future.wait([
         getTotalMinutes(),
         getSessionCount(),
-        getLast7Days(),
+        getDailyStatsForDays(chartDays),
         getHeatmapData(days: 30),
         getXpProgress(),
         getUserProgression(),
         _dbProvider.getDistinctSessionDates(),
-        _getPreviousWeekMinutes(range),
+        _getPreviousPeriodMinutes(range, chartDays),
       ]);
 
       // Проверка: не устарел ли запрос
@@ -331,19 +340,19 @@ class AnalyticsRepository {
       final xpProgress = results[4] as XpProgress;
       final progression = results[5] as UserProgression;
       final dates = results[6] as List<String>;
-      final previousWeekMinutes = results[7] as int;
+      final previousPeriodMinutes = results[7] as int;
 
       // Рассчитываем streak
       final streak = ProgressCalculator.calculateStreak(dates);
 
-      // Рассчитываем growth: текущая неделя vs предыдущая неделя
-      final currentWeekMinutes = dailyStats.fold<int>(
+      // Рассчитываем growth: текущий период vs предыдущий период
+      final currentPeriodMinutes = dailyStats.fold<int>(
         0,
         (sum, d) => sum + d.minutes.toInt(),
       );
       final growth = ProgressCalculator.calculateGrowth(
-        currentWeekMinutes,
-        previousWeekMinutes,
+        currentPeriodMinutes,
+        previousPeriodMinutes,
       );
 
       return AnalyticsResult<ExtendedStatisticsDTO>(
@@ -367,14 +376,15 @@ class AnalyticsRepository {
     }
   }
 
-  /// Загружает сумму минут за неделю, предшествующую [range].
+  /// Загружает сумму минут за период, предшествующий [range].
   ///
-  /// Используется для расчёта growth: сравниваем текущие 7 дней
-  /// с предыдущими 7 днями.
-  Future<int> _getPreviousWeekMinutes(DateRange range) async {
+  /// [periodDays] — длина периода в днях (7, 14, 30 и т.д.).
+  /// Используется для расчёта growth: сравниваем текущий период
+  /// с предыдущим периодом той же длины.
+  Future<int> _getPreviousPeriodMinutes(DateRange range, int periodDays) async {
     try {
       final previousEnd = range.start.subtract(const Duration(days: 1));
-      final previousStart = previousEnd.subtract(const Duration(days: 6));
+      final previousStart = previousEnd.subtract(Duration(days: periodDays - 1));
 
       final startStr =
           '${previousStart.year}-${_pad(previousStart.month)}-${_pad(previousStart.day)}';
@@ -387,8 +397,8 @@ class AnalyticsRepository {
           sessions.fold<int>(0, (sum, s) => sum + s.seconds);
       return (totalSeconds / 60).floor();
     } catch (e) {
-      // Если предыдущая неделя не загрузилась — возвращаем 0
-      debugPrint('Ошибка загрузки предыдущей недели: $e');
+      // Если предыдущий период не загрузился — возвращаем 0
+      debugPrint('Ошибка загрузки предыдущего периода: $e');
       return 0;
     }
   }
