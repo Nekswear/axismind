@@ -149,6 +149,40 @@ class AnalyticsRepository {
     }
   }
 
+  /// Возвращает все сессии для дневника, отсортированные по дате (сначала новые).
+  ///
+  /// [limit] — максимальное количество записей (пагинация, по умолчанию 20).
+  /// [offset] — смещение от начала.
+  Future<List<Session>> getJournalSessions({int limit = 20, int offset = 0}) async {
+    try {
+      return await _dbProvider.getAllSessions(limit: limit, offset: offset);
+    } catch (e) {
+      throw AnalyticsException('Не удалось загрузить дневник: $e');
+    }
+  }
+
+  /// Обновляет заметку, оценку настроения и тег последней сессии.
+  ///
+  /// Вызывается после [JournalDialog], когда пользователь ввёл свои ощущения.
+  /// Находит последнюю сессию по ID (передаётся из диалога).
+  Future<void> updateSessionJournal(
+    String sessionId, {
+    String? note,
+    int? moodRating,
+    String? tag,
+  }) async {
+    try {
+      await _dbProvider.updateSessionFields(
+        sessionId,
+        note: note,
+        moodRating: moodRating,
+        tag: tag,
+      );
+    } catch (e) {
+      throw AnalyticsException('Не удалось обновить запись дневника: $e');
+    }
+  }
+
   /// Returns a summary model combining all analytics data.
   Future<AnalyticsSummary> getSummary() async {
     try {

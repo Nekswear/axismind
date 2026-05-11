@@ -5,6 +5,7 @@ import '../data/database_provider.dart';
 import '../data/analytics_repository.dart';
 import '../engine/gong_service.dart';
 import '../engine/timer_controller.dart';
+import '../widgets/journal_dialog.dart';
 import '../widgets/level_up_dialog.dart';
 
 /// Экран медитации с таймером обратного отсчёта.
@@ -87,6 +88,35 @@ class _TimerPageState extends State<TimerPage> {
 
       if (!context.mounted) return;
 
+      // === JournalDialog: предлагаем записать ощущения ===
+      final journalResult = await showDialog<JournalResult>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => JournalDialog(
+          durationSeconds: _controller.totalSeconds,
+        ),
+      );
+
+      // Сохраняем заметку/оценку/тег, если пользователь ввёл данные
+      if (journalResult != null && context.mounted) {
+        // Получаем ID последней сессии (она только что сохранена)
+        final sessions = await _repository!.getJournalSessions(limit: 1);
+        if (sessions.isNotEmpty) {
+          await _repository!.updateSessionJournal(
+            sessions.first.id,
+            note: journalResult.note,
+            moodRating: journalResult.moodRating,
+            tag: journalResult.tag,
+          );
+          debugPrint('Запись дневника сохранена: '
+              'mood=${journalResult.moodRating}, '
+              'note=${journalResult.note}, '
+              'tag=${journalResult.tag}');
+        }
+      }
+
+      if (!context.mounted) return;
+
       if (levelUp != null) {
         // Уровень повысился — показываем LevelUpDialog
         // Он содержит поздравление, информацию об уровне/ранге
@@ -95,22 +125,6 @@ class _TimerPageState extends State<TimerPage> {
           context: context,
           barrierDismissible: false,
           builder: (_) => LevelUpDialog(event: levelUp),
-        );
-      } else {
-        // Повышения не было — показываем стандартную благодарность
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Спасибо за практику 🙏'),
-            content: const Text('Сессия медитации завершена.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Отлично'),
-              ),
-            ],
-          ),
         );
       }
 

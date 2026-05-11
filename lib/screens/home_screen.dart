@@ -5,6 +5,7 @@ import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
 import '../engine/timer_controller.dart';
+import 'journal_screen.dart';
 import 'meditation_guide_screen.dart';
 import 'timer_page.dart';
 import 'statistics_page.dart';
@@ -113,6 +114,13 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Future<void> _navigateToJournal() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const JournalScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -165,6 +173,24 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
 
                       SizedBox(height: zen.gap(2)), // 16px
+
+                      // Кнопка "Дневник"
+                      TextButton.icon(
+                        onPressed: _navigateToJournal,
+                        icon: Icon(
+                          Icons.book_outlined,
+                          size: 18,
+                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                        ),
+                        label: Text(
+                          'Дневник',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: zen.gap(1)), // 8px
 
                       // Кнопка "Статистика"
                       TextButton.icon(

@@ -38,14 +38,16 @@ Future<Database> createInMemoryDatabase() async {
   final db = await databaseFactory.openDatabase(
     ':memory:',
     options: OpenDatabaseOptions(
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE sessions (
             id TEXT PRIMARY KEY NOT NULL,
             timestamp TEXT NOT NULL,
             seconds INTEGER NOT NULL,
-            note TEXT
+            note TEXT,
+            mood_rating INTEGER,
+            tag TEXT
           )
         ''');
         await db.execute('''

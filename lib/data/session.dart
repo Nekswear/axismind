@@ -20,15 +20,32 @@ class Session {
   /// Optional note for future use (migration-ready).
   final String? note;
 
+  /// Настроение после медитации (1–5), где 1 — плохо, 5 — отлично.
+  ///
+  /// Заполняется в JournalDialog после завершения сессии.
+  /// Может быть null, если пользователь пропустил оценку.
+  final int? moodRating;
+
+  /// Категория сессии (например, "Утро", "Вечер", "Стресс").
+  ///
+  /// Позволяет группировать и фильтровать записи в дневнике.
+  final String? tag;
+
   static const _uuid = Uuid();
 
   /// Creates an immutable [Session].
   ///
   /// If [id] is not provided, a UUID v4 is auto-generated.
   /// If [timestamp] is not provided, the current UTC time in ISO 8601 is used.
-  Session({String? id, String? timestamp, required this.seconds, this.note})
-    : id = id ?? _uuid.v4(),
-      timestamp = timestamp ?? _iso8601Now();
+  Session({
+    String? id,
+    String? timestamp,
+    required this.seconds,
+    this.note,
+    this.moodRating,
+    this.tag,
+  }) : id = id ?? _uuid.v4(),
+       timestamp = timestamp ?? _iso8601Now();
 
   /// Creates a [Session] from a database [Map].
   factory Session.fromMap(Map<String, dynamic> map) {
@@ -37,12 +54,21 @@ class Session {
       timestamp: map['timestamp'] as String,
       seconds: map['seconds'] as int,
       note: map['note'] as String?,
+      moodRating: map['mood_rating'] as int?,
+      tag: map['tag'] as String?,
     );
   }
 
   /// Converts this [Session] to a database-compatible [Map].
   Map<String, dynamic> toMap() {
-    return {'id': id, 'timestamp': timestamp, 'seconds': seconds, 'note': note};
+    return {
+      'id': id,
+      'timestamp': timestamp,
+      'seconds': seconds,
+      'note': note,
+      'mood_rating': moodRating,
+      'tag': tag,
+    };
   }
 
   /// Returns a copy with optionally updated fields.
@@ -51,18 +77,23 @@ class Session {
     String? timestamp,
     int? seconds,
     String? note,
+    int? moodRating,
+    String? tag,
   }) {
     return Session(
       id: id ?? this.id,
       timestamp: timestamp ?? this.timestamp,
       seconds: seconds ?? this.seconds,
       note: note ?? this.note,
+      moodRating: moodRating ?? this.moodRating,
+      tag: tag ?? this.tag,
     );
   }
 
   @override
   String toString() =>
-      'Session(id: $id, timestamp: $timestamp, seconds: $seconds)';
+      'Session(id: $id, timestamp: $timestamp, seconds: $seconds, '
+      'moodRating: $moodRating, tag: $tag)';
 
   /// Returns the current UTC time as an ISO 8601 string.
   static String _iso8601Now() {

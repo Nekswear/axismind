@@ -19,7 +19,11 @@ class DatabaseProvider {
   Database? _db;
 
   /// Current database version for migration tracking.
-  static const int _dbVersion = 1;
+  ///
+  /// Version history:
+  ///   1 — Initial schema (id, timestamp, seconds, note)
+  ///   2 — Added mood_rating and tag columns for Session Journal
+  static const int _dbVersion = 2;
 
   /// Database name.
   static const String _dbName = 'zenbalance.db';
@@ -98,18 +102,12 @@ class DatabaseProvider {
   ///
   /// This method is migration-ready: when [DatabaseProvider._dbVersion] is
   /// incremented, [onUpgrade] is called with [oldVersion] and [newVersion].
-  /// Example for adding a `notes` column in version 2:
-  /// ```dart
-  /// if (oldVersion < 2) {
-  ///   await db.execute('ALTER TABLE sessions ADD COLUMN note TEXT');
-  /// }
-  /// ```
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Future migrations go here.
-    // Example:
-    // if (oldVersion < 2) {
-    //   await db.execute('ALTER TABLE sessions ADD COLUMN mood INTEGER');
-    // }
+    // Миграция v1 → v2: добавляем колонки для дневника сессий
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE sessions ADD COLUMN mood_rating INTEGER');
+      await db.execute('ALTER TABLE sessions ADD COLUMN tag TEXT');
+    }
   }
 
   /// Returns the raw [Database] reference.
@@ -272,6 +270,52 @@ class DatabaseProvider {
       return result.map((r) => r['session_date'] as String).toList();
     } catch (e) {
       throw DatabaseException('Не удалось получить список дат сессий: $e');
+    }
+  }
+
+  /// Возвращает все сессии, отсортированные по дате (сначала новые).
+  ///
+  /// [limit] — максимальное количество записей (пагинация).
+  /// [offset] — смещение от начала.
+  Future<List<Session>> getAllSessions({int? limit, int? offset}) async {
+    try {
+      final maps = await db.query(
+        tableSessions,
+        orderBy: 'timestamp DESC',
+        limit: limit,
+        offset: offset,
+      );
+      return maps.map((m) => Session.fromMap(m)).toList();
+    } catch (e) {
+      throw DatabaseException('Не удалось получить список сессий: $e');
+    }
+  }
+
+  /// Обновляет заметку, оценку настроения и тег существующей сессии.
+  ///
+  /// Обновляются только поля, переданные как non-null.
+  Future<void> updateSessionFields(
+    String sessionId, {
+    String? note,
+    int? moodRating,
+    String? tag,
+  }) async {
+    try {
+      final fields = <String, dynamic>{};
+      if (note != null) fields['note'] = note;
+      if (moodRating != null) fields['mood_rating'] = moodRating;
+      if (tag != null) fields['tag'] = tag;
+
+      if (fields.isEmpty) return;
+
+      await db.update(
+        tableSessions,
+        fields,
+        where: 'id = ?',
+        whereArgs: [sessionId],
+      );
+    } catch (e) {
+      throw DatabaseException('Не удалось обновить сессию: $e');
     }
   }
 
