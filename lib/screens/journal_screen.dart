@@ -4,6 +4,8 @@ import '../core/theme/zen_theme.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
 import '../data/session.dart';
+import '../data/sync_repository.dart';
+import '../services/auth_service.dart';
 import '../widgets/journal_dialog.dart';
 
 /// Экран дневника медитаций.
@@ -51,7 +53,9 @@ class _JournalScreenState extends State<JournalScreen> {
   Future<void> _initRepository() async {
     try {
       final db = await DatabaseProvider.instance();
-      _repository = AnalyticsRepository(db);
+      final auth = AuthService();
+      final syncRepo = SyncRepository(localDb: db, auth: auth);
+      _repository = AnalyticsRepository(syncRepo);
       await _loadTags();
       await _loadSessions();
     } catch (e) {

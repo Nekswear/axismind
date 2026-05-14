@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/theme/zen_theme.dart';
-import '../data/database_provider.dart';
 import '../data/analytics_repository.dart';
+import '../data/database_provider.dart';
+import '../data/sync_repository.dart';
 import '../engine/gong_service.dart';
 import '../engine/timer_controller.dart';
+import '../services/auth_service.dart';
 import '../widgets/journal_dialog.dart';
 import '../widgets/level_up_dialog.dart';
 
@@ -83,7 +85,9 @@ class _TimerPageState extends State<TimerPage> {
     debugPrint('Попытка вызова сохранения сессии...');
     try {
       final db = await DatabaseProvider.instance();
-      _repository = AnalyticsRepository(db);
+      final auth = AuthService();
+      final syncRepo = SyncRepository(localDb: db, auth: auth);
+      _repository = AnalyticsRepository(syncRepo);
 
       // Используем processSessionEnd — он сам сохраняет сессию
       // и возвращает событие повышения уровня, если оно произошло

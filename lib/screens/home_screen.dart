@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/zen_theme.dart';
+import '../core/version_info.dart';
 import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
+import '../data/sync_repository.dart';
 import '../engine/timer_controller.dart';
+import '../services/auth_service.dart';
+import 'auth_screen.dart';
 import 'journal_screen.dart';
 import 'meditation_guide_screen.dart';
 import 'timer_page.dart';
@@ -22,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen>
   /// Текущая выбранная длительность медитации в минутах.
   double _durationMinutes = minDuration.toDouble();
 
+  final AuthService _authService = AuthService();
   AnalyticsRepository? _repository;
   UserProgression _progression = const UserProgression(
     minutes: 0,
@@ -40,9 +45,22 @@ class _HomeScreenState extends State<HomeScreen>
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
 
+  /// Отслеживание подписки на auth state.
+  bool _isAuthenticated = false;
+
   @override
   void initState() {
     super.initState();
+    _isAuthenticated = _authService.isAuthenticated;
+    _authService.authStateChanges.listen((user) {
+      if (mounted) {
+        setState(() {
+          _isAuthenticated = user != null;
+        });
+        // При входе/выходе — перезагружаем прогрессию
+        _loadProgression();
+      }
+    });
     _loadProgression();
 
     // Пульсация кнопки "Начать практику"
@@ -64,7 +82,9 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _loadProgression() async {
     try {
       final db = await DatabaseProvider.instance();
-      _repository = AnalyticsRepository(db);
+      final auth = AuthService();
+      final syncRepo = SyncRepository(localDb: db, auth: auth);
+      _repository = AnalyticsRepository(syncRepo);
 
       final results = await Future.wait([
         _repository!.getUserProgression(),
@@ -82,6 +102,43 @@ class _HomeScreenState extends State<HomeScreen>
       debugPrint('Ошибка загрузки прогрессии: $e');
       if (mounted) {
         setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _navigateToAuth() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AuthScreen(authService: _authService),
+      ),
+    );
+    // Если пользователь вошёл — мигрируем локальные данные в облако
+    if (result == true && _repository != null) {
+      final userId = _authService.userId;
+      if (userId != null) {
+        await _repository!.syncRepo.migrateLocalToCloud(userId);
+      }
+      _loadProgression();
+    }
+  }
+
+  Future<void> _handleSignOut() async {
+    try {
+      await _authService.signOut();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Вы вышли из аккаунта')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка при выходе: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     }
   }
@@ -228,6 +285,21 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
 
                       SizedBox(height: zen.gap(4)), // 32px
+
+                      // Версия приложения
+                      Padding(
+                        padding: EdgeInsets.only(bottom: zen.spacingUnit),
+                        child: Text(
+                          VersionInfo.displayVersion,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                            fontSize: 11,
+                            fontFamily: 'Manrope',
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -287,6 +359,13 @@ class _HomeScreenState extends State<HomeScreen>
       padding: EdgeInsets.all(zen.spacingUnit * 3),
       child: Column(
         children: [
+          // =====================================================
+          // Профиль пользователя (аватар + имя / кнопка входа)
+          // =====================================================
+          _buildProfileRow(theme, zen),
+
+          SizedBox(height: zen.gap(2)), // 16px
+
           // Ранг + иконка
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -437,6 +516,86 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: () => setState(() => _durationMinutes = 20),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  /// Строка профиля: аватар + имя (если авторизован) или кнопка "Войти".
+  Widget _buildProfileRow(ThemeData theme, ZenStyles zen) {
+    if (_isAuthenticated) {
+      final name = _authService.displayName ?? 'Пользователь';
+      final photoUrl = _authService.photoUrl;
+
+      return Row(
+        children: [
+          // Аватар
+          CircleAvatar(
+            radius: 18,
+            backgroundImage:
+                photoUrl != null ? NetworkImage(photoUrl) : null,
+            child: photoUrl == null
+                ? Icon(Icons.person, size: 20, color: Colors.white)
+                : null,
+          ),
+          SizedBox(width: zen.spacingUnit * 1.5),
+          // Имя пользователя
+          Expanded(
+            child: Text(
+              name,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          // Кнопка выхода
+          SizedBox(
+            height: 32,
+            child: TextButton(
+              onPressed: _handleSignOut,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white.withValues(alpha: 0.8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                'Выйти',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Не авторизован — показываем кнопку "Войти"
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.account_circle_outlined,
+          size: 20,
+          color: Colors.white.withValues(alpha: 0.7),
+        ),
+        SizedBox(width: zen.spacingUnit),
+        TextButton(
+          onPressed: _navigateToAuth,
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white.withValues(alpha: 0.9),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: const Text(
+            'Войти через Google',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );

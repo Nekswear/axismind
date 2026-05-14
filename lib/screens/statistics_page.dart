@@ -5,6 +5,8 @@ import '../core/theme/zen_theme.dart';
 import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
 import '../data/database_provider.dart';
+import '../data/sync_repository.dart';
+import '../services/auth_service.dart';
 import '../utils/time_utils.dart';
 import '../widgets/empty_dashboard.dart';
 import '../widgets/error_view.dart';
@@ -105,7 +107,9 @@ class _StatisticsPageState extends State<StatisticsPage>
 
     try {
       final db = await DatabaseProvider.instance();
-      _repository = AnalyticsRepository(db);
+      final auth = AuthService();
+      final syncRepo = SyncRepository(localDb: db, auth: auth);
+      _repository = AnalyticsRepository(syncRepo);
 
       final now = DateTime.now();
       final days = _chartDays;

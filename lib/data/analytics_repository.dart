@@ -6,15 +6,21 @@ import '../domain/analytics_result.dart';
 import '../domain/level_up_event.dart';
 import '../domain/progress_calculator.dart';
 import '../utils/time_utils.dart';
-import 'database_provider.dart';
 import 'session.dart';
+import 'sync_repository.dart';
 
 /// Repository for analytics data access.
 ///
 /// Encapsulates all analytics-related database queries and provides
 /// high-level data models for the UI layer.
+///
+/// Теперь работает через [SyncRepository], который обеспечивает
+/// offline-first синхронизацию с Firestore.
 class AnalyticsRepository {
-  final DatabaseProvider _dbProvider;
+  final SyncRepository _syncRepo;
+
+  /// Публичный доступ к SyncRepository для миграции данных.
+  SyncRepository get syncRepo => _syncRepo;
 
   /// Счётчик запросов для защиты от race conditions.
   /// Каждый вызов [fetchStatistics] инкрементирует его.
@@ -22,8 +28,8 @@ class AnalyticsRepository {
   /// старый результат отбрасывается.
   int _requestCounter = 0;
 
-  /// Creates an [AnalyticsRepository] with the given [DatabaseProvider].
-  AnalyticsRepository(this._dbProvider);
+  /// Creates an [AnalyticsRepository] with the given [SyncRepository].
+  AnalyticsRepository(this._syncRepo);
 
   /// Returns daily meditation minutes for the last [days] days.
   ///
@@ -31,7 +37,7 @@ class AnalyticsRepository {
   /// (thanks to the LEFT JOIN + date generation in SQL).
   Future<List<DailyStats>> getDailyStatsForDays(int days) async {
     try {
-      final rows = await _dbProvider.getDailyMinutes(days);
+      final rows = await _syncRepo.getDailyMinutes(days);
       return rows.map((row) {
         return DailyStats(
           date: row['date'] as String,
@@ -55,7 +61,7 @@ class AnalyticsRepository {
   Future<void> saveSession(int seconds) async {
     try {
       final session = Session(seconds: seconds);
-      await _dbProvider.insertSession(session);
+      await _syncRepo.saveSession(session);
     } catch (e) {
       throw AnalyticsException('Не удалось сохранить сессию: $e');
     }
@@ -76,9 +82,9 @@ class AnalyticsRepository {
       final oldMinutes = await getTotalMinutes();
       final oldLevel = ProgressCalculator.calculateLevel(oldMinutes);
 
-      // Шаг 2: сохраняем сессию
+      // Шаг 2: сохраняем сессию (через SyncRepository — локально + облако)
       final session = Session(seconds: durationSeconds);
-      await _dbProvider.insertSession(session);
+      await _syncRepo.saveSession(session);
 
       // Шаг 3: новый уровень после сохранения
       final newMinutes = await getTotalMinutes();
@@ -104,7 +110,7 @@ class AnalyticsRepository {
   /// При отсутствии данных возвращает 0.
   Future<int> getTotalMinutes() async {
     try {
-      final totalSeconds = await _dbProvider.getTotalDurationSeconds();
+      final totalSeconds = await _syncRepo.getTotalDurationSeconds();
       return (totalSeconds / 60).floor();
     } catch (e) {
       throw AnalyticsException('Не удалось получить общее количество минут: $e');
@@ -135,7 +141,7 @@ class AnalyticsRepository {
       final minutes = await getTotalMinutes();
       final level = ProgressCalculator.calculateLevel(minutes);
       final rank = ProgressCalculator.getRank(level);
-      final dates = await _dbProvider.getDistinctSessionDates();
+      final dates = await _syncRepo.getDistinctSessionDates();
       final streak = ProgressCalculator.calculateStreak(dates);
       return UserProgression(
         minutes: minutes,
@@ -151,7 +157,7 @@ class AnalyticsRepository {
   /// Returns total session count.
   Future<int> getSessionCount() async {
     try {
-      return await _dbProvider.getSessionCount();
+      return await _syncRepo.getSessionCount();
     } catch (e) {
       throw AnalyticsException('Не удалось получить количество сессий: $e');
     }
@@ -163,7 +169,7 @@ class AnalyticsRepository {
   /// [offset] — смещение от начала.
   Future<List<Session>> getJournalSessions({int limit = 20, int offset = 0}) async {
     try {
-      return await _dbProvider.getAllSessions(limit: limit, offset: offset);
+      return await _syncRepo.getAllSessions(limit: limit, offset: offset);
     } catch (e) {
       throw AnalyticsException('Не удалось загрузить дневник: $e');
     }
@@ -179,7 +185,7 @@ class AnalyticsRepository {
     String? tag,
   }) async {
     try {
-      await _dbProvider.updateSessionFields(
+      await _syncRepo.updateSessionFields(
         sessionId,
         note: note,
         moodRating: moodRating,
@@ -195,7 +201,7 @@ class AnalyticsRepository {
   /// Возвращает `true`, если запись была удалена.
   Future<bool> deleteSession(String sessionId) async {
     try {
-      return await _dbProvider.deleteSession(sessionId);
+      return await _syncRepo.deleteSession(sessionId);
     } catch (e) {
       throw AnalyticsException('Не удалось удалить запись: $e');
     }
@@ -204,7 +210,7 @@ class AnalyticsRepository {
   /// Возвращает список уникальных тегов всех сессий.
   Future<List<String>> getDistinctTags() async {
     try {
-      return await _dbProvider.getDistinctTags();
+      return await _syncRepo.getDistinctTags();
     } catch (e) {
       throw AnalyticsException('Не удалось получить теги: $e');
     }
@@ -223,7 +229,7 @@ class AnalyticsRepository {
     int offset = 0,
   }) async {
     try {
-      return await _dbProvider.getFilteredSessions(
+      return await _syncRepo.getFilteredSessions(
         tag: tag,
         searchQuery: searchQuery,
         limit: limit,
@@ -258,7 +264,7 @@ class AnalyticsRepository {
   /// Дни без сессий возвращаются с minutes = 0.0.
   Future<List<HeatmapDay>> getHeatmapData({int days = 30}) async {
     try {
-      final rows = await _dbProvider.getDailyMinutesForPeriod(days);
+      final rows = await _syncRepo.getDailyMinutesForPeriod(days);
       return rows.map((row) {
         return HeatmapDay(
           date: row['date'] as String,
@@ -324,7 +330,7 @@ class AnalyticsRepository {
         getHeatmapData(days: 30),
         getXpProgress(),
         getUserProgression(),
-        _dbProvider.getDistinctSessionDates(),
+        _syncRepo.getDistinctSessionDates(),
         _getPreviousPeriodMinutes(range, chartDays),
       ]);
 
@@ -392,7 +398,7 @@ class AnalyticsRepository {
           '${previousEnd.year}-${_pad(previousEnd.month)}-${_pad(previousEnd.day)}';
 
       final sessions =
-          await _dbProvider.getSessionsInRange(startStr, endStr);
+          await _syncRepo.getSessionsInRange(startStr, endStr);
       final totalSeconds =
           sessions.fold<int>(0, (sum, s) => sum + s.seconds);
       return (totalSeconds / 60).floor();

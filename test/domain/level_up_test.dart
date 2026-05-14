@@ -23,8 +23,10 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:zenbalance/data/session.dart';
 import 'package:zenbalance/data/database_provider.dart';
 import 'package:zenbalance/data/analytics_repository.dart';
+import 'package:zenbalance/data/sync_repository.dart';
 import 'package:zenbalance/domain/level_up_event.dart';
 import 'package:zenbalance/domain/progress_calculator.dart';
+import 'package:zenbalance/services/auth_service.dart';
 
 // =============================================================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -65,7 +67,8 @@ Future<Database> createInMemoryDatabase() async {
 /// чистая БД + свежий репозиторий.
 Future<AnalyticsRepository> createTestRepository(Database db) async {
   final dbProvider = DatabaseProvider.forTest(db);
-  return AnalyticsRepository(dbProvider);
+  final syncRepo = SyncRepository(localDb: dbProvider, auth: AuthService());
+  return AnalyticsRepository(syncRepo);
 }
 
 /// Вставляет указанное количество минут в БД одной сессией.
