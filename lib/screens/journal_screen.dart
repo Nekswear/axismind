@@ -56,6 +56,7 @@ class _JournalScreenState extends State<JournalScreen> {
       final auth = AuthService();
       final syncRepo = SyncRepository(localDb: db, auth: auth);
       _repository = AnalyticsRepository(syncRepo);
+
       await _loadTags();
       await _loadSessions();
     } catch (e) {

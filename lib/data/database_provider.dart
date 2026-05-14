@@ -23,7 +23,8 @@ class DatabaseProvider {
   /// Version history:
   ///   1 — Initial schema (id, timestamp, seconds, note)
   ///   2 — Added mood_rating and tag columns for Session Journal
-  static const int _dbVersion = 2;
+  ///   3 — mood_rating and tag now included in CREATE TABLE (for Web)
+  static const int _dbVersion = 3;
 
   /// Database name.
   static const String _dbName = 'zenbalance.db';
@@ -88,7 +89,9 @@ class DatabaseProvider {
         id TEXT PRIMARY KEY,
         timestamp TEXT NOT NULL,
         seconds INTEGER NOT NULL,
-        note TEXT
+        note TEXT,
+        mood_rating INTEGER,
+        tag TEXT
       )
     ''');
 
@@ -107,6 +110,16 @@ class DatabaseProvider {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE sessions ADD COLUMN mood_rating INTEGER');
       await db.execute('ALTER TABLE sessions ADD COLUMN tag TEXT');
+    }
+    // Миграция v2 → v3: гарантируем наличие колонок (для Web, где БД
+    // могла быть создана без них, т.к. _onCreate не включал их ранее)
+    if (oldVersion < 3) {
+      try {
+        await db.execute('ALTER TABLE sessions ADD COLUMN mood_rating INTEGER');
+      } catch (_) {}
+      try {
+        await db.execute('ALTER TABLE sessions ADD COLUMN tag TEXT');
+      } catch (_) {}
     }
   }
 

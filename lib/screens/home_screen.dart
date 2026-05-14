@@ -99,7 +99,6 @@ class _HomeScreenState extends State<HomeScreen>
         });
       }
     } catch (e) {
-      debugPrint('Ошибка загрузки прогрессии: $e');
       if (mounted) {
         setState(() => _loading = false);
       }
