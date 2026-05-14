@@ -318,22 +318,25 @@ class _StatisticsPageState extends State<StatisticsPage>
             children: [
               RankIcon(level: progression.level, size: 48),
               SizedBox(width: zen.spacingUnit * 2),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    progression.rank,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      progression.rank,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    'Уровень ${progression.level}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.8),
+                    Text(
+                      'Уровень ${progression.level}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
