@@ -37,6 +37,7 @@ class _TimerPageState extends State<TimerPage> {
   late final GongService _gongService;
   AnalyticsRepository? _repository;
   bool _sessionSaved = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -71,10 +72,13 @@ class _TimerPageState extends State<TimerPage> {
     debugPrint(
       'ТИК: remainingSeconds=${_controller.remainingSeconds.value}, '
       'isFinished=${_controller.isFinished}, '
-      'sessionSaved=$_sessionSaved',
+      'sessionSaved=$_sessionSaved, '
+      'isSaving=$_isSaving',
     );
-    if (_controller.isFinished && !_sessionSaved) {
+    // Проверяем isFinished и что ещё не сохраняем и не сохранили
+    if (_controller.isFinished && !_sessionSaved && !_isSaving) {
       _sessionSaved = true;
+      _isSaving = true;
       // Звон гонга в конце сессии
       _gongService.playEndGong();
       _saveSession();
@@ -144,6 +148,28 @@ class _TimerPageState extends State<TimerPage> {
       }
     } catch (e) {
       debugPrint('Ошибка сохранения сессии: $e');
+      // Сбрасываем флаги, чтобы можно было повторить попытку
+      _sessionSaved = false;
+      _isSaving = false;
+      // Показываем пользователю сообщение об ошибке
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Не удалось сохранить сессию. Попробуйте снова.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            action: SnackBarAction(
+              label: 'Повторить',
+              textColor: Colors.white,
+              onPressed: () {
+                // Повторный вызов сохранения
+                _sessionSaved = true;
+                _isSaving = true;
+                _saveSession();
+              },
+            ),
+          ),
+        );
+      }
     }
   }
 

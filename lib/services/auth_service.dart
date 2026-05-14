@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 /// Сервис аутентификации через Google аккаунт.
 ///
@@ -58,6 +58,14 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       debugPrint('Firebase Auth error: ${e.code} — ${e.message}');
       rethrow;
+    } on PlatformException catch (e) {
+      // PlatformException (например, sign-in-failed на Android)
+      debugPrint('Google Sign-In PlatformException: ${e.code} — ${e.message}');
+      throw AuthException(
+        'Не удалось войти через Google. Убедитесь, что на устройстве '
+        'установлен сервис Google Play и добавлен аккаунт Google. '
+        'Ошибка: ${e.message}',
+      );
     } catch (e) {
       debugPrint('Google Sign-In error: $e');
       rethrow;
@@ -88,4 +96,13 @@ class AuthService {
 
   /// UID пользователя в Firebase.
   String? get userId => _auth.currentUser?.uid;
+}
+
+/// Custom exception for authentication errors with user-friendly messages.
+class AuthException implements Exception {
+  final String message;
+  const AuthException(this.message);
+
+  @override
+  String toString() => 'AuthException: $message';
 }

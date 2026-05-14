@@ -15,6 +15,9 @@ class DatabaseProvider {
   /// Simple mutex flag to prevent concurrent initialization.
   static bool _initializing = false;
 
+  /// Stores initialization error to prevent silent retry loops.
+  static Object? _initError;
+
   /// The underlying database reference.
   Database? _db;
 
@@ -49,13 +52,30 @@ class DatabaseProvider {
   static Future<DatabaseProvider> instance() async {
     if (_instance != null) return _instance!;
 
+    // If initialization previously failed, throw the stored error
+    if (_initError != null) {
+      throw DatabaseException(
+        'База данных не инициализирована. Пожалуйста, перезапустите приложение. '
+        'Причина: $_initError',
+      );
+    }
+
     // Guard against concurrent initialization
     if (_initializing) {
       // Wait for the current initialization to complete
       while (_initializing) {
         await Future.delayed(const Duration(milliseconds: 10));
       }
-      return _instance!;
+      if (_instance != null) return _instance!;
+      if (_initError != null) {
+        throw DatabaseException(
+          'База данных не инициализирована. Пожалуйста, перезапустите приложение. '
+          'Причина: $_initError',
+        );
+      }
+      throw DatabaseException(
+        'База данных не инициализирована. Пожалуйста, перезапустите приложение.',
+      );
     }
 
     _initializing = true;
@@ -64,6 +84,9 @@ class DatabaseProvider {
       await provider._init();
       _instance = provider;
       return _instance!;
+    } catch (e) {
+      _initError = e;
+      rethrow;
     } finally {
       _initializing = false;
     }

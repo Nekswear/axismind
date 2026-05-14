@@ -1,5 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -17,10 +17,13 @@ void main() {
   if (kIsWeb) {
     // Web — используем WebAssembly SQLite
     databaseFactory = databaseFactoryFfiWeb;
-  } else {
+  } else if (defaultTargetPlatform == TargetPlatform.windows ||
+             defaultTargetPlatform == TargetPlatform.linux ||
+             defaultTargetPlatform == TargetPlatform.macOS) {
     // Desktop (Windows/Linux/macOS) — используем FFI SQLite
     databaseFactory = databaseFactoryFfi;
   }
+  // Android/iOS — используют стандартный sqflite (нативный плагин), factory не меняем
 
   // Ориентация только portrait (для мобильных платформ)
   SystemChrome.setPreferredOrientations([

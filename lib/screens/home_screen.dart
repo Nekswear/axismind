@@ -371,23 +371,26 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               RankIcon(level: _progression.level, size: isCompact ? 36 : 48),
               SizedBox(width: zen.spacingUnit * 2),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _progression.rank,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
-                      fontSize: isCompact ? 18 : 22,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _progression.rank,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontSize: isCompact ? 18 : 22,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Text(
-                    'Уровень ${_progression.level}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.8),
+                    Text(
+                      'Уровень ${_progression.level}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -580,19 +583,22 @@ class _HomeScreenState extends State<HomeScreen>
           color: Colors.white.withValues(alpha: 0.7),
         ),
         SizedBox(width: zen.spacingUnit),
-        TextButton(
-          onPressed: _navigateToAuth,
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.white.withValues(alpha: 0.9),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: const Text(
-            'Войти через Google',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+        Flexible(
+          child: TextButton(
+            onPressed: _navigateToAuth,
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white.withValues(alpha: 0.9),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Войти через Google',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ),
