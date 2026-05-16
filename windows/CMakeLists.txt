@@ -10,6 +10,10 @@ set(BINARY_NAME "zenbalance")
 # versions of CMake.
 cmake_policy(VERSION 3.14...3.25)
 
+# Allow Firebase C++ SDK (which uses cmake_minimum_required VERSION 3.1)
+# to work with newer versions of CMake that removed backward compatibility.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(IS_MULTICONFIG)
@@ -43,6 +47,10 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
+  # Suppress LNK4099 warnings about missing PDB files from static libraries
+  # (e.g., Firebase C++ SDK's libcurl-d.pdb). These are debug symbol files
+  # that are not distributed with the Firebase SDK static libraries.
+  target_link_options(${TARGET} PRIVATE /ignore:4099)
 endfunction()
 
 # Flutter library and tool build rules.
