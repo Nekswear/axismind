@@ -31,12 +31,20 @@ class Session {
   /// Позволяет группировать и фильтровать записи в дневнике.
   final String? tag;
 
+  /// ISO 8601 timestamp of the last update to this session.
+  ///
+  /// Используется для разрешения конфликтов при синхронизации:
+  /// если облачная версия новее — она перезаписывает локальную, и наоборот.
+  /// Если null — считается устаревшей (всегда перезаписывается).
+  final String? updatedAt;
+
   static const _uuid = Uuid();
 
   /// Creates an immutable [Session].
   ///
   /// If [id] is not provided, a UUID v4 is auto-generated.
   /// If [timestamp] is not provided, the current UTC time in ISO 8601 is used.
+  /// [updatedAt] по умолчанию равен [timestamp] (сессия только что создана).
   Session({
     String? id,
     String? timestamp,
@@ -44,8 +52,10 @@ class Session {
     this.note,
     this.moodRating,
     this.tag,
+    String? updatedAt,
   }) : id = id ?? _uuid.v4(),
-       timestamp = timestamp ?? _iso8601Now();
+       timestamp = timestamp ?? iso8601Now(),
+       updatedAt = updatedAt ?? timestamp ?? iso8601Now();
 
   /// Creates a [Session] from a database [Map].
   factory Session.fromMap(Map<String, dynamic> map) {
@@ -56,6 +66,7 @@ class Session {
       note: map['note'] as String?,
       moodRating: map['mood_rating'] as int?,
       tag: map['tag'] as String?,
+      updatedAt: map['updated_at'] as String?,
     );
   }
 
@@ -68,6 +79,7 @@ class Session {
       'note': note,
       'mood_rating': moodRating,
       'tag': tag,
+      'updated_at': updatedAt,
     };
   }
 
@@ -79,6 +91,7 @@ class Session {
     String? note,
     int? moodRating,
     String? tag,
+    String? updatedAt,
   }) {
     return Session(
       id: id ?? this.id,
@@ -87,16 +100,22 @@ class Session {
       note: note ?? this.note,
       moodRating: moodRating ?? this.moodRating,
       tag: tag ?? this.tag,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  /// Создаёт копию сессии с обновлённым [updatedAt] (текущее время UTC).
+  Session copyWithUpdatedAt() {
+    return copyWith(updatedAt: Session.iso8601Now());
   }
 
   @override
   String toString() =>
       'Session(id: $id, timestamp: $timestamp, seconds: $seconds, '
-      'moodRating: $moodRating, tag: $tag)';
+      'moodRating: $moodRating, tag: $tag, updatedAt: $updatedAt)';
 
   /// Returns the current UTC time as an ISO 8601 string.
-  static String _iso8601Now() {
+  static String iso8601Now() {
     final now = DateTime.now().toUtc();
     return '${now.year}-'
         '${_pad(now.month)}-'

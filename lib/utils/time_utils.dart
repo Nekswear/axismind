@@ -46,8 +46,10 @@ class TimeUtils {
   }
 
   /// Converts seconds to minutes as a double, rounded to 1 decimal.
+  ///
+  /// Пример: 125 секунд → 2.1 (а не 2.0, как было с roundToDouble)
   static double secondsToMinutes(int seconds) {
-    return (seconds / 60.0).roundToDouble() / 1.0;
+    return (seconds / 60.0 * 10).roundToDouble() / 10;
   }
 
   /// Formats an ISO 8601 date string (e.g., "2026-05-08T...") to "dd.MM".

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 
@@ -27,7 +28,8 @@ class DatabaseProvider {
   ///   1 — Initial schema (id, timestamp, seconds, note)
   ///   2 — Added mood_rating and tag columns for Session Journal
   ///   3 — mood_rating and tag now included in CREATE TABLE (for Web)
-  static const int _dbVersion = 3;
+  ///   4 — Added updated_at column for conflict resolution during sync
+  static const int _dbVersion = 4;
 
   /// Database name.
   static const String _dbName = 'zenbalance.db';
@@ -114,7 +116,8 @@ class DatabaseProvider {
         seconds INTEGER NOT NULL,
         note TEXT,
         mood_rating INTEGER,
-        tag TEXT
+        tag TEXT,
+        updated_at TEXT
       )
     ''');
 
@@ -143,6 +146,16 @@ class DatabaseProvider {
       try {
         await db.execute('ALTER TABLE sessions ADD COLUMN tag TEXT');
       } catch (_) {}
+    }
+    // Миграция v3 → v4: добавляем колонку updated_at для разрешения
+    // конфликтов при синхронизации (Race Condition fix)
+    if (oldVersion < 4) {
+      try {
+        await db.execute('ALTER TABLE sessions ADD COLUMN updated_at TEXT');
+        debugPrint('Migration v3→v4: added updated_at column');
+      } catch (e) {
+        debugPrint('Migration v3→v4: column may already exist: $e');
+      }
     }
   }
 
@@ -173,6 +186,70 @@ class DatabaseProvider {
       });
     } catch (e) {
       throw DatabaseException('Failed to insert session: $e');
+    }
+  }
+
+  /// Вставляет сессию только если она новее существующей (по [updatedAt]).
+  ///
+  /// Используется при синхронизации из облака, чтобы предотвратить
+  /// восстановление удалённых или устаревших данных (Race Condition fix).
+  ///
+  /// Логика:
+  /// - Если в БД нет сессии с таким [id] — вставляем (новая запись).
+  /// - Если есть, но у неё нет [updatedAt] — считаем устаревшей, перезаписываем.
+  /// - Если есть и [updatedAt] у новой версии больше — перезаписываем.
+  /// - Иначе — пропускаем (локальная версия новее).
+  Future<void> insertSessionIfNewer(Session session) async {
+    try {
+      await db.transaction((txn) async {
+        // Проверяем, есть ли уже такая сессия
+        final existing = await txn.query(
+          tableSessions,
+          columns: ['updated_at'],
+          where: 'id = ?',
+          whereArgs: [session.id],
+        );
+
+        if (existing.isEmpty) {
+          // Новая запись — вставляем
+          await txn.insert(
+            tableSessions,
+            session.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+          return;
+        }
+
+        // Проверяем updatedAt
+        final existingUpdatedAt = existing.first['updated_at'] as String?;
+
+        // Если у существующей нет updatedAt — она устаревшая, перезаписываем
+        if (existingUpdatedAt == null) {
+          await txn.update(
+            tableSessions,
+            session.toMap(),
+            where: 'id = ?',
+            whereArgs: [session.id],
+          );
+          return;
+        }
+
+        // Если у новой нет updatedAt — пропускаем (не можем определить новизну)
+        if (session.updatedAt == null) return;
+
+        // Сравниваем: если новая версия новее — обновляем
+        if (session.updatedAt!.compareTo(existingUpdatedAt) > 0) {
+          await txn.update(
+            tableSessions,
+            session.toMap(),
+            where: 'id = ?',
+            whereArgs: [session.id],
+          );
+        }
+        // Иначе — локальная версия новее, ничего не делаем
+      });
+    } catch (e) {
+      throw DatabaseException('Failed to insert session if newer: $e');
     }
   }
 
@@ -296,10 +373,15 @@ class DatabaseProvider {
   /// Возвращает список уникальных дат (ISO) всех сессий.
   ///
   /// Используется для расчёта streak в [ProgressCalculator.calculateStreak].
+  ///
+  /// **Важно**: использует `date(timestamp, 'localtime')`, чтобы даты
+  /// сессий соответствовали локальному часовому поясу пользователя.
+  /// Без 'localtime' при смене часового пояса streak может сброситься,
+  /// т.к. timestamp хранится в UTC.
   Future<List<String>> getDistinctSessionDates() async {
     try {
       final result = await db.rawQuery('''
-        SELECT DISTINCT date(timestamp) AS session_date
+        SELECT DISTINCT date(timestamp, 'localtime') AS session_date
         FROM $tableSessions
         ORDER BY session_date ASC
       ''');
@@ -352,6 +434,23 @@ class DatabaseProvider {
       );
     } catch (e) {
       throw DatabaseException('Не удалось обновить сессию: $e');
+    }
+  }
+
+  /// Обновляет поле [updatedAt] существующей сессии.
+  ///
+  /// Используется при частичном обновлении полей (заметка, оценка, тег),
+  /// чтобы отметить сессию как изменённую для корректной синхронизации.
+  Future<void> updateSessionUpdatedAt(String sessionId, String updatedAt) async {
+    try {
+      await db.update(
+        tableSessions,
+        {'updated_at': updatedAt},
+        where: 'id = ?',
+        whereArgs: [sessionId],
+      );
+    } catch (e) {
+      throw DatabaseException('Не удалось обновить updated_at: $e');
     }
   }
 

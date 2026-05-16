@@ -70,7 +70,8 @@ class ProgressCalculator {
     }
 
     // Проверяем, что streak не прерван: последняя дата должна быть сегодня или вчера
-    final now = DateTime.now();
+    // Используем toLocal() для явного указания, что работаем в локальном TZ
+    final now = DateTime.now().toLocal();
     final today = DateTime(now.year, now.month, now.day);
     final mostRecent = sorted.last;
     final daysSinceLast = today.difference(mostRecent).inDays;

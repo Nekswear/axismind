@@ -46,12 +46,6 @@ dependencies:
   # UUID generation
   uuid: ^4.5.1
 
-  # Layout spacing
-  gap: ^3.0.1
-
-  # Typography
-  google_fonts: ^6.1.0
-
   # Audio playback (gong sounds for meditation start/end)
   audioplayers: ^6.1.0
 
@@ -90,33 +84,13 @@ flutter:
   fonts:
     - family: PlayfairDisplay
       fonts:
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-Black.ttf
-          weight: 900
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-BlackItalic.ttf
-          weight: 900
+        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-Regular.ttf
+        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-Italic.ttf
           style: italic
         - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-Bold.ttf
           weight: 700
         - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-BoldItalic.ttf
           weight: 700
-          style: italic
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-ExtraBold.ttf
-          weight: 800
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-ExtraBoldItalic.ttf
-          weight: 800
-          style: italic
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-Italic.ttf
-          style: italic
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-MediumItalic.ttf
-          weight: 500
-          style: italic
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-Regular.ttf
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/PlayfairDisplay/PlayfairDisplay-SemiBoldItalic.ttf
-          weight: 600
           style: italic
 
     - family: Manrope

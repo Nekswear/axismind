@@ -235,7 +235,10 @@ class _TimerPageState extends State<TimerPage> {
         );
 
         if (shouldPop == true && context.mounted) {
-          Navigator.of(context).pop();
+          await _disableWakelock();
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       child: Scaffold(
@@ -255,9 +258,12 @@ class _TimerPageState extends State<TimerPage> {
                   child: IconButton(
                     icon: const Icon(Icons.close, color: Colors.white54),
                     iconSize: 28,
-                    onPressed: () {
+                    onPressed: () async {
                       _controller.stop();
-                      Navigator.of(context).pop();
+                      await _disableWakelock();
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
                     },
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.white.withValues(alpha: 0.1),

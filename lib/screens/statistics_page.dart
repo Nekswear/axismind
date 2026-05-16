@@ -472,12 +472,16 @@ class _StatisticsPageState extends State<StatisticsPage>
             child: _MiniCard(
               theme: theme,
               zen: zen,
-              icon: dto.growth != null && dto.growth! >= 0
-                  ? Icons.trending_up_rounded
-                  : Icons.trending_down_rounded,
-              iconColor: dto.growth != null && dto.growth! >= 0
-                  ? Colors.green
-                  : theme.colorScheme.error,
+              icon: dto.growth != null
+                  ? (dto.growth! >= 0
+                      ? Icons.trending_up_rounded
+                      : Icons.trending_down_rounded)
+                  : Icons.remove_rounded,
+              iconColor: dto.growth != null
+                  ? (dto.growth! >= 0
+                      ? Colors.green
+                      : theme.colorScheme.error)
+                  : Colors.grey,
               label: 'Рост за $_chartDays дней',
               value: dto.growth != null
                   ? '${(dto.growth! * 100).round()}%'
@@ -980,7 +984,7 @@ class _StatisticsPageState extends State<StatisticsPage>
 
   /// Area Chart — график с градиентной заливкой под линией.
   Widget _buildAreaChart(ThemeData theme, List<DailyStats> stats) {
-    if (stats.isEmpty) {
+    if (stats.isEmpty || stats.length < 2) {
       return const SizedBox.shrink();
     }
 

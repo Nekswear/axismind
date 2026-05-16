@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 
 /// Сервис для воспроизведения звука гонга.
 ///
@@ -12,15 +13,28 @@ class GongService {
   static const double _volume = 0.5;
 
   /// Воспроизводит звук гонга при старте медитации.
+  ///
+  /// Ошибки воспроизведения (например, файл не найден) перехватываются
+  /// и логируются, чтобы не прерывать медитацию.
   Future<void> playStartGong() async {
-    await _player.setVolume(_volume);
-    await _player.play(AssetSource('audio/gong.mp3'));
+    try {
+      await _player.setVolume(_volume);
+      await _player.play(AssetSource('audio/gong.mp3'));
+    } catch (e) {
+      debugPrint('GongService: failed to play start gong: $e');
+    }
   }
 
   /// Воспроизводит звук гонга при завершении медитации.
+  ///
+  /// Ошибки воспроизведения перехватываются и логируются.
   Future<void> playEndGong() async {
-    await _player.setVolume(_volume);
-    await _player.play(AssetSource('audio/gong.mp3'));
+    try {
+      await _player.setVolume(_volume);
+      await _player.play(AssetSource('audio/gong.mp3'));
+    } catch (e) {
+      debugPrint('GongService: failed to play end gong: $e');
+    }
   }
 
   /// Освобождает ресурсы аудиоплеера.

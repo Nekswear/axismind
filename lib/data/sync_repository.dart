@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
@@ -26,6 +28,13 @@ class SyncRepository {
   /// последующие вызовы будут проигнорированы.
   bool _syncInProgress = false;
 
+  /// Флаг, предотвращающий повторную миграцию локальных данных в облако.
+  ///
+  /// Миграция должна выполняться только один раз после первого входа.
+  /// Без этого флага migrateLocalToCloud будет вызываться при каждом
+  /// входе, загружая все локальные данные в облако повторно.
+  bool _migrationComplete = false;
+
   SyncRepository({
     required DatabaseProvider localDb,
     required AuthService auth,
@@ -50,12 +59,15 @@ class SyncRepository {
   /// через [migrateLocalToCloud].
   Future<void> saveSession(Session session) async {
     // 1. Всегда пишем в локальную БД (мгновенно, без ошибок сети)
-    await _localDb.insertSession(session);
+    // Проставляем updatedAt, чтобы при синхронизации облачная версия
+    // не перезаписала более новую локальную
+    final sessionWithTimestamp = session.copyWithUpdatedAt();
+    await _localDb.insertSession(sessionWithTimestamp);
 
     // 2. Если пользователь авторизован — синхронизируем с облаком
     final user = _auth.currentUser;
     if (user != null) {
-      await _syncSessionToCloud(user.uid, session);
+      await _syncSessionToCloud(user.uid, sessionWithTimestamp);
     }
   }
 
@@ -66,13 +78,16 @@ class SyncRepository {
     int? moodRating,
     String? tag,
   }) async {
-    // 1. Локально
+    // 1. Локально — обновляем поля и проставляем updatedAt
+    final now = Session.iso8601Now();
     await _localDb.updateSessionFields(
       sessionId,
       note: note,
       moodRating: moodRating,
       tag: tag,
     );
+    // Обновляем updatedAt отдельно, т.к. updateSessionFields не трогает его
+    await _localDb.updateSessionUpdatedAt(sessionId, now);
 
     // 2. В облако (если авторизован)
     final user = _auth.currentUser;
@@ -82,6 +97,7 @@ class SyncRepository {
         if (note != null) updates['note'] = note;
         if (moodRating != null) updates['mood_rating'] = moodRating;
         if (tag != null) updates['tag'] = tag;
+        updates['updated_at'] = now;
 
         if (updates.isNotEmpty) {
           await _sessionsCollection(user.uid)
@@ -130,7 +146,11 @@ class SyncRepository {
     // 2. Фоново обновляем из облака (fire-and-forget)
     final user = _auth.currentUser;
     if (user != null) {
-      _syncSessionsFromCloud(user.uid);
+      unawaited(
+        _syncSessionsFromCloud(user.uid).catchError((e) {
+          debugPrint('Unhandled sync error: $e');
+        }),
+      );
     }
 
     return localSessions;
@@ -142,7 +162,11 @@ class SyncRepository {
 
     final user = _auth.currentUser;
     if (user != null) {
-      _syncSessionsFromCloud(user.uid);
+      unawaited(
+        _syncSessionsFromCloud(user.uid).catchError((e) {
+          debugPrint('Unhandled sync error: $e');
+        }),
+      );
     }
 
     return localSessions;
@@ -197,10 +221,21 @@ class SyncRepository {
   ///
   /// Вызывается один раз после первого входа пользователя.
   /// Загружает все существующие локальные сессии в Firestore.
+  ///
+  /// Защита от повторного вызова: флаг [_migrationComplete] предотвращает
+  /// повторную загрузку данных при повторных входах.
   Future<void> migrateLocalToCloud(String userId) async {
+    if (_migrationComplete) {
+      debugPrint('Migration already completed, skipping');
+      return;
+    }
+
     try {
       final localSessions = await _localDb.getAllSessions();
-      if (localSessions.isEmpty) return;
+      if (localSessions.isEmpty) {
+        _migrationComplete = true;
+        return;
+      }
 
       final batch = _firestore.batch();
       final sessionsRef = _sessionsCollection(userId);
@@ -211,11 +246,14 @@ class SyncRepository {
       }
 
       await batch.commit();
+      _migrationComplete = true;
       debugPrint(
         'Migrated ${localSessions.length} sessions to cloud for user $userId',
       );
     } catch (e) {
       debugPrint('Migration to cloud failed: $e');
+      // Не устанавливаем _migrationComplete = true, чтобы
+      // при следующем входе попробовать снова
     }
   }
 
@@ -237,11 +275,17 @@ class SyncRepository {
       final cloudSnapshots = await _sessionsCollection(userId).get();
 
       for (final doc in cloudSnapshots.docs) {
-        final data = doc.data();
-        final session = Session.fromMap(data);
-        // Используем insert с конфликт-стратегией replace,
-        // чтобы обновить локальные данные если они устарели
-        await _localDb.insertSession(session);
+        try {
+          final data = doc.data();
+          final session = Session.fromMap(data);
+          // Используем insertSessionIfNewer вместо insertSession,
+          // чтобы не перезаписать более новую локальную версию
+          // (например, если пользователь удалил сессию во время синхронизации)
+          await _localDb.insertSessionIfNewer(session);
+        } catch (e) {
+          debugPrint('Failed to process cloud document: $e');
+          // Продолжаем со следующим документом
+        }
       }
     } catch (e) {
       debugPrint('Cloud sync failed (offline): $e');

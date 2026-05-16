@@ -13,6 +13,13 @@ const int maxDuration = 60;
 /// Использует [ValueNotifier<int>] для отслеживания оставшихся секунд,
 /// что позволяет обновлять только виджеты, подписанные на этот notifier,
 /// без перерисовки всего дерева виджетов (в отличие от setState).
+///
+/// ## Анти-дрейф (Anti-Drift)
+///
+/// Вместо простого декремента на каждом тике [Timer.periodic],
+/// контроллер запоминает [DateTime] старта и на каждом тике вычисляет
+/// реальное прошедшее время. Это компенсирует дрейф (накопление
+/// погрешности), вызванный задержками Event Loop.
 class TimerController {
   /// Текущее количество оставшихся секунд.
   final ValueNotifier<int> remainingSeconds;
@@ -28,6 +35,9 @@ class TimerController {
 
   Timer? _timer;
 
+  /// Момент старта таймера (UTC) для анти-дрейф расчёта.
+  DateTime? _startTime;
+
   /// Создаёт контроллер с заданной длительностью в минутах.
   ///
   /// [durationInMinutes] — длительность медитации в минутах.
@@ -39,20 +49,31 @@ class TimerController {
   /// Запускает обратный отсчёт.
   ///
   /// Использует [Timer.periodic] с интервалом в 1 секунду.
-  /// Таймер взаимодействует с Event Loop Dart'а: каждый тик (1 сек)
-  /// помещается в очередь макрозадач (macrotask queue) и выполняется
-  /// после завершения текущего микрозадачи (microtask queue).
+  /// На каждом тике вычисляет реальное прошедшее время через
+  /// [DateTime.now()], что компенсирует дрейф Event Loop.
   void start() {
     // Предотвращаем создание нескольких таймеров
     _timer?.cancel();
 
+    _startTime = DateTime.now();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (remainingSeconds.value > 0) {
-        remainingSeconds.value = remainingSeconds.value - 1;
+      if (_startTime == null) return;
+
+      // Вычисляем реальное прошедшее время с момента старта
+      final elapsed = DateTime.now().difference(_startTime!).inSeconds;
+
+      // Оставшееся время = общее - реально прошедшее
+      final remaining = totalSeconds - elapsed;
+
+      if (remaining > 0) {
+        remainingSeconds.value = remaining;
       } else {
         // Таймер завершён — останавливаем
+        remainingSeconds.value = 0;
         _timer?.cancel();
         _timer = null;
+        _startTime = null;
       }
     });
   }
@@ -61,6 +82,7 @@ class TimerController {
   void stop() {
     _timer?.cancel();
     _timer = null;
+    _startTime = null;
   }
 
   /// Сбрасывает таймер к начальному значению.
@@ -88,29 +110,19 @@ class TimerController {
 
   /// Обработка ухода приложения в фоновый режим.
   ///
-  /// Для использования необходимо:
-  /// 1. Примешать [WidgetsBindingObserver] к State виджета.
-  /// 2. В [State.didChangeAppLifecycleState] вызвать этот метод:
-  ///
-  /// ```dart
-  /// @override
-  /// void didChangeAppLifecycleState(AppLifecycleState state) {
-  ///   if (state == AppLifecycleState.paused) {
-  ///     controller.handleAppLifecyclePaused();
-  ///   } else if (state == AppLifecycleState.resumed) {
-  ///     controller.handleAppLifecycleResumed();
-  ///   }
-  /// }
-  /// ```
-  ///
+  /// Сохраняет [DateTime.now()] для коррекции времени при возвращении.
   /// При паузе таймер продолжает работать в фоне (Dart-изолят жив),
-  /// но для точности можно сохранять [DateTime.now()] и при возвращении
-  /// вычитать разницу. Ниже — минимальная заглушка.
+  /// но для точности при возвращении вычитаем разницу.
   void handleAppLifecyclePaused() {
-    // TODO: сохранить DateTime.now() для коррекции времени при возврате
+    // _startTime уже сохранён, ничего дополнительно делать не нужно,
+    // т.к. на каждом тике мы вычисляем разницу с _startTime.
+    // Если приложение было в фоне долго, при возвращении следующий тик
+    // Timer.periodic скорректирует оставшееся время.
   }
 
   void handleAppLifecycleResumed() {
-    // TODO: восстановить точное время, вычтя разницу с сохранённым timestamp
+    // При возвращении из фона Timer.periodic может пропустить тики.
+    // Следующий тик корректно пересчитает remaining через _startTime.
+    // Дополнительной логики не требуется.
   }
 }
