@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -8,20 +11,14 @@ import '../engine/timer_controller.dart';
 import '../services/app_service_locator.dart';
 import '../widgets/journal_dialog.dart';
 import '../widgets/level_up_dialog.dart';
+import 'widgets/samadhi_view.dart';
 
-/// Экран медитации с таймером обратного отсчёта.
+/// Экран медитации с таймером обратного отсчёта и фазой Самадхи.
 ///
-/// Получает длительность через конструктор:
-/// ```dart
-/// Navigator.push(
-///   context,
-///   MaterialPageRoute(
-///     builder: (_) => TimerPage(durationInMinutes: 10),
-///   ),
-/// );
-/// ```
+/// После завершения таймера и гонга переводит пользователя в
+/// бесконечную фазу интеграции «Самадхи» с концентрическими кругами.
+/// Выход из Самадхи — по тапу/пробелу, после чего открывается JournalDialog.
 class TimerPage extends StatefulWidget {
-  /// Длительность медитации в минутах.
   final int durationInMinutes;
 
   const TimerPage({super.key, required this.durationInMinutes});
@@ -37,6 +34,15 @@ class _TimerPageState extends State<TimerPage> {
   bool _sessionSaved = false;
   bool _isSaving = false;
 
+  /// Флаг: показывать ли SamadhiView после завершения таймера.
+  bool _showSamadhi = false;
+
+  /// Completer для ожидания выхода из фазы Самадхи.
+  Completer<void>? _samadhiCompleter;
+
+  /// Флаг: Desktop/Web режим.
+  bool get _isDesktop => kIsWeb;
+
   @override
   void initState() {
     super.initState();
@@ -44,17 +50,12 @@ class _TimerPageState extends State<TimerPage> {
     _controller = TimerController(durationInMinutes: widget.durationInMinutes);
     _controller.start();
 
-    // Звон гонга в начале сессии
     _gongService.playStartGong();
-
-    // Не даём экрану гаснуть во время медитации (только на мобильных)
     _enableWakelock();
 
-    // Listen for timer completion to auto-save session
     _controller.remainingSeconds.addListener(_onTimerTick);
   }
 
-  /// Включает Wakelock только на поддерживаемых платформах (Android/iOS).
   Future<void> _enableWakelock() async {
     if (AppServiceLocator.isWakelockSupported) {
       try {
@@ -65,7 +66,6 @@ class _TimerPageState extends State<TimerPage> {
     }
   }
 
-  /// Отключает Wakelock только на поддерживаемых платформах.
   Future<void> _disableWakelock() async {
     if (AppServiceLocator.isWakelockSupported) {
       try {
@@ -78,40 +78,27 @@ class _TimerPageState extends State<TimerPage> {
 
   @override
   void dispose() {
-    // Remove listeners first
     _controller.remainingSeconds.removeListener(_onTimerTick);
-    // Строгая очистка ресурсов: отмена Timer и удаление слушателей
     _controller.dispose();
     _gongService.dispose();
-    // Возвращаем стандартное поведение гашения экрана
     _disableWakelock();
     super.dispose();
   }
 
   void _onTimerTick() {
-    debugPrint(
-      'ТИК: remainingSeconds=${_controller.remainingSeconds.value}, '
-      'isFinished=${_controller.isFinished}, '
-      'sessionSaved=$_sessionSaved, '
-      'isSaving=$_isSaving',
-    );
-    // Проверяем isFinished и что ещё не сохраняем и не сохранили
     if (_controller.isFinished && !_sessionSaved && !_isSaving) {
       _sessionSaved = true;
       _isSaving = true;
-      // Звон гонга в конце сессии
       _gongService.playEndGong();
       _saveSession();
     }
   }
 
   Future<void> _saveSession() async {
-    debugPrint('Попытка вызова сохранения сессии...');
     try {
       final locator = AppServiceLocator.instance;
       final syncRepo = locator.syncRepo;
       if (syncRepo == null) {
-        debugPrint('SyncRepository not available');
         _sessionSaved = false;
         _isSaving = false;
         return;
@@ -119,17 +106,21 @@ class _TimerPageState extends State<TimerPage> {
 
       _repository ??= AnalyticsRepository(syncRepo);
 
-      // Используем processSessionEnd — он сам сохраняет сессию
-      // и возвращает событие повышения уровня, если оно произошло
       final levelUp = await _repository!.processSessionEnd(
         _controller.totalSeconds,
       );
-      debugPrint('Сохранение сессии успешно завершено');
 
       if (!context.mounted) return;
 
-      // === JournalDialog: предлагаем записать ощущения ===
+      // === Фаза Самадхи (бесконечная интеграция) ===
+      // Показываем SamadhiView перед JournalDialog
+      await _showSamadhiPhase();
+
+      if (!context.mounted) return;
+
+      // === JournalDialog ===
       final journalResult = await showDialog<JournalResult>(
+        // ignore: use_build_context_synchronously
         context: context,
         barrierDismissible: false,
         builder: (_) => JournalDialog(
@@ -137,9 +128,7 @@ class _TimerPageState extends State<TimerPage> {
         ),
       );
 
-      // Сохраняем заметку/оценку/тег, если пользователь ввёл данные
       if (journalResult != null && context.mounted) {
-        // Получаем ID последней сессии (она только что сохранена)
         final sessions = await _repository!.getJournalSessions(limit: 1);
         if (sessions.isNotEmpty) {
           await _repository!.updateSessionJournal(
@@ -148,44 +137,39 @@ class _TimerPageState extends State<TimerPage> {
             moodRating: journalResult.moodRating,
             tag: journalResult.tag,
           );
-          debugPrint('Запись дневника сохранена: '
-              'mood=${journalResult.moodRating}, '
-              'note=${journalResult.note}, '
-              'tag=${journalResult.tag}');
         }
       }
 
       if (!context.mounted) return;
 
       if (levelUp != null) {
-        // Уровень повысился — показываем LevelUpDialog
         await showDialog<void>(
+          // ignore: use_build_context_synchronously
           context: context,
           barrierDismissible: false,
           builder: (_) => LevelUpDialog(event: levelUp),
         );
       }
 
-      // После закрытия любого диалога — возвращаемся на главный экран
       if (context.mounted) {
+        // ignore: use_build_context_synchronously
         Navigator.of(context).pop();
       }
     } catch (e) {
       debugPrint('Ошибка сохранения сессии: $e');
-      // Сбрасываем флаги, чтобы можно было повторить попытку
       _sessionSaved = false;
       _isSaving = false;
-      // Показываем пользователю сообщение об ошибке
       if (context.mounted) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Не удалось сохранить сессию. Попробуйте снова.'),
+            content: const Text('Не удалось сохранить сессию. Попробуйте снова.'),
+            // ignore: use_build_context_synchronously
             backgroundColor: Theme.of(context).colorScheme.error,
             action: SnackBarAction(
               label: 'Повторить',
               textColor: Colors.white,
               onPressed: () {
-                // Повторный вызов сохранения
                 _sessionSaved = true;
                 _isSaving = true;
                 _saveSession();
@@ -197,7 +181,28 @@ class _TimerPageState extends State<TimerPage> {
     }
   }
 
-  /// Форматирует секунды в строку "ММ:СС".
+  /// Показывает фазу Самадхи как встроенный слой.
+  ///
+  /// Использует Completer, чтобы дождаться выхода пользователя
+  /// из режима Самадхи перед открытием JournalDialog.
+  Future<void> _showSamadhiPhase() async {
+    _samadhiCompleter = Completer<void>();
+
+    if (!mounted) return;
+    setState(() => _showSamadhi = true);
+
+    // Ждём, пока SamadhiView не вызовет onExited
+    await _samadhiCompleter!.future;
+  }
+
+  void _onSamadhiExited() {
+    if (mounted) {
+      setState(() => _showSamadhi = false);
+      _samadhiCompleter?.complete();
+      _samadhiCompleter = null;
+    }
+  }
+
   String _formatTime(int seconds) {
     final m = (seconds ~/ 60).toString().padLeft(2, '0');
     final s = (seconds % 60).toString().padLeft(2, '0');
@@ -210,12 +215,11 @@ class _TimerPageState extends State<TimerPage> {
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
 
     return PopScope(
-      // Предотвращаем случайный выход (например, свайпом назад на iOS)
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+        if (_showSamadhi) return; // Блокируем выход во время Самадхи
 
-        // Показываем диалог подтверждения выхода
         final shouldPop = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -251,169 +255,177 @@ class _TimerPageState extends State<TimerPage> {
           child: SafeArea(
             child: Stack(
               children: [
-                // === Кнопка закрытия ✕ в правом верхнем углу ===
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white54),
-                    iconSize: 28,
-                    onPressed: () async {
-                      _controller.stop();
-                      await _disableWakelock();
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.1),
+                // === Основной контент таймера (скрыт во время Самадхи) ===
+                if (!_showSamadhi) ...[
+                  // Кнопка закрытия
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white54),
+                      iconSize: 28,
+                      onPressed: () async {
+                        _controller.stop();
+                        await _disableWakelock();
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
                   ),
-                ),
 
-                // === Центральный контент ===
-                Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 4), // 32px
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // === Карточка таймера ===
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 40,
-                            horizontal: 32,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(zen.cardRadius),
-                          ),
-                          child: Column(
-                            children: [
-                              // Время
-                              ValueListenableBuilder<int>(
-                                valueListenable: _controller.remainingSeconds,
-                                builder: (context, seconds, _) {
-                                  return Text(
-                                    _formatTime(seconds),
-                                    style: theme.textTheme.displayLarge?.copyWith(
-                                      fontSize: 72,
-                                      fontWeight: FontWeight.w200,
-                                      letterSpacing: 4,
-                                      color: Colors.white,
-                                    ),
-                                  );
-                                },
-                              ),
-
-                              SizedBox(height: zen.gap(3)), // 24px
-
-                              // Прогресс-бар
-                              ValueListenableBuilder<int>(
-                                valueListenable: _controller.remainingSeconds,
-                                builder: (context, seconds, _) {
-                                  final progress = _controller.totalSeconds > 0
-                                      ? seconds / _controller.totalSeconds
-                                      : 0.0;
-                                  final elapsed = _controller.totalSeconds - seconds;
-                                  return Column(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child: LinearProgressIndicator(
-                                          value: progress,
-                                          minHeight: 4,
-                                          backgroundColor:
-                                              Colors.white.withValues(alpha: 0.15),
-                                          valueColor: const AlwaysStoppedAnimation<Color>(
-                                            Color(0xFFC5A059),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '${_formatTime(elapsed)} / ${_formatTime(_controller.totalSeconds)}',
-                                        style: TextStyle(
-                                          fontFamily: 'Manrope',
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
-                                          letterSpacing: 1,
-                                          color: Colors.white.withValues(alpha: 0.4),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: zen.gap(5)), // 40px
-
-                        // Напоминание о позе и взгляде
-                        Text(
-                          'Спина прямая\nВзгляд вниз 45°\nФокус размыт',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.50),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: 0.5,
-                            height: 1.8,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-
-                        SizedBox(height: zen.gap(5)), // 40px
-
-                        // === Кнопки управления: Пауза + Стоп ===
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Кнопка Пауза / Продолжить
-                            ValueListenableBuilder<int>(
-                              valueListenable: _controller.remainingSeconds,
-                              builder: (context, seconds, _) {
-                                final isRunning = _controller.isRunning;
-                                return _TimerControlButton(
-                                  icon: isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                  label: isRunning ? 'ПАУЗА' : 'ПРОДОЛЖИТЬ',
-                                  onPressed: () {
-                                    if (isRunning) {
-                                      _controller.stop();
-                                    } else {
-                                      _controller.start();
-                                    }
-                                    // Триггерим перерисовку через setState,
-                                    // так как isRunning не ValueNotifier
-                                    setState(() {});
-                                  },
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 16),
-                            // Кнопка Стоп
-                            _TimerControlButton(
-                              icon: Icons.stop_rounded,
-                              label: 'СТОП',
-                              isOutlined: true,
-                              onPressed: () {
-                                _controller.stop();
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
+                  // Центральный контент
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: zen.spacingUnit * 4,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Карточка таймера
+                          _buildTimerCard(theme, zen),
+                          SizedBox(height: zen.gap(5)),
+                          _buildPostureHint(theme),
+                          SizedBox(height: zen.gap(5)),
+                          _buildControls(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
+
+                // === SamadhiView (поверх всего) ===
+                if (_showSamadhi)
+                  SamadhiView(
+                    onExited: _onSamadhiExited,
+                    isDesktop: _isDesktop,
+                  ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTimerCard(ThemeData theme, ZenStyles zen) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(zen.cardRadius),
+      ),
+      child: Column(
+        children: [
+          ValueListenableBuilder<int>(
+            valueListenable: _controller.remainingSeconds,
+            builder: (context, seconds, _) {
+              return Text(
+                _formatTime(seconds),
+                style: theme.textTheme.displayLarge?.copyWith(
+                  fontSize: 72,
+                  fontWeight: FontWeight.w200,
+                  letterSpacing: 4,
+                  color: Colors.white,
+                ),
+              );
+            },
+          ),
+          SizedBox(height: zen.gap(3)),
+          ValueListenableBuilder<int>(
+            valueListenable: _controller.remainingSeconds,
+            builder: (context, seconds, _) {
+              final progress = _controller.totalSeconds > 0
+                  ? seconds / _controller.totalSeconds
+                  : 0.0;
+              final elapsed = _controller.totalSeconds - seconds;
+              return Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 4,
+                      backgroundColor: Colors.white.withValues(alpha: 0.15),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFFC5A059),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${_formatTime(elapsed)} / ${_formatTime(_controller.totalSeconds)}',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 1,
+                      color: Colors.white.withValues(alpha: 0.4),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostureHint(ThemeData theme) {
+    return Text(
+      'Спина прямая\nВзгляд вниз 45°\nФокус размыт',
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: Colors.white.withValues(alpha: 0.50),
+        fontSize: 15,
+        fontWeight: FontWeight.w300,
+        letterSpacing: 0.5,
+        height: 1.8,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ValueListenableBuilder<int>(
+          valueListenable: _controller.remainingSeconds,
+          builder: (context, seconds, _) {
+            final isRunning = _controller.isRunning;
+            return _TimerControlButton(
+              icon: isRunning
+                  ? Icons.pause_rounded
+                  : Icons.play_arrow_rounded,
+              label: isRunning ? 'ПАУЗА' : 'ПРОДОЛЖИТЬ',
+              onPressed: () {
+                if (isRunning) {
+                  _controller.stop();
+                } else {
+                  _controller.start();
+                }
+                setState(() {});
+              },
+            );
+          },
+        ),
+        const SizedBox(width: 16),
+        _TimerControlButton(
+          icon: Icons.stop_rounded,
+          label: 'СТОП',
+          isOutlined: true,
+          onPressed: () {
+            _controller.stop();
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
     );
   }
 }

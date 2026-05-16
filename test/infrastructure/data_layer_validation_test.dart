@@ -29,7 +29,6 @@
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:zenbalance/data/session.dart';
 import 'package:zenbalance/data/database_provider.dart' as provider;
