@@ -3,11 +3,9 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/theme/zen_theme.dart';
 import '../data/analytics_repository.dart';
-import '../data/database_provider.dart';
-import '../data/sync_repository.dart';
 import '../engine/gong_service.dart';
 import '../engine/timer_controller.dart';
-import '../services/auth_service.dart';
+import '../services/app_service_locator.dart';
 import '../widgets/journal_dialog.dart';
 import '../widgets/level_up_dialog.dart';
 
@@ -49,11 +47,33 @@ class _TimerPageState extends State<TimerPage> {
     // Звон гонга в начале сессии
     _gongService.playStartGong();
 
-    // Не даём экрану гаснуть во время медитации
-    WakelockPlus.enable();
+    // Не даём экрану гаснуть во время медитации (только на мобильных)
+    _enableWakelock();
 
     // Listen for timer completion to auto-save session
     _controller.remainingSeconds.addListener(_onTimerTick);
+  }
+
+  /// Включает Wakelock только на поддерживаемых платформах (Android/iOS).
+  Future<void> _enableWakelock() async {
+    if (AppServiceLocator.isWakelockSupported) {
+      try {
+        await WakelockPlus.enable();
+      } catch (e) {
+        debugPrint('Wakelock enable failed (non-critical): $e');
+      }
+    }
+  }
+
+  /// Отключает Wakelock только на поддерживаемых платформах.
+  Future<void> _disableWakelock() async {
+    if (AppServiceLocator.isWakelockSupported) {
+      try {
+        await WakelockPlus.disable();
+      } catch (e) {
+        debugPrint('Wakelock disable failed (non-critical): $e');
+      }
+    }
   }
 
   @override
@@ -64,7 +84,7 @@ class _TimerPageState extends State<TimerPage> {
     _controller.dispose();
     _gongService.dispose();
     // Возвращаем стандартное поведение гашения экрана
-    WakelockPlus.disable();
+    _disableWakelock();
     super.dispose();
   }
 
@@ -88,10 +108,16 @@ class _TimerPageState extends State<TimerPage> {
   Future<void> _saveSession() async {
     debugPrint('Попытка вызова сохранения сессии...');
     try {
-      final db = await DatabaseProvider.instance();
-      final auth = AuthService();
-      final syncRepo = SyncRepository(localDb: db, auth: auth);
-      _repository = AnalyticsRepository(syncRepo);
+      final locator = AppServiceLocator.instance;
+      final syncRepo = locator.syncRepo;
+      if (syncRepo == null) {
+        debugPrint('SyncRepository not available');
+        _sessionSaved = false;
+        _isSaving = false;
+        return;
+      }
+
+      _repository ??= AnalyticsRepository(syncRepo);
 
       // Используем processSessionEnd — он сам сохраняет сессию
       // и возвращает событие повышения уровня, если оно произошло
@@ -133,8 +159,6 @@ class _TimerPageState extends State<TimerPage> {
 
       if (levelUp != null) {
         // Уровень повысился — показываем LevelUpDialog
-        // Он содержит поздравление, информацию об уровне/ранге
-        // и кнопку "Продолжить". После закрытия — возврат на главный экран.
         await showDialog<void>(
           context: context,
           barrierDismissible: false,
@@ -451,30 +475,3 @@ class _TimerControlButton extends StatelessWidget {
     );
   }
 }
-
-/// Расширение для предотвращения гашения экрана во время медитации.
-///
-/// Чтобы экран смартфона не гас, используйте плагин `wakelock_plus`:
-/// ```yaml
-/// dependencies:
-///   wakelock_plus: ^1.2.8
-/// ```
-///
-/// Пример использования:
-/// ```dart
-/// import 'package:wakelock_plus/wakelock_plus.dart';
-///
-/// // Включить (не давать экрану гаснуть):
-/// await WakelockPlus.enable();
-///
-/// // Выключить (вернуть стандартное поведение):
-/// await WakelockPlus.disable();
-/// ```
-///
-/// В iOS это требует капабилити в Info.plist,
-/// в Android — разрешения WAKE_LOCK (автоматически добавляется плагином).
-///
-/// Альтернатива без плагина — использовать [SystemChrome] (не гарантирует работу):
-/// ```dart
-/// SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-/// ```

@@ -21,6 +21,11 @@ class SyncRepository {
   final FirebaseFirestore _firestore;
   final AuthService _auth;
 
+  /// Флаг, предотвращающий race condition при параллельных вызовах
+  /// [_syncSessionsFromCloud]. Если синхронизация уже выполняется,
+  /// последующие вызовы будут проигнорированы.
+  bool _syncInProgress = false;
+
   SyncRepository({
     required DatabaseProvider localDb,
     required AuthService auth,
@@ -218,7 +223,16 @@ class SyncRepository {
   ///
   /// Загружает все сессии пользователя из облака и сохраняет их локально.
   /// Вызывается автоматически при чтении данных.
+  ///
+  /// Защита от race condition: если синхронизация уже выполняется,
+  /// повторный вызов игнорируется (флаг [_syncInProgress]).
   Future<void> _syncSessionsFromCloud(String userId) async {
+    if (_syncInProgress) {
+      debugPrint('Cloud sync already in progress, skipping duplicate call');
+      return;
+    }
+
+    _syncInProgress = true;
     try {
       final cloudSnapshots = await _sessionsCollection(userId).get();
 
@@ -231,6 +245,8 @@ class SyncRepository {
       }
     } catch (e) {
       debugPrint('Cloud sync failed (offline): $e');
+    } finally {
+      _syncInProgress = false;
     }
   }
 
@@ -245,3 +261,4 @@ class SyncRepository {
     }
   }
 }
+

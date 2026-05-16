@@ -6,11 +6,11 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 import 'core/theme/zen_theme.dart';
-import 'data/database_provider.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
+import 'services/app_service_locator.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Инициализация database factory в зависимости от платформы
@@ -31,18 +31,14 @@ void main() {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Initialize the database and Firebase before running the app
-  _initApp();
+  // Инициализируем все сервисы перед запуском приложения
+  await _initServices();
+
+  runApp(const ZenBalanceApp());
 }
 
-Future<void> _initApp() async {
-  try {
-    await DatabaseProvider.instance();
-  } catch (e) {
-    // Database initialization failure is logged but doesn't block the app
-    debugPrint('Database initialization failed: $e');
-  }
-
+Future<void> _initServices() async {
+  // Инициализация Firebase (может упасть на неподдерживаемых платформах)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -53,7 +49,8 @@ Future<void> _initApp() async {
     debugPrint('Firebase initialization failed (local-only mode): $e');
   }
 
-  runApp(const ZenBalanceApp());
+  // Инициализация AppServiceLocator (БД + сервисы)
+  await AppServiceLocator.initialize();
 }
 
 class ZenBalanceApp extends StatelessWidget {

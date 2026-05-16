@@ -1,13 +1,14 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../core/theme/zen_theme.dart';
 import '../core/version_info.dart';
 import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
-import '../data/database_provider.dart';
-import '../data/sync_repository.dart';
 import '../engine/timer_controller.dart';
-import '../services/auth_service.dart';
+import '../services/app_service_locator.dart';
 import 'auth_screen.dart';
 import 'journal_screen.dart';
 import 'meditation_guide_screen.dart';
@@ -26,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen>
   /// Текущая выбранная длительность медитации в минутах.
   double _durationMinutes = minDuration.toDouble();
 
-  final AuthService _authService = AuthService();
   AnalyticsRepository? _repository;
   UserProgression _progression = const UserProgression(
     minutes: 0,
@@ -47,21 +47,26 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// Отслеживание подписки на auth state.
   bool _isAuthenticated = false;
+  StreamSubscription<User?>? _authSubscription;
 
   @override
   void initState() {
     super.initState();
-    _isAuthenticated = _authService.isAuthenticated;
-    _authService.authStateChanges.listen((user) {
+
+    final auth = AppServiceLocator.instance.authService;
+    _isAuthenticated = auth?.isAuthenticated ?? false;
+
+    // Подписка на изменения auth state с сохранением StreamSubscription.
+    // authStateChanges сразу эмитит текущее состояние при подписке,
+    // поэтому отдельный вызов _loadProgression() не требуется.
+    _authSubscription = auth?.authStateChanges.listen((user) {
       if (mounted) {
         setState(() {
           _isAuthenticated = user != null;
         });
-        // При входе/выходе — перезагружаем прогрессию
         _loadProgression();
       }
     });
-    _loadProgression();
 
     // Пульсация кнопки "Начать практику"
     _pulseController = AnimationController(
@@ -75,16 +80,24 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _pulseController.dispose();
     super.dispose();
   }
 
   Future<void> _loadProgression() async {
+    final locator = AppServiceLocator.instance;
+    final db = locator.db;
+    final auth = locator.authService;
+    final syncRepo = locator.syncRepo;
+
+    if (db == null || auth == null || syncRepo == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
+
     try {
-      final db = await DatabaseProvider.instance();
-      final auth = AuthService();
-      final syncRepo = SyncRepository(localDb: db, auth: auth);
-      _repository = AnalyticsRepository(syncRepo);
+      _repository ??= AnalyticsRepository(syncRepo);
 
       final results = await Future.wait([
         _repository!.getUserProgression(),
@@ -106,15 +119,18 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _navigateToAuth() async {
+    final auth = AppServiceLocator.instance.authService;
+    if (auth == null) return;
+
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => AuthScreen(authService: _authService),
+        builder: (_) => AuthScreen(authService: auth),
       ),
     );
     // Если пользователь вошёл — мигрируем локальные данные в облако
     if (result == true && _repository != null) {
-      final userId = _authService.userId;
+      final userId = auth.userId;
       if (userId != null) {
         await _repository!.syncRepo.migrateLocalToCloud(userId);
       }
@@ -123,8 +139,11 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _handleSignOut() async {
+    final auth = AppServiceLocator.instance.authService;
+    if (auth == null) return;
+
     try {
-      await _authService.signOut();
+      await auth.signOut();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Вы вышли из аккаунта')),
@@ -181,6 +200,8 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
+    final primaryColor = theme.colorScheme.primary;
+    final onSurface = theme.colorScheme.onSurface;
 
     return Scaffold(
       body: LayoutBuilder(
@@ -214,14 +235,9 @@ class _HomeScreenState extends State<HomeScreen>
                       SizedBox(height: zen.gap(3)), // 24px
 
                       // Кнопка "Начать практику" с пульсацией
-                      AnimatedBuilder(
-                        animation: _pulseAnimation,
-                        builder: (context, child) {
-                          return Transform.scale(
-                            scale: _pulseAnimation.value,
-                            child: child,
-                          );
-                        },
+                      AnimatedScale(
+                        scale: _pulseAnimation.value,
+                        duration: const Duration(milliseconds: 2000),
                         child: ElevatedButton(
                           onPressed: _navigateToTimer,
                           child: const Text('Начать практику'),
@@ -236,12 +252,12 @@ class _HomeScreenState extends State<HomeScreen>
                         icon: Icon(
                           Icons.book_outlined,
                           size: 18,
-                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                          color: primaryColor.withValues(alpha: 0.7),
                         ),
                         label: Text(
                           'Дневник',
                           style: TextStyle(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                            color: primaryColor.withValues(alpha: 0.7),
                           ),
                         ),
                       ),
@@ -254,12 +270,12 @@ class _HomeScreenState extends State<HomeScreen>
                         icon: Icon(
                           Icons.bar_chart_outlined,
                           size: 18,
-                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                          color: primaryColor.withValues(alpha: 0.7),
                         ),
                         label: Text(
                           'Статистика',
                           style: TextStyle(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                            color: primaryColor.withValues(alpha: 0.7),
                           ),
                         ),
                       ),
@@ -270,8 +286,10 @@ class _HomeScreenState extends State<HomeScreen>
                       OutlinedButton(
                         onPressed: _navigateToGuide,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0A192F),
-                          side: const BorderSide(color: Color(0xFFC5A059)),
+                          foregroundColor: onSurface,
+                          side: BorderSide(
+                            color: primaryColor.withValues(alpha: 0.7),
+                          ),
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                           textStyle: const TextStyle(
                             fontFamily: 'Manrope',
@@ -291,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Text(
                           VersionInfo.displayVersion,
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                            color: onSurface.withValues(alpha: 0.3),
                             fontSize: 11,
                             fontFamily: 'Manrope',
                             fontWeight: FontWeight.w400,
@@ -525,9 +543,11 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// Строка профиля: аватар + имя (если авторизован) или кнопка "Войти".
   Widget _buildProfileRow(ThemeData theme, ZenStyles zen) {
-    if (_isAuthenticated) {
-      final name = _authService.displayName ?? 'Пользователь';
-      final photoUrl = _authService.photoUrl;
+    final auth = AppServiceLocator.instance.authService;
+
+    if (_isAuthenticated && auth != null) {
+      final name = auth.displayName ?? 'Пользователь';
+      final photoUrl = auth.photoUrl;
 
       return Row(
         children: [

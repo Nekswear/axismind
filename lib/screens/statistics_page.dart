@@ -4,9 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../core/theme/zen_theme.dart';
 import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
-import '../data/database_provider.dart';
-import '../data/sync_repository.dart';
-import '../services/auth_service.dart';
+import '../services/app_service_locator.dart';
 import '../utils/time_utils.dart';
 import '../widgets/empty_dashboard.dart';
 import '../widgets/error_view.dart';
@@ -106,9 +104,11 @@ class _StatisticsPageState extends State<StatisticsPage>
     setState(() => _pageState = _PageState.loading);
 
     try {
-      final db = await DatabaseProvider.instance();
-      final auth = AuthService();
-      final syncRepo = SyncRepository(localDb: db, auth: auth);
+      final locator = AppServiceLocator.instance;
+      final syncRepo = locator.syncRepo;
+      if (syncRepo == null) {
+        throw Exception('SyncRepository не инициализирован');
+      }
       _repository = AnalyticsRepository(syncRepo);
 
       final now = DateTime.now();
@@ -655,7 +655,7 @@ class _StatisticsPageState extends State<StatisticsPage>
             orElse: () => null,
           );
           final weekLabel = weekStartDate != null
-              ? _formatShortDate(weekStartDate.date)
+              ? TimeUtils.formatDateShort(weekStartDate.date)
               : '';
 
           return Padding(
@@ -690,16 +690,6 @@ class _StatisticsPageState extends State<StatisticsPage>
         }),
       ],
     );
-  }
-
-  /// Форматирует ISO-дату в короткий формат «ДД.ММ».
-  String _formatShortDate(String isoDate) {
-    try {
-      final date = DateTime.parse(isoDate);
-      return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}';
-    } catch (_) {
-      return '';
-    }
   }
 
   /// Ячейка мини-календаря (28×28).

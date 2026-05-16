@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/zen_theme.dart';
 import '../data/analytics_repository.dart';
-import '../data/database_provider.dart';
 import '../data/session.dart';
-import '../data/sync_repository.dart';
-import '../services/auth_service.dart';
+import '../services/app_service_locator.dart';
 import '../widgets/journal_dialog.dart';
 
 /// Экран дневника медитаций.
@@ -51,19 +49,17 @@ class _JournalScreenState extends State<JournalScreen> {
   }
 
   Future<void> _initRepository() async {
-    try {
-      final db = await DatabaseProvider.instance();
-      final auth = AuthService();
-      final syncRepo = SyncRepository(localDb: db, auth: auth);
-      _repository = AnalyticsRepository(syncRepo);
-
-      await _loadTags();
-      await _loadSessions();
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+    final locator = AppServiceLocator.instance;
+    final syncRepo = locator.syncRepo;
+    if (syncRepo == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
     }
+
+    _repository = AnalyticsRepository(syncRepo);
+
+    await _loadTags();
+    await _loadSessions();
   }
 
   Future<void> _loadTags() async {
