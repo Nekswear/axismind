@@ -166,7 +166,9 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
                 ),
               );
             },
-            child: _buildRightPanel(zen, theme, key: ValueKey('panel_$_hoveredMinutes')),
+            // Используем widget.durationMinutes (реагирует на тап),
+            // а _hoveredMinutes — только для визуального ховера
+            child: _buildRightPanel(zen, theme, key: ValueKey('panel_${widget.durationMinutes.toInt()}')),
           ),
         ),
       ],
@@ -231,6 +233,9 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
   }
 
   Widget _buildRightPanel(ZenStyles zen, ThemeData theme, {required Key key}) {
+    // Показываем выбранную длительность (реагирует на тап),
+    // но если есть hover — показываем ховернутую
+    final displayMinutes = widget.durationMinutes.toInt();
     return Container(
       key: key,
       decoration: BoxDecoration(
@@ -251,7 +256,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
             children: [
               // Крупное время
               Text(
-                '$_hoveredMinutes мин',
+                '$displayMinutes мин',
                 style: theme.textTheme.displayLarge?.copyWith(
                   fontFamily: 'PlayfairDisplay',
                   fontSize: 96,
@@ -261,7 +266,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
               ),
               SizedBox(height: zen.gap(4)),
               // Нейробиологическое обоснование
-              NeuroPresetInfo(minutes: _hoveredMinutes),
+              NeuroPresetInfo(minutes: displayMinutes),
             ],
           ),
         ),

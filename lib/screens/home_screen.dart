@@ -221,7 +221,9 @@ class _HomeScreenState extends State<HomeScreen>
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final isDesktop = kIsWeb || constraints.maxWidth > 800;
+          // Desktop/Web: ширина > 800 И высота > 600 (чтобы ландшафт на телефоне
+          // не триггерил десктопный макет, где нет мобильной кнопки "Начать практику")
+          final isDesktop = kIsWeb || (constraints.maxWidth > 800 && constraints.maxHeight > 600);
           final isCompact = constraints.maxHeight < 600;
           debugPrint('[DIAG] LayoutBuilder: w=${constraints.maxWidth}, h=${constraints.maxHeight}, isDesktop=$isDesktop, isCompact=$isCompact');
 
@@ -294,9 +296,14 @@ class _HomeScreenState extends State<HomeScreen>
               SizedBox(height: zen.gap(3) * gapScale),
 
               // CTA-кнопка с пульсацией
-              AnimatedScale(
-                scale: _pulseAnimation.value,
-                duration: const Duration(milliseconds: 2000),
+              AnimatedBuilder(
+                animation: _pulseAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _pulseAnimation.value,
+                    child: child,
+                  );
+                },
                 child: SizedBox(
                   height: isCompact ? 48 : 56,
                   child: ElevatedButton(
