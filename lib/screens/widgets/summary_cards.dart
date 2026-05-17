@@ -196,7 +196,7 @@ class _MiniCard extends StatelessWidget {
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
                 overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+                maxLines: 2,
               ),
               SizedBox(height: zen.spacingUnit / 4),
               Row(
