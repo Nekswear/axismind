@@ -121,6 +121,7 @@ class StreakGrowthCards extends StatelessWidget {
               icon: Icons.local_fire_department_rounded,
               iconColor: Colors.deepOrange,
               label: 'Серия',
+              subtitle: null,
               value: '$streak',
               unit: streak == 1 ? 'день' : 'дней',
             ),
@@ -139,6 +140,7 @@ class StreakGrowthCards extends StatelessWidget {
                   ? (growth! >= 0 ? Colors.green : theme.colorScheme.error)
                   : Colors.grey,
               label: 'Рост',
+              subtitle: 'за $chartDays д.',
               value: growth != null ? '${(growth! * 100).round()}%' : '—',
               unit: '',
             ),
@@ -155,6 +157,7 @@ class _MiniCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String label;
+  final String? subtitle;
   final String value;
   final String unit;
 
@@ -164,6 +167,7 @@ class _MiniCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.label,
+    this.subtitle,
     required this.value,
     required this.unit,
   });
@@ -194,6 +198,16 @@ class _MiniCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
+              if (subtitle != null)
+                Text(
+                  subtitle!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
+                    fontSize: 11,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               SizedBox(height: zen.spacingUnit / 4),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
