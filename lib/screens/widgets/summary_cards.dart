@@ -120,7 +120,7 @@ class StreakGrowthCards extends StatelessWidget {
               zen: zen,
               icon: Icons.local_fire_department_rounded,
               iconColor: Colors.deepOrange,
-              label: 'Серия дней',
+              label: 'Серия',
               value: '$streak',
               unit: streak == 1 ? 'день' : 'дней',
             ),
@@ -138,13 +138,9 @@ class StreakGrowthCards extends StatelessWidget {
               iconColor: growth != null
                   ? (growth! >= 0 ? Colors.green : theme.colorScheme.error)
                   : Colors.grey,
-              label: 'Рост за $chartDays дней',
+              label: 'Рост',
               value: growth != null ? '${(growth! * 100).round()}%' : '—',
-              unit: growth != null
-                  ? growth! >= 0
-                      ? 'больше'
-                      : 'меньше'
-                  : 'нет данных',
+              unit: '',
             ),
           ),
         ],
@@ -196,7 +192,7 @@ class _MiniCard extends StatelessWidget {
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
                 overflow: TextOverflow.ellipsis,
-                maxLines: 2,
+                maxLines: 1,
               ),
               SizedBox(height: zen.spacingUnit / 4),
               Row(
@@ -212,16 +208,18 @@ class _MiniCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  SizedBox(width: zen.spacingUnit / 2),
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      unit,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  if (unit.isNotEmpty) ...[
+                    SizedBox(width: zen.spacingUnit / 2),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        unit,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
