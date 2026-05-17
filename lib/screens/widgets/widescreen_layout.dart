@@ -21,6 +21,18 @@ class WidescreenLayout extends StatefulWidget {
   final VoidCallback onStatisticsTap;
   final VoidCallback onGuideTap;
 
+  /// Пользователь авторизован через Google?
+  final bool isAuthenticated;
+
+  /// Колбэк для открытия экрана входа.
+  final VoidCallback? onAuthTap;
+
+  /// Отображаемое имя пользователя (если авторизован).
+  final String? displayName;
+
+  /// URL аватара пользователя (если авторизован).
+  final String? photoUrl;
+
   const WidescreenLayout({
     super.key,
     required this.durationMinutes,
@@ -29,6 +41,10 @@ class WidescreenLayout extends StatefulWidget {
     required this.onJournalTap,
     required this.onStatisticsTap,
     required this.onGuideTap,
+    this.isAuthenticated = false,
+    this.onAuthTap,
+    this.displayName,
+    this.photoUrl,
   });
 
   @override
@@ -94,7 +110,9 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
                     }
                   },
                 )),
-                SizedBox(height: zen.gap(4)),
+                // Кнопка входа / информация о пользователе
+                _buildAuthSection(zen, theme),
+                SizedBox(height: zen.gap(2)),
                 // CTA-кнопка
                 SizedBox(
                   height: 56,
@@ -152,6 +170,63 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAuthSection(ZenStyles zen, ThemeData theme) {
+    if (widget.isAuthenticated) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (widget.photoUrl != null)
+            CircleAvatar(
+              radius: 14,
+              backgroundImage: NetworkImage(widget.photoUrl!),
+            )
+          else
+            CircleAvatar(
+              radius: 14,
+              backgroundColor: ZenColors.gold.withValues(alpha: 0.2),
+              child: Icon(Icons.person, size: 16, color: ZenColors.gold),
+            ),
+          const SizedBox(width: 8),
+          Text(
+            widget.displayName ?? 'Пользователь',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: ZenColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (widget.onAuthTap == null) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 36,
+      child: OutlinedButton.icon(
+        onPressed: widget.onAuthTap,
+        icon: const Icon(Icons.login, size: 16),
+        label: const Text(
+          'Войти через Google',
+          style: TextStyle(fontSize: 12),
+        ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: ZenColors.gold,
+          side: BorderSide(
+            color: ZenColors.gold.withValues(alpha: 0.5),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          textStyle: const TextStyle(
+            fontFamily: 'Manrope',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 

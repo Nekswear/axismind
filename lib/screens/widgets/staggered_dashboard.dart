@@ -110,99 +110,144 @@ class _StaggeredDashboardState extends State<StaggeredDashboard>
 
     return RefreshIndicator(
       onRefresh: () => context.read<StatisticsCubit>().refresh(),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 3),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: zen.spacingUnit),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 600;
+          final hPad = isWide ? zen.spacingUnit * 2 : zen.spacingUnit * 3;
 
-            // 1. Hero section
-            _AnimatedSection(
-              animation: _fadeAnimations[0],
-              slideAnimation: _slideAnimations[0],
-              child: HeroSection(
-                progression: s.progression,
-                xp: s.xpProgress,
-                streak: s.streak,
-              ),
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: hPad),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: zen.spacingUnit),
+
+                // 1. Hero section
+                _AnimatedSection(
+                  animation: _fadeAnimations[0],
+                  slideAnimation: _slideAnimations[0],
+                  child: HeroSection(
+                    progression: s.progression,
+                    xp: s.xpProgress,
+                    streak: s.streak,
+                  ),
+                ),
+
+                SizedBox(height: zen.gap(isWide ? 2 : 3)),
+
+                // 2. Summary cards + 5. Chart (side by side in wide mode)
+                if (isWide)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Summary cards (left column)
+                      Expanded(
+                        child: _AnimatedSection(
+                          animation: _fadeAnimations[1],
+                          slideAnimation: _slideAnimations[1],
+                          child: SummaryCards(
+                            totalMinutes: s.totalMinutes,
+                            sessionCount: s.sessionCount,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: zen.gap(2)),
+                      // Chart (right column)
+                      Expanded(
+                        child: _AnimatedSection(
+                          animation: _fadeAnimations[4],
+                          slideAnimation: _slideAnimations[4],
+                          child: ChartSection(
+                            spots: s.chartSpots,
+                            dailyStats: s.dailyStats,
+                            chartMaxY: s.chartMaxY,
+                            peakIndices: s.peakIndices,
+                            chartAverage: s.chartAverage,
+                            selectedPeriod: s.selectedPeriod,
+                            onPeriodChanged: (period) {
+                              context.read<StatisticsCubit>().changePeriod(period);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  _AnimatedSection(
+                    animation: _fadeAnimations[1],
+                    slideAnimation: _slideAnimations[1],
+                    child: SummaryCards(
+                      totalMinutes: s.totalMinutes,
+                      sessionCount: s.sessionCount,
+                    ),
+                  ),
+
+                SizedBox(height: zen.gap(isWide ? 2 : 3)),
+
+                // 3. Streak + Growth mini-cards
+                _AnimatedSection(
+                  animation: _fadeAnimations[2],
+                  slideAnimation: _slideAnimations[2],
+                  child: StreakGrowthCards(
+                    streak: s.streak,
+                    growth: s.growth,
+                    chartDays: _chartDays(s.selectedPeriod),
+                  ),
+                ),
+
+                SizedBox(height: zen.gap(isWide ? 3 : 4)),
+
+                // 4. Heatmap
+                _AnimatedSection(
+                  animation: _fadeAnimations[3],
+                  slideAnimation: _slideAnimations[3],
+                  child: HeatmapSection(
+                    data: s.heatmapData,
+                    maxMinutes: s.maxHeatmapMinutes,
+                    regularity: s.regularity,
+                    average: s.heatmapAverage,
+                    bestDay: s.bestDay,
+                    daysWithActivity: s.daysWithActivity,
+                  ),
+                ),
+
+                SizedBox(height: zen.gap(isWide ? 3 : 4)),
+
+                // 5. Area Chart (already shown in Row above if wide)
+                if (!isWide)
+                  _AnimatedSection(
+                    animation: _fadeAnimations[4],
+                    slideAnimation: _slideAnimations[4],
+                    child: ChartSection(
+                      spots: s.chartSpots,
+                      dailyStats: s.dailyStats,
+                      chartMaxY: s.chartMaxY,
+                      peakIndices: s.peakIndices,
+                      chartAverage: s.chartAverage,
+                      selectedPeriod: s.selectedPeriod,
+                      onPeriodChanged: (period) {
+                        context.read<StatisticsCubit>().changePeriod(period);
+                      },
+                    ),
+                  ),
+
+                if (!isWide) SizedBox(height: zen.gap(3)),
+
+                // 6. Average metric
+                _AnimatedSection(
+                  animation: _fadeAnimations[5],
+                  slideAnimation: _slideAnimations[5],
+                  child: _AverageMetric(
+                    average: s.averageMinutes,
+                  ),
+                ),
+
+                SizedBox(height: zen.gap(isWide ? 3 : 5)),
+              ],
             ),
-
-            SizedBox(height: zen.gap(3)),
-
-            // 2. Summary cards
-            _AnimatedSection(
-              animation: _fadeAnimations[1],
-              slideAnimation: _slideAnimations[1],
-              child: SummaryCards(
-                totalMinutes: s.totalMinutes,
-                sessionCount: s.sessionCount,
-              ),
-            ),
-
-            SizedBox(height: zen.gap(3)),
-
-            // 3. Streak + Growth mini-cards
-            _AnimatedSection(
-              animation: _fadeAnimations[2],
-              slideAnimation: _slideAnimations[2],
-              child: StreakGrowthCards(
-                streak: s.streak,
-                growth: s.growth,
-                chartDays: _chartDays(s.selectedPeriod),
-              ),
-            ),
-
-            SizedBox(height: zen.gap(4)),
-
-            // 4. Heatmap
-            _AnimatedSection(
-              animation: _fadeAnimations[3],
-              slideAnimation: _slideAnimations[3],
-              child: HeatmapSection(
-                data: s.heatmapData,
-                maxMinutes: s.maxHeatmapMinutes,
-                regularity: s.regularity,
-                average: s.heatmapAverage,
-                bestDay: s.bestDay,
-                daysWithActivity: s.daysWithActivity,
-              ),
-            ),
-
-            SizedBox(height: zen.gap(4)),
-
-            // 5. Area Chart
-            _AnimatedSection(
-              animation: _fadeAnimations[4],
-              slideAnimation: _slideAnimations[4],
-              child: ChartSection(
-                spots: s.chartSpots,
-                dailyStats: s.dailyStats,
-                chartMaxY: s.chartMaxY,
-                peakIndices: s.peakIndices,
-                chartAverage: s.chartAverage,
-                selectedPeriod: s.selectedPeriod,
-                onPeriodChanged: (period) {
-                  context.read<StatisticsCubit>().changePeriod(period);
-                },
-              ),
-            ),
-
-            SizedBox(height: zen.gap(3)),
-
-            // 6. Average metric
-            _AnimatedSection(
-              animation: _fadeAnimations[5],
-              slideAnimation: _slideAnimations[5],
-              child: _AverageMetric(
-                average: s.averageMinutes,
-              ),
-            ),
-
-            SizedBox(height: zen.gap(5)),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

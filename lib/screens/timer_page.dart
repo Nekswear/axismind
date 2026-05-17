@@ -213,6 +213,7 @@ class _TimerPageState extends State<TimerPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return PopScope(
       canPop: false,
@@ -281,19 +282,41 @@ class _TimerPageState extends State<TimerPage> {
                   Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(
-                        horizontal: zen.spacingUnit * 4,
+                        horizontal: isLandscape ? zen.spacingUnit * 2 : zen.spacingUnit * 4,
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Карточка таймера
-                          _buildTimerCard(theme, zen),
-                          SizedBox(height: zen.gap(5)),
-                          _buildPostureHint(theme),
-                          SizedBox(height: zen.gap(5)),
-                          _buildControls(),
-                        ],
-                      ),
+                      child: isLandscape
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: _buildTimerCard(theme, zen, isLandscape),
+                                ),
+                                SizedBox(width: zen.gap(3)),
+                                Expanded(
+                                  flex: 2,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _buildPostureHint(theme),
+                                      SizedBox(height: zen.gap(3)),
+                                      _buildControls(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Карточка таймера
+                                _buildTimerCard(theme, zen, isLandscape),
+                                SizedBox(height: zen.gap(5)),
+                                _buildPostureHint(theme),
+                                SizedBox(height: zen.gap(5)),
+                                _buildControls(),
+                              ],
+                            ),
                     ),
                   ),
                 ],
@@ -312,10 +335,13 @@ class _TimerPageState extends State<TimerPage> {
     );
   }
 
-  Widget _buildTimerCard(ThemeData theme, ZenStyles zen) {
+  Widget _buildTimerCard(ThemeData theme, ZenStyles zen, [bool isLandscape = false]) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
+      padding: EdgeInsets.symmetric(
+        vertical: isLandscape ? 20 : 40,
+        horizontal: isLandscape ? 16 : 32,
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(zen.cardRadius),
@@ -328,7 +354,7 @@ class _TimerPageState extends State<TimerPage> {
               return Text(
                 _formatTime(seconds),
                 style: theme.textTheme.displayLarge?.copyWith(
-                  fontSize: 72,
+                  fontSize: isLandscape ? 48 : 72,
                   fontWeight: FontWeight.w200,
                   letterSpacing: 4,
                   color: Colors.white,
@@ -336,7 +362,7 @@ class _TimerPageState extends State<TimerPage> {
               );
             },
           ),
-          SizedBox(height: zen.gap(3)),
+          SizedBox(height: isLandscape ? zen.gap(1) : zen.gap(3)),
           ValueListenableBuilder<int>(
             valueListenable: _controller.remainingSeconds,
             builder: (context, seconds, _) {

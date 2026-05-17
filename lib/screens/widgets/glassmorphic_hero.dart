@@ -18,14 +18,31 @@ import 'mouse_tilt_controller.dart';
 /// эффекта «Магнитного Тилта» при движении курсора.
 ///
 /// Многослойный `Stack`:
-/// 1. Frosted Glass (BackdropFilter + blur)
+/// 1. Frosted Glass (BackdropFilter + blur) — только на desktop/web
 /// 2. Золотое свечение (параллакс)
 /// 3. Контент (ранг, XP, streak) — контр-параллакс
+///
+/// **Важно:** На Android `BackdropFilter` с `ImageFilter.blur` вызывает
+/// сбой рендеринга на многих устройствах, поэтому используется fallback
+/// с простым полупрозрачным фоном.
 class GlassmorphicHero extends StatefulWidget {
   final UserProgression progression;
   final XpProgress xpProgress;
   final bool isCompact;
   final bool isDesktop;
+
+  /// Пользователь авторизован через Google?
+  final bool isAuthenticated;
+
+  /// Колбэк для открытия экрана входа.
+  /// Если null — кнопка входа не показывается.
+  final VoidCallback? onAuthTap;
+
+  /// Отображаемое имя пользователя (если авторизован).
+  final String? displayName;
+
+  /// URL аватара пользователя (если авторизован).
+  final String? photoUrl;
 
   const GlassmorphicHero({
     super.key,
@@ -33,6 +50,10 @@ class GlassmorphicHero extends StatefulWidget {
     required this.xpProgress,
     required this.isCompact,
     this.isDesktop = false,
+    this.isAuthenticated = false,
+    this.onAuthTap,
+    this.displayName,
+    this.photoUrl,
   });
 
   @override
@@ -108,81 +129,138 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
   }
 
   Widget _buildGlassCard(ZenStyles zen, Widget content) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([?_mouseTilt]),
-      builder: (context, child) {
-        return Transform(
-          transform: _buildTransform(),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(zen.cardRadius),
-              border: Border.all(
-                color: ZenColors.border,
-                width: 1,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(zen.cardRadius),
-              child: Stack(
-                children: [
-                  // Слой 1: Frosted Glass (BackdropFilter)
-                  Positioned.fill(
-                    child: BackdropFilter(
-                      filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                      child: Container(
-                        color: ZenColors.surface.withValues(alpha: 0.4),
-                      ),
-                    ),
-                  ),
+    // Desktop: используем AnimatedBuilder с MouseTiltController для плавных переходов
+    if (_mouseTilt != null) {
+      return AnimatedBuilder(
+        animation: _mouseTilt!,
+        builder: (context, child) {
+          return _buildGlassCardContent(zen, child!);
+        },
+        child: content,
+      );
+    }
 
-                  // Слой 2: Золотое свечение (параллакс)
-                  Positioned.fill(
-                    child: Transform(
-                      transform: Matrix4.identity()
-                        ..translateByDouble(
-                          _tiltX * 30,
-                          _tiltY * 30,
-                          0,
-                          1,
-                        ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: RadialGradient(
-                            colors: [
-                              ZenColors.gold.withValues(alpha: 0.12),
-                              Colors.transparent,
-                            ],
-                            radius: 1.2,
-                            center: Alignment(
-                              _tiltX.clamp(-0.5, 0.5),
-                              _tiltY.clamp(-0.5, 0.5),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+    // Мобильная версия: setState из GyroController перестраивает виджет
+    return _buildGlassCardContent(zen, content);
+  }
 
-                  // Слой 3: Контент (контр-параллакс)
-                  Positioned.fill(
-                    child: Transform(
-                      transform: Matrix4.identity()
-                        ..translateByDouble(
-                          -_tiltX * 8,
-                          -_tiltY * 8,
-                          0,
-                          1,
-                        ),
-                      child: child,
-                    ),
-                  ),
-                ],
+  /// Строит содержимое стеклянной карточки с параллакс-трансформациями.
+  ///
+  /// **Важно:** Не используем `Stack` с перекрывающимися детьми — на некоторых
+  /// Android-устройствах это вызывает сбой рендеринга (синий экран с жёлтым овалом).
+  /// Вместо этого используем один `Container` с `BoxDecoration` для фона и градиента,
+  /// а контент размещаем поверх через `ClipRRect`.
+  Widget _buildGlassCardContent(ZenStyles zen, Widget content) {
+    return Transform(
+      transform: _buildTransform(),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(zen.cardRadius),
+          border: Border.all(
+            color: ZenColors.border,
+            width: 1,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(zen.cardRadius),
+          child: _buildGlassLayer(zen, content),
+        ),
+      ),
+    );
+  }
+
+  /// Строит слой стекла: [BackdropFilter] на desktop/web,
+  /// простой полупрозрачный фон на Android.
+  ///
+  /// На Android также добавляет золотой градиент и контр-параллакс контента
+  /// через `BoxDecoration` и `padding` соответственно.
+  Widget _buildGlassLayer(ZenStyles zen, Widget content) {
+    if (widget.isDesktop) {
+      // Desktop/Web: полноценный эффект матового стекла через Stack
+      // (на desktop проблем с рендерингом нет)
+      return Stack(
+        children: [
+          // BackdropFilter
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                color: ZenColors.surface.withValues(alpha: 0.4),
               ),
             ),
           ),
-        );
-      },
+          // Золотой градиент
+          Positioned.fill(
+            child: Transform(
+              transform: Matrix4.identity()
+                ..translateByDouble(
+                  _tiltX * 30,
+                  _tiltY * 30,
+                  0,
+                  1,
+                ),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      ZenColors.gold.withValues(alpha: 0.12),
+                      Colors.transparent,
+                    ],
+                    radius: 1.2,
+                    center: Alignment(
+                      _tiltX.clamp(-0.5, 0.5),
+                      _tiltY.clamp(-0.5, 0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Контент
+          Positioned.fill(
+            child: Transform(
+              transform: Matrix4.identity()
+                ..translateByDouble(
+                  -_tiltX * 8,
+                  -_tiltY * 8,
+                  0,
+                  1,
+                ),
+              child: content,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Android: единый Container с BoxDecoration (без Stack)
+    return Container(
+      decoration: BoxDecoration(
+        color: ZenColors.surface.withValues(alpha: 0.5),
+        gradient: RadialGradient(
+          colors: [
+            ZenColors.gold.withValues(alpha: 0.12),
+            Colors.transparent,
+          ],
+          radius: 1.2,
+          center: Alignment(
+            _tiltX.clamp(-0.5, 0.5),
+            _tiltY.clamp(-0.5, 0.5),
+          ),
+        ),
+        borderRadius: BorderRadius.circular(zen.cardRadius),
+      ),
+      child: Transform(
+        transform: Matrix4.identity()
+          ..translateByDouble(
+            -_tiltX * 8,
+            -_tiltY * 8,
+            0,
+            1,
+          ),
+        child: content,
+      ),
     );
   }
 
@@ -246,8 +324,73 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
   }
 
   Widget _buildProfileRow(ThemeData theme, ZenStyles zen) {
-    // Заглушка — реальная логика профиля остаётся в home_screen.dart
-    return const SizedBox.shrink();
+    if (widget.isAuthenticated) {
+      // Авторизован: показываем аватар и имя
+      return Padding(
+        padding: EdgeInsets.only(bottom: zen.spacingUnit * 2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (widget.photoUrl != null)
+              CircleAvatar(
+                radius: 16,
+                backgroundImage: NetworkImage(widget.photoUrl!),
+              )
+            else
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: ZenColors.gold.withValues(alpha: 0.2),
+                child: Icon(
+                  Icons.person,
+                  size: 18,
+                  color: ZenColors.gold,
+                ),
+              ),
+            SizedBox(width: zen.spacingUnit),
+            Text(
+              widget.displayName ?? 'Пользователь',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: ZenColors.textSecondary,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Не авторизован: показываем кнопку входа (если есть колбэк)
+    if (widget.onAuthTap == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: zen.spacingUnit * 2),
+      child: SizedBox(
+        width: 200,
+        height: 36,
+        child: OutlinedButton.icon(
+          onPressed: widget.onAuthTap,
+          icon: const Icon(Icons.login, size: 16),
+          label: const Text(
+            'Войти через Google',
+            style: TextStyle(fontSize: 12),
+          ),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: ZenColors.gold,
+            side: BorderSide(
+              color: ZenColors.gold.withValues(alpha: 0.5),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            textStyle: const TextStyle(
+              fontFamily: 'Manrope',
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildXpBar(ThemeData theme, ZenStyles zen) {

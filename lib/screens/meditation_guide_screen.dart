@@ -70,6 +70,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
     return PopScope(
       canPop: true,
       child: Scaffold(
@@ -82,11 +83,11 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
                 width: MediaQuery.of(context).size.width > 600 ? 600.0 : MediaQuery.of(context).size.width,
                 child: Column(
                   children: [
-                    _buildHeroSection(context),
-                    _buildSusokukanSection(context),
-                    _buildZazenGeometrySection(context),
-                    _buildResistanceTableSection(context),
-                    _buildFinalSection(context),
+                    _buildHeroSection(context, isLandscape),
+                    _buildSusokukanSection(context, isLandscape),
+                    _buildZazenGeometrySection(context, isLandscape),
+                    _buildResistanceTableSection(context, isLandscape),
+                    _buildFinalSection(context, isLandscape),
 
                     // Кнопка закрытия (внизу)
                     const SizedBox(height: 16),
@@ -119,16 +120,19 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // 2.1 Hero-секция (тёмная)
   // ===========================================================================
 
-  Widget _buildHeroSection(BuildContext context) {
+  Widget _buildHeroSection(BuildContext context, [bool isLandscape = false]) {
     return _DarkSection(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 80),
+        padding: EdgeInsets.symmetric(
+          horizontal: isLandscape ? 20 : 40,
+          vertical: isLandscape ? 40 : 80,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Лейбл
             const _Label(text: 'Alex Merch Foundation'),
-            const SizedBox(height: 20),
+            SizedBox(height: isLandscape ? 12 : 20),
 
             // Заголовок ZenBalance
             Text(
@@ -136,14 +140,14 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
-                fontSize: MediaQuery.of(context).size.width > 600 ? 80 : 60,
+                fontSize: MediaQuery.of(context).size.width > 600 ? 80 : (isLandscape ? 40 : 60),
                 letterSpacing: -2,
                 height: 1.0,
                 color: Colors.white,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: isLandscape ? 16 : 30),
 
             // Подзаголовок
             Text(
@@ -151,12 +155,12 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               style: TextStyle(
                 fontFamily: 'Manrope',
                 fontWeight: FontWeight.w300,
-                fontSize: 24,
+                fontSize: isLandscape ? 18 : 24,
                 color: Colors.white.withValues(alpha: 0.8),
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 60),
+            SizedBox(height: isLandscape ? 30 : 60),
 
             // Плашка FINAL EDITION 2026
             Container(
@@ -185,10 +189,10 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // 2.2 Секция Сусокукан (светлая)
   // ===========================================================================
 
-  Widget _buildSusokukanSection(BuildContext context) {
+  Widget _buildSusokukanSection(BuildContext context, [bool isLandscape = false]) {
     return _LightSection(
       child: Padding(
-        padding: const EdgeInsets.all(40),
+        padding: EdgeInsets.all(isLandscape ? 20 : 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -202,7 +206,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
-                fontSize: 36,
+                fontSize: isLandscape ? 28 : 36,
                 color: _GuideColors.navy,
               ),
             ),
@@ -210,7 +214,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
 
             // Разделительная линия
             Container(height: 1, color: _GuideColors.navyDivider),
-            const SizedBox(height: 40),
+            SizedBox(height: isLandscape ? 20 : 40),
 
             // Шаг 1: Посадка
             _buildInstructionStep(
@@ -270,11 +274,11 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            SizedBox(height: isLandscape ? 20 : 40),
 
             // Интерактивный ряд цифр
             _buildBreathCounter(context),
-            const SizedBox(height: 40),
+            SizedBox(height: isLandscape ? 20 : 40),
 
             // Два блока: Биологический эффект и Правило Дзен — Wrap вместо Row
             Wrap(
@@ -492,10 +496,10 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // 2.3 Секция Геометрия Дзадзен (светлая)
   // ===========================================================================
 
-  Widget _buildZazenGeometrySection(BuildContext context) {
+  Widget _buildZazenGeometrySection(BuildContext context, [bool isLandscape = false]) {
     return _LightSection(
       child: Padding(
-        padding: const EdgeInsets.all(40),
+        padding: EdgeInsets.all(isLandscape ? 20 : 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -507,11 +511,11 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
-                fontSize: 36,
+                fontSize: isLandscape ? 28 : 36,
                 color: _GuideColors.navy,
               ),
             ),
-            const SizedBox(height: 40),
+            SizedBox(height: isLandscape ? 20 : 40),
 
             // Три карточки — Wrap вместо Row, чтобы избежать Expanded внутри SingleChildScrollView
             Wrap(
@@ -591,10 +595,10 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // 2.4 Секция Преодоление сопротивления (светлая) — таблица
   // ===========================================================================
 
-  Widget _buildResistanceTableSection(BuildContext context) {
+  Widget _buildResistanceTableSection(BuildContext context, [bool isLandscape = false]) {
     return _LightSection(
       child: Padding(
-        padding: const EdgeInsets.all(40),
+        padding: EdgeInsets.all(isLandscape ? 20 : 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -606,11 +610,11 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
-                fontSize: 36,
+                fontSize: isLandscape ? 28 : 36,
                 color: _GuideColors.navy,
               ),
             ),
-            const SizedBox(height: 40),
+            SizedBox(height: isLandscape ? 20 : 40),
 
             // Таблица
             _buildDiagnosticTable(context),
@@ -710,10 +714,13 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // 2.5 Финальная секция (тёмная)
   // ===========================================================================
 
-  Widget _buildFinalSection(BuildContext context) {
+  Widget _buildFinalSection(BuildContext context, [bool isLandscape = false]) {
     return _DarkSection(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 80),
+        padding: EdgeInsets.symmetric(
+          horizontal: isLandscape ? 20 : 40,
+          vertical: isLandscape ? 40 : 80,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -723,12 +730,12 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
-                fontSize: MediaQuery.of(context).size.width > 600 ? 64 : 48,
+                fontSize: isLandscape ? 32 : (MediaQuery.of(context).size.width > 600 ? 64 : 48),
                 color: Colors.white,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: isLandscape ? 12 : 20),
 
             // Цитата
             Text(
@@ -736,12 +743,12 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontStyle: FontStyle.italic,
-                fontSize: 28,
+                fontSize: isLandscape ? 22 : 28,
                 color: _GuideColors.gold,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 60),
+            SizedBox(height: isLandscape ? 30 : 60),
 
             // Кнопки
             Wrap(
@@ -769,7 +776,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 60),
+            SizedBox(height: isLandscape ? 30 : 60),
 
             // Футер
             Text(

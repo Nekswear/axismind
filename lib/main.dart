@@ -1,56 +1,36 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 import 'core/theme/zen_theme.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
 import 'services/app_service_locator.dart';
 
-Future<void> main() async {
+/// Главная точка входа.
+///
+/// 1. Инициализирует Firebase (через Firebase.initializeApp)
+/// 2. Инициализирует сервисы (БД, Auth) через AppServiceLocator
+/// 3. Показывает экран загрузки, пока сервисы не готовы
+/// 4. Если что-то не загрузилось — приложение всё равно работает,
+///    экраны показывают fallback-состояния
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Инициализация database factory в зависимости от платформы
-  if (kIsWeb) {
-    // Web — используем WebAssembly SQLite
-    databaseFactory = databaseFactoryFfiWeb;
-  } else if (defaultTargetPlatform == TargetPlatform.windows ||
-             defaultTargetPlatform == TargetPlatform.linux ||
-             defaultTargetPlatform == TargetPlatform.macOS) {
-    // Desktop (Windows/Linux/macOS) — используем FFI SQLite
-    databaseFactory = databaseFactoryFfi;
-  }
-  // Android/iOS — используют стандартный sqflite (нативный плагин), factory не меняем
-
-  // Ориентация только portrait (для мобильных платформ)
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
-  // Инициализируем все сервисы перед запуском приложения
-  await _initServices();
-
-  runApp(const ZenBalanceApp());
-}
-
-Future<void> _initServices() async {
-  // Инициализация Firebase (может упасть на неподдерживаемых платформах)
+  // Инициализируем Firebase (нужен для AuthService и Firestore)
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    debugPrint('[MAIN] Firebase initialized successfully');
   } catch (e) {
-    // Firebase initialization may fail on unsupported platforms (e.g. Windows)
-    // App continues to work with local-only mode
-    debugPrint('Firebase initialization failed (local-only mode): $e');
+    debugPrint('[MAIN] Firebase initialization failed (non-fatal): $e');
   }
 
-  // Инициализация AppServiceLocator (БД + сервисы)
+  // Инициализируем сервисы (БД, Auth, SyncRepository)
+  // AppServiceLocator.initialize() уже содержит try/catch внутри
   await AppServiceLocator.initialize();
+
+  runApp(const ZenBalanceApp());
 }
 
 class ZenBalanceApp extends StatelessWidget {

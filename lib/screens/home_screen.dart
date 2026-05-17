@@ -10,6 +10,7 @@ import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
 import '../engine/timer_controller.dart';
 import '../services/app_service_locator.dart';
+import 'auth_screen.dart';
 import 'journal_screen.dart';
 import 'meditation_guide_screen.dart';
 import 'timer_page.dart';
@@ -43,6 +44,11 @@ class _HomeScreenState extends State<HomeScreen>
   );
   bool _loading = true;
 
+  // Auth state
+  bool _isAuthenticated = false;
+  String? _displayName;
+  String? _photoUrl;
+
   StreamSubscription<User?>? _authSubscription;
 
   late final AnimationController _pulseController;
@@ -51,14 +57,10 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    debugPrint('[DIAG] HomeScreen.initState()');
 
-    final auth = AppServiceLocator.instance.authService;
-    _authSubscription = auth?.authStateChanges.listen((user) {
-      if (mounted) {
-        setState(() {});
-        _loadProgression();
-      }
-    });
+    // Пытаемся получить сервисы, но не падаем, если их нет
+    _tryInitServices();
 
     _pulseController = AnimationController(
       vsync: this,
@@ -67,6 +69,40 @@ class _HomeScreenState extends State<HomeScreen>
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+
+    // Загружаем прогрессию сразу
+    _loadProgression();
+  }
+
+  void _tryInitServices() {
+    try {
+      final locator = AppServiceLocator.instance;
+      final auth = locator.authService;
+      debugPrint('[DIAG] AuthService available: ${auth != null}, DB available: ${locator.db != null}');
+
+      // Устанавливаем начальное состояние аутентификации
+      _updateAuthState(auth?.currentUser);
+
+      _authSubscription = auth?.authStateChanges.listen((user) {
+        debugPrint('[DIAG] Auth state changed: user=${user?.uid ?? "null"}');
+        if (mounted) {
+          _updateAuthState(user);
+          _loadProgression();
+        }
+      });
+    } catch (e) {
+      debugPrint('[DIAG] Services not available: $e');
+      // Продолжаем без сервисов — показываем статический UI
+    }
+  }
+
+  /// Обновляет состояние аутентификации из [User] Firebase.
+  void _updateAuthState(User? user) {
+    setState(() {
+      _isAuthenticated = user != null;
+      _displayName = user?.displayName;
+      _photoUrl = user?.photoURL;
+    });
   }
 
   @override
@@ -77,23 +113,29 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _loadProgression() async {
-    final locator = AppServiceLocator.instance;
-    final db = locator.db;
-    final auth = locator.authService;
-    final syncRepo = locator.syncRepo;
+    debugPrint('[DIAG] _loadProgression() started');
 
-    if (db == null || auth == null || syncRepo == null) {
-      if (mounted) setState(() => _loading = false);
-      return;
-    }
-
+    // Пробуем получить сервисы, но не падаем, если их нет
     try {
+      final locator = AppServiceLocator.instance;
+      final db = locator.db;
+      final auth = locator.authService;
+      final syncRepo = locator.syncRepo;
+
+      if (db == null || auth == null || syncRepo == null) {
+        debugPrint('[DIAG] _loadProgression: services not ready, db=$db, auth=$auth, syncRepo=$syncRepo');
+        if (mounted) setState(() => _loading = false);
+        return;
+      }
+
       _repository ??= AnalyticsRepository(syncRepo);
+      debugPrint('[DIAG] _loadProgression: fetching data...');
 
       final results = await Future.wait([
         _repository!.getUserProgression(),
         _repository!.getXpProgress(),
       ]);
+      debugPrint('[DIAG] _loadProgression: data fetched successfully');
 
       if (mounted) {
         setState(() {
@@ -101,11 +143,37 @@ class _HomeScreenState extends State<HomeScreen>
           _xpProgress = results[1] as XpProgress;
           _loading = false;
         });
+        debugPrint('[DIAG] _loadProgression: state updated, loading=false');
       }
     } catch (e) {
+      debugPrint('[DIAG] _loadProgression error: $e');
       if (mounted) {
         setState(() => _loading = false);
       }
+    }
+  }
+
+  Future<void> _openAuthScreen() async {
+    final auth = AppServiceLocator.instance.authService;
+    if (auth == null) return;
+
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AuthScreen(authService: auth),
+      ),
+    );
+
+    if (result == true && mounted) {
+      // После успешного входа — мигрируем локальные данные в облако
+      final user = auth.currentUser;
+      if (user != null) {
+        final syncRepo = AppServiceLocator.instance.syncRepo;
+        if (syncRepo != null) {
+          await syncRepo.migrateLocalToCloud(user.uid);
+        }
+      }
+      _loadProgression();
     }
   }
 
@@ -148,11 +216,14 @@ class _HomeScreenState extends State<HomeScreen>
     final theme = Theme.of(context);
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
 
+    debugPrint('[DIAG] HomeScreen.build(), _loading=$_loading');
+
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isDesktop = kIsWeb || constraints.maxWidth > 800;
           final isCompact = constraints.maxHeight < 600;
+          debugPrint('[DIAG] LayoutBuilder: w=${constraints.maxWidth}, h=${constraints.maxHeight}, isDesktop=$isDesktop, isCompact=$isCompact');
 
           if (isDesktop) {
             return _buildDesktopLayout(theme, zen);
@@ -175,6 +246,10 @@ class _HomeScreenState extends State<HomeScreen>
       onJournalTap: _navigateToJournal,
       onStatisticsTap: _navigateToStatistics,
       onGuideTap: _navigateToGuide,
+      isAuthenticated: _isAuthenticated,
+      onAuthTap: _openAuthScreen,
+      displayName: _displayName,
+      photoUrl: _photoUrl,
     );
   }
 
@@ -183,143 +258,145 @@ class _HomeScreenState extends State<HomeScreen>
   // ===========================================================================
 
   Widget _buildMobileLayout(ThemeData theme, ZenStyles zen, bool isCompact) {
+    final horizontalPadding = isCompact ? zen.spacingUnit * 2 : zen.spacingUnit * 4;
+    final gapScale = isCompact ? 0.5 : 1.0;
+
     return SingleChildScrollView(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: MediaQuery.of(context).size.height,
-        ),
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: zen.spacingUnit * 4),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Hero-секция с 3D Glassmorphic эффектом
-                if (_loading)
-                  _buildLoadingState(zen)
-                else
-                  GlassmorphicHero(
-                    progression: _progression,
-                    xpProgress: _xpProgress,
-                    isCompact: isCompact,
-                    isDesktop: false,
-                  ),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Hero-секция с 3D Glassmorphic эффектом
+              if (_loading)
+                _buildLoadingState(zen)
+              else
+                GlassmorphicHero(
+                  progression: _progression,
+                  xpProgress: _xpProgress,
+                  isCompact: isCompact,
+                  isDesktop: false,
+                  isAuthenticated: _isAuthenticated,
+                  onAuthTap: _openAuthScreen,
+                  displayName: _displayName,
+                  photoUrl: _photoUrl,
+                ),
 
-                SizedBox(height: zen.gap(5)),
+              SizedBox(height: zen.gap(5) * gapScale),
 
-                // Пресеты длительности
-                _buildDurationPresets(theme, zen),
+              // Пресеты длительности
+              _buildDurationPresets(theme, zen, isCompact),
 
-                // Нейробиологическая подсказка
-                NeuroPresetInfo(minutes: _durationMinutes.toInt()),
+              // Нейробиологическая подсказка
+              NeuroPresetInfo(minutes: _durationMinutes.toInt()),
 
-                SizedBox(height: zen.gap(3)),
+              SizedBox(height: zen.gap(3) * gapScale),
 
-                // CTA-кнопка с пульсацией
-                AnimatedScale(
-                  scale: _pulseAnimation.value,
-                  duration: const Duration(milliseconds: 2000),
-                  child: SizedBox(
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _navigateToTimer,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ZenColors.gold,
-                        foregroundColor: ZenColors.background,
-                        padding: const EdgeInsets.symmetric(horizontal: 48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                        textStyle: const TextStyle(
-                          fontFamily: 'Manrope',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 2,
-                        ),
+              // CTA-кнопка с пульсацией
+              AnimatedScale(
+                scale: _pulseAnimation.value,
+                duration: const Duration(milliseconds: 2000),
+                child: SizedBox(
+                  height: isCompact ? 48 : 56,
+                  child: ElevatedButton(
+                    onPressed: _navigateToTimer,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ZenColors.gold,
+                      foregroundColor: ZenColors.background,
+                      padding: const EdgeInsets.symmetric(horizontal: 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
                       ),
-                      child: const Text('НАЧАТЬ ПРАКТИКУ'),
+                      textStyle: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: isCompact ? 14 : 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
+                      ),
                     ),
+                    child: const Text('НАЧАТЬ ПРАКТИКУ'),
                   ),
                 ),
+              ),
 
-                SizedBox(height: zen.gap(2)),
+              SizedBox(height: zen.gap(2) * gapScale),
 
-                // Дневник
-                TextButton.icon(
-                  onPressed: _navigateToJournal,
-                  icon: Icon(
-                    Icons.book_outlined,
-                    size: 18,
+              // Дневник
+              TextButton.icon(
+                onPressed: _navigateToJournal,
+                icon: Icon(
+                  Icons.book_outlined,
+                  size: 18,
+                  color: ZenColors.gold.withValues(alpha: 0.7),
+                ),
+                label: Text(
+                  'Дневник',
+                  style: TextStyle(
                     color: ZenColors.gold.withValues(alpha: 0.7),
                   ),
-                  label: Text(
-                    'Дневник',
-                    style: TextStyle(
-                      color: ZenColors.gold.withValues(alpha: 0.7),
-                    ),
-                  ),
                 ),
+              ),
 
-                SizedBox(height: zen.gap(1)),
+              SizedBox(height: zen.gap(1) * gapScale),
 
-                // Статистика
-                TextButton.icon(
-                  onPressed: _navigateToStatistics,
-                  icon: Icon(
-                    Icons.bar_chart_outlined,
-                    size: 18,
+              // Статистика
+              TextButton.icon(
+                onPressed: _navigateToStatistics,
+                icon: Icon(
+                  Icons.bar_chart_outlined,
+                  size: 18,
+                  color: ZenColors.gold.withValues(alpha: 0.7),
+                ),
+                label: Text(
+                  'Статистика',
+                  style: TextStyle(
                     color: ZenColors.gold.withValues(alpha: 0.7),
                   ),
-                  label: Text(
-                    'Статистика',
-                    style: TextStyle(
-                      color: ZenColors.gold.withValues(alpha: 0.7),
-                    ),
+                ),
+              ),
+
+              SizedBox(height: zen.gap(2) * gapScale),
+
+              // Путь к ясности
+              OutlinedButton(
+                onPressed: _navigateToGuide,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ZenColors.textPrimary,
+                  side: BorderSide(
+                    color: ZenColors.gold.withValues(alpha: 0.7),
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: isCompact ? 10 : 14,
+                  ),
+                  textStyle: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontWeight: FontWeight.w800,
+                    fontSize: isCompact ? 12 : 14,
+                    letterSpacing: 2.0,
                   ),
                 ),
+                child: const Text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'),
+              ),
 
-                SizedBox(height: zen.gap(2)),
+              SizedBox(height: zen.gap(4) * gapScale),
 
-                // Путь к ясности
-                OutlinedButton(
-                  onPressed: _navigateToGuide,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: ZenColors.textPrimary,
-                    side: BorderSide(
-                      color: ZenColors.gold.withValues(alpha: 0.7),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 14,
-                    ),
-                    textStyle: const TextStyle(
-                      fontFamily: 'Manrope',
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                  child: const Text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'),
-                ),
-
-                SizedBox(height: zen.gap(4)),
-
-                // Версия
-                Padding(
-                  padding: EdgeInsets.only(bottom: zen.spacingUnit),
-                  child: Text(
-                    VersionInfo.displayVersion,
-                    style: TextStyle(
-                      color: ZenColors.textMuted,
-                      fontSize: 11,
-                      fontFamily: 'Manrope',
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 0.5,
-                    ),
+              // Версия
+              Padding(
+                padding: EdgeInsets.only(bottom: zen.spacingUnit),
+                child: Text(
+                  VersionInfo.displayVersion,
+                  style: TextStyle(
+                    color: ZenColors.textMuted,
+                    fontSize: 11,
+                    fontFamily: 'Manrope',
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.5,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -362,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildDurationPresets(ThemeData theme, ZenStyles zen) {
+  Widget _buildDurationPresets(ThemeData theme, ZenStyles zen, [bool isCompact = false]) {
     return Column(
       children: [
         Text(
@@ -371,10 +448,10 @@ class _HomeScreenState extends State<HomeScreen>
             color: ZenColors.textSecondary,
           ),
         ),
-        SizedBox(height: zen.spacingUnit * 2),
+        SizedBox(height: isCompact ? zen.spacingUnit : zen.spacingUnit * 2),
         Wrap(
-          spacing: zen.spacingUnit * 1.5,
-          runSpacing: zen.spacingUnit * 1.5,
+          spacing: isCompact ? zen.spacingUnit : zen.spacingUnit * 1.5,
+          runSpacing: isCompact ? zen.spacingUnit : zen.spacingUnit * 1.5,
           alignment: WrapAlignment.center,
           children: [
             DurationPreset(

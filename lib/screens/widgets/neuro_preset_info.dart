@@ -54,7 +54,6 @@ class NeuroPresetInfo extends StatelessWidget {
                   key: ValueKey('neuro_$minutes'),
                   style: TextStyle(
                     fontFamily: 'PlayfairDisplay',
-                    fontStyle: FontStyle.italic,
                     fontSize: 15,
                     height: 1.6,
                     color: ZenColors.gold.withValues(alpha: 0.8),
