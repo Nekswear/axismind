@@ -30,6 +30,7 @@ class _GoalSettingsScreenState extends State<GoalSettingsScreen> {
   GoalsRepository? _goalsRepo;
   List<MeditationGoal> _goals = [];
   bool _loading = true;
+  bool _goalsChanged = false;
 
   @override
   void initState() {
@@ -71,7 +72,7 @@ class _GoalSettingsScreenState extends State<GoalSettingsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => Navigator.of(context).pop(_goalsChanged),
         ),
       ),
       body: _loading
@@ -218,6 +219,7 @@ class _GoalSettingsScreenState extends State<GoalSettingsScreen> {
 
     if (result != null && _goalsRepo != null) {
       await _goalsRepo!.setGoal(result.key, result.value);
+      _goalsChanged = true;
       await _loadGoals();
     }
   }
@@ -235,6 +237,7 @@ class _GoalSettingsScreenState extends State<GoalSettingsScreen> {
 
     if (result != null && _goalsRepo != null) {
       await _goalsRepo!.setGoal(result.key, result.value);
+      _goalsChanged = true;
       await _loadGoals();
     }
   }
@@ -268,6 +271,7 @@ class _GoalSettingsScreenState extends State<GoalSettingsScreen> {
 
     if (confirmed == true && _goalsRepo != null) {
       await _goalsRepo!.removeGoal(goal.id);
+      _goalsChanged = true;
       await _loadGoals();
     }
   }

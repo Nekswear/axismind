@@ -8,6 +8,7 @@ import '../../core/widgets/zen_ui.dart';
 import '../../data/analytics_repository.dart';
 import 'gyro_controller.dart';
 import 'mouse_tilt_controller.dart';
+import 'rank_roadmap.dart';
 
 /// 3D Glassmorphic Hero-карточка пользователя.
 ///
@@ -284,6 +285,30 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Кнопка Roadmap
+              GestureDetector(
+                onTap: () => _showRankRoadmap(context),
+                child: Container(
+                  width: widget.isCompact ? 36 : 48,
+                  height: widget.isCompact ? 36 : 48,
+                  decoration: BoxDecoration(
+                    color: ZenColors.gold.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: ZenColors.gold.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.map_outlined,
+                      color: ZenColors.gold,
+                      size: widget.isCompact ? 18 : 22,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: zen.spacingUnit),
               RankIcon(
                 level: widget.progression.level,
                 size: widget.isCompact ? 36 : 48,
@@ -447,6 +472,15 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
           ),
         ),
       ],
+    );
+  }
+
+  /// Показывает Roadmap рангов.
+  void _showRankRoadmap(BuildContext context) {
+    RankRoadmap.show(
+      context,
+      currentLevel: widget.progression.level,
+      totalMinutes: widget.progression.minutes,
     );
   }
 }

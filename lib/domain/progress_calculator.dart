@@ -8,6 +8,100 @@ import 'dart:math';
 class ProgressCalculator {
   ProgressCalculator._();
 
+  /// Все доступные тиры рангов в порядке возрастания.
+  ///
+  /// Используется для отображения Roadmap рангов в UI.
+  static List<RankTier> get allTiers => [
+        RankTier(
+          minLevel: 0,
+          maxLevel: 0,
+          title: 'Новичок осознанности',
+          emoji: '🌱',
+          description: 'Первый шаг на пути к осознанности',
+          minutesRequired: 0,
+        ),
+        RankTier(
+          minLevel: 1,
+          maxLevel: 2,
+          title: 'Искатель спокойствия',
+          emoji: '🌿',
+          description: 'Поиск внутренней гармонии',
+          minutesRequired: 10,
+        ),
+        RankTier(
+          minLevel: 3,
+          maxLevel: 5,
+          title: 'Хранитель тишины',
+          emoji: '🪷',
+          description: 'Умение находить тишину внутри',
+          minutesRequired: 90,
+        ),
+        RankTier(
+          minLevel: 6,
+          maxLevel: 8,
+          title: 'Мастер баланса',
+          emoji: '🌸',
+          description: 'Баланс между усилием и покоем',
+          minutesRequired: 360,
+        ),
+        RankTier(
+          minLevel: 9,
+          maxLevel: 11,
+          title: 'Странник глубин',
+          emoji: '🕊️',
+          description: 'Исследование глубин сознания',
+          minutesRequired: 810,
+        ),
+        RankTier(
+          minLevel: 12,
+          maxLevel: 14,
+          title: 'Пробуждённый',
+          emoji: '☀️',
+          description: 'Пробуждение внутреннего света',
+          minutesRequired: 1440,
+        ),
+        RankTier(
+          minLevel: 15,
+          maxLevel: 18,
+          title: 'Мудрец',
+          emoji: '🏔️',
+          description: 'Мудрость, рождённая практикой',
+          minutesRequired: 2250,
+        ),
+        RankTier(
+          minLevel: 19,
+          maxLevel: 23,
+          title: 'Просветлённый',
+          emoji: '✨',
+          description: 'Свет осознанности ведёт вас',
+          minutesRequired: 3610,
+        ),
+        RankTier(
+          minLevel: 24,
+          maxLevel: 29,
+          title: 'Легенда',
+          emoji: '🔥',
+          description: 'Ваш путь вдохновляет других',
+          minutesRequired: 5760,
+        ),
+        RankTier(
+          minLevel: 30,
+          maxLevel: 37,
+          title: 'Бессмертный',
+          emoji: '⚡',
+          description: 'Вневременная практика',
+          minutesRequired: 9000,
+        ),
+        RankTier(
+          minLevel: 38,
+          maxLevel: null,
+          title: 'Божественный',
+          emoji: '👑',
+          description: 'Вы достигли просветления',
+          minutesRequired: 14440,
+        ),
+      ];
+
   /// Рассчитывает уровень на основе общего количества минут.
   ///
   /// Формула: floor(sqrt((minutes * 10) / 100)).
@@ -118,5 +212,60 @@ class ProgressCalculator {
     // Нормальный расчёт: (текущее - предыдущее) / предыдущее
     final growth = (currentMinutes - previousMinutes) / previousMinutes;
     return growth.clamp(-1.0, 10.0);
+  }
+}
+
+// =============================================================================
+// RankTier — модель тира ранга для Roadmap
+// =============================================================================
+
+/// Модель одного тира (уровня/ранга) в Roadmap прогресса.
+///
+/// Содержит информацию о диапазоне уровней, названии, эмодзи,
+/// описании и количестве минут, необходимых для достижения.
+class RankTier {
+  /// Минимальный уровень для этого тира (включительно).
+  final int minLevel;
+
+  /// Максимальный уровень для этого тира (включительно).
+  /// `null` означает, что верхней границы нет (например, "Божественный").
+  final int? maxLevel;
+
+  /// Название ранга (например, "Новичок осознанности").
+  final String title;
+
+  /// Эмодзи-иконка ранга.
+  final String emoji;
+
+  /// Короткое описание тира.
+  final String description;
+
+  /// Примерное количество минут медитации для достижения этого тира.
+  final int minutesRequired;
+
+  const RankTier({
+    required this.minLevel,
+    this.maxLevel,
+    required this.title,
+    required this.emoji,
+    required this.description,
+    required this.minutesRequired,
+  });
+
+  /// Возвращает строку с диапазоном уровней (например, "1–2 ур." или "38+ ур.").
+  String get levelRange {
+    if (maxLevel == null) return '$minLevel+ ур.';
+    if (minLevel == maxLevel) return '$minLevel ур.';
+    return '$minLevel–$maxLevel ур.';
+  }
+
+  /// Форматирует минуты в читаемый вид (например, "1 440+ мин").
+  String get minutesFormatted {
+    final n = minutesRequired;
+    if (n >= 1000) {
+      final thousands = (n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1);
+      return '$thousands тыс. мин';
+    }
+    return '$n мин';
   }
 }

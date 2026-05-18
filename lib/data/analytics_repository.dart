@@ -149,7 +149,11 @@ class AnalyticsRepository {
     final today = DateTime.now();
     final dateStr =
         '${today.year}-${_pad(today.month)}-${_pad(today.day)}';
-    final sessions = await _syncRepo.getSessionsInRange(dateStr, dateStr);
+    // end должен быть следующим днём, т.к. SQL запрос использует timestamp < end
+    final tomorrow = today.add(const Duration(days: 1));
+    final tomorrowStr =
+        '${tomorrow.year}-${_pad(tomorrow.month)}-${_pad(tomorrow.day)}';
+    final sessions = await _syncRepo.getSessionsInRange(dateStr, tomorrowStr);
     final totalSeconds = sessions.fold<int>(0, (sum, s) => sum + s.seconds);
     return (totalSeconds / 60).floor();
   }
@@ -160,8 +164,10 @@ class AnalyticsRepository {
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
     final startStr =
         '${weekStart.year}-${_pad(weekStart.month)}-${_pad(weekStart.day)}';
+    // end должен быть следующим днём, т.к. SQL запрос использует timestamp < end
+    final tomorrow = now.add(const Duration(days: 1));
     final endStr =
-        '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
+        '${tomorrow.year}-${_pad(tomorrow.month)}-${_pad(tomorrow.day)}';
     final sessions = await _syncRepo.getSessionsInRange(startStr, endStr);
     int sessionCount = sessions.length;
     int totalSeconds = sessions.fold<int>(0, (sum, s) => sum + s.seconds);

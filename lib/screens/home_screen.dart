@@ -194,8 +194,12 @@ class _HomeScreenState extends State<HomeScreen>
       final now = DateTime.now();
       final dateStr =
           '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
+      // end должен быть следующим днём, т.к. SQL запрос использует timestamp < end
+      final tomorrow = now.add(const Duration(days: 1));
+      final tomorrowStr =
+          '${tomorrow.year}-${_pad(tomorrow.month)}-${_pad(tomorrow.day)}';
       final sessions =
-          await _repository!.syncRepo.getSessionsInRange(dateStr, dateStr);
+          await _repository!.syncRepo.getSessionsInRange(dateStr, tomorrowStr);
       final totalSeconds =
           sessions.fold<int>(0, (sum, s) => sum + s.seconds);
       return (totalSeconds / 60).floor();
@@ -211,8 +215,10 @@ class _HomeScreenState extends State<HomeScreen>
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       final startStr =
           '${weekStart.year}-${_pad(weekStart.month)}-${_pad(weekStart.day)}';
+      // end должен быть следующим днём, т.к. SQL запрос использует timestamp < end
+      final tomorrow = now.add(const Duration(days: 1));
       final endStr =
-          '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
+          '${tomorrow.year}-${_pad(tomorrow.month)}-${_pad(tomorrow.day)}';
       final sessions =
           await _repository!.syncRepo.getSessionsInRange(startStr, endStr);
       final sessionCount = sessions.length;

@@ -12,13 +12,11 @@ import '../services/app_service_locator.dart';
 import '../widgets/goal_completed_notification.dart';
 import '../widgets/journal_dialog.dart';
 import '../widgets/level_up_dialog.dart';
-import 'widgets/samadhi_view.dart';
 
-/// Экран медитации с таймером обратного отсчёта и фазой Самадхи.
+/// Экран медитации с таймером обратного отсчёта.
 ///
-/// После завершения таймера и гонга переводит пользователя в
-/// бесконечную фазу интеграции «Самадхи» с концентрическими кругами.
-/// Выход из Самадхи — по тапу/пробелу, после чего открывается JournalDialog.
+/// После завершения таймера и гонга открывает JournalDialog
+/// для записи впечатлений от сессии.
 class TimerPage extends StatefulWidget {
   final int durationInMinutes;
 
@@ -34,15 +32,6 @@ class _TimerPageState extends State<TimerPage> {
   AnalyticsRepository? _repository;
   bool _sessionSaved = false;
   bool _isSaving = false;
-
-  /// Флаг: показывать ли SamadhiView после завершения таймера.
-  bool _showSamadhi = false;
-
-  /// Completer для ожидания выхода из фазы Самадхи.
-  Completer<void>? _samadhiCompleter;
-
-  /// Флаг: Desktop/Web режим.
-  bool get _isDesktop => kIsWeb;
 
   @override
   void initState() {
@@ -111,12 +100,6 @@ class _TimerPageState extends State<TimerPage> {
       final sessionResult = await _repository!.processSessionEnd(
         _controller.totalSeconds,
       );
-
-      if (!context.mounted) return;
-
-      // === Фаза Самадхи (бесконечная интеграция) ===
-      // Показываем SamadhiView перед JournalDialog
-      await _showSamadhiPhase();
 
       if (!context.mounted) return;
 
@@ -198,28 +181,6 @@ class _TimerPageState extends State<TimerPage> {
     }
   }
 
-  /// Показывает фазу Самадхи как встроенный слой.
-  ///
-  /// Использует Completer, чтобы дождаться выхода пользователя
-  /// из режима Самадхи перед открытием JournalDialog.
-  Future<void> _showSamadhiPhase() async {
-    _samadhiCompleter = Completer<void>();
-
-    if (!mounted) return;
-    setState(() => _showSamadhi = true);
-
-    // Ждём, пока SamadhiView не вызовет onExited
-    await _samadhiCompleter!.future;
-  }
-
-  void _onSamadhiExited() {
-    if (mounted) {
-      setState(() => _showSamadhi = false);
-      _samadhiCompleter?.complete();
-      _samadhiCompleter = null;
-    }
-  }
-
   String _formatTime(int seconds) {
     final m = (seconds ~/ 60).toString().padLeft(2, '0');
     final s = (seconds % 60).toString().padLeft(2, '0');
@@ -236,7 +197,6 @@ class _TimerPageState extends State<TimerPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        if (_showSamadhi) return; // Блокируем выход во время Самадхи
 
         final shouldPop = await showDialog<bool>(
           context: context,
@@ -273,77 +233,67 @@ class _TimerPageState extends State<TimerPage> {
           child: SafeArea(
             child: Stack(
               children: [
-                // === Основной контент таймера (скрыт во время Самадхи) ===
-                if (!_showSamadhi) ...[
-                  // Кнопка закрытия
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white54),
-                      iconSize: 28,
-                      onPressed: () async {
-                        _controller.stop();
-                        await _disableWakelock();
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.1),
-                      ),
+                // Кнопка закрытия
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    iconSize: 28,
+                    onPressed: () async {
+                      _controller.stop();
+                      await _disableWakelock();
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
+                ),
 
-                  // Центральный контент
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isLandscape ? zen.spacingUnit * 2 : zen.spacingUnit * 4,
-                      ),
-                      child: isLandscape
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: _buildTimerCard(theme, zen, isLandscape),
-                                ),
-                                SizedBox(width: zen.gap(3)),
-                                Expanded(
-                                  flex: 2,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      _buildPostureHint(theme),
-                                      SizedBox(height: zen.gap(3)),
-                                      _buildControls(),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Карточка таймера
-                                _buildTimerCard(theme, zen, isLandscape),
-                                SizedBox(height: zen.gap(5)),
-                                _buildPostureHint(theme),
-                                SizedBox(height: zen.gap(5)),
-                                _buildControls(),
-                              ],
-                            ),
+                // Центральный контент
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isLandscape ? zen.spacingUnit * 2 : zen.spacingUnit * 4,
                     ),
+                    child: isLandscape
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: _buildTimerCard(theme, zen, isLandscape),
+                              ),
+                              SizedBox(width: zen.gap(3)),
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _buildPostureHint(theme),
+                                    SizedBox(height: zen.gap(3)),
+                                    _buildControls(),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Карточка таймера
+                              _buildTimerCard(theme, zen, isLandscape),
+                              SizedBox(height: zen.gap(5)),
+                              _buildPostureHint(theme),
+                              SizedBox(height: zen.gap(5)),
+                              _buildControls(),
+                            ],
+                          ),
                   ),
-                ],
-
-                // === SamadhiView (поверх всего) ===
-                if (_showSamadhi)
-                  SamadhiView(
-                    onExited: _onSamadhiExited,
-                    isDesktop: _isDesktop,
-                  ),
+                ),
               ],
             ),
           ),
