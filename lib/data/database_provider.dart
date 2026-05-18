@@ -29,13 +29,17 @@ class DatabaseProvider {
   ///   2 — Added mood_rating and tag columns for Session Journal
   ///   3 — mood_rating and tag now included in CREATE TABLE (for Web)
   ///   4 — Added updated_at column for conflict resolution during sync
-  static const int _dbVersion = 4;
+  ///   5 — Added goals table for user meditation goals
+  static const int _dbVersion = 5;
 
   /// Database name.
   static const String _dbName = 'zenbalance.db';
 
   /// Table name for meditation sessions.
   static const String tableSessions = 'sessions';
+
+  /// Table name for user meditation goals.
+  static const String tableGoals = 'goals';
 
   /// Private constructor — use [instance()] to get the singleton.
   DatabaseProvider._();
@@ -125,6 +129,19 @@ class DatabaseProvider {
     await db.execute('''
       CREATE INDEX idx_sessions_timestamp ON $tableSessions (timestamp)
     ''');
+
+    // Create goals table (v5)
+    await db.execute('''
+      CREATE TABLE $tableGoals (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        target_value REAL NOT NULL,
+        bonus_xp INTEGER NOT NULL DEFAULT 50,
+        rewarded INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
   }
 
   /// Handles schema migrations for future versions.
@@ -155,6 +172,25 @@ class DatabaseProvider {
         debugPrint('Migration v3→v4: added updated_at column');
       } catch (e) {
         debugPrint('Migration v3→v4: column may already exist: $e');
+      }
+    }
+    // Миграция v4 → v5: добавляем таблицу goals
+    if (oldVersion < 5) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS $tableGoals (
+            id TEXT PRIMARY KEY,
+            type TEXT NOT NULL,
+            target_value REAL NOT NULL,
+            bonus_xp INTEGER NOT NULL DEFAULT 50,
+            rewarded INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
+        ''');
+        debugPrint('Migration v4→v5: created goals table');
+      } catch (e) {
+        debugPrint('Migration v4→v5: error creating goals table: $e');
       }
     }
   }
@@ -525,6 +561,120 @@ class DatabaseProvider {
       return maps.map((m) => Session.fromMap(m)).toList();
     } catch (e) {
       throw DatabaseException('Не удалось выполнить поиск сессий: $e');
+    }
+  }
+
+  // ===========================================================================
+  // Goals table methods
+  // ===========================================================================
+
+  /// Возвращает все цели из таблицы goals.
+  Future<List<Map<String, dynamic>>> getGoals() async {
+    try {
+      return await db.query(tableGoals, orderBy: 'created_at ASC');
+    } catch (e) {
+      throw DatabaseException('Не удалось получить цели: $e');
+    }
+  }
+
+  /// Возвращает одну цель по ID.
+  Future<Map<String, dynamic>?> getGoalById(String id) async {
+    try {
+      final result = await db.query(
+        tableGoals,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      return result.isNotEmpty ? result.first : null;
+    } catch (e) {
+      throw DatabaseException('Не удалось получить цель: $e');
+    }
+  }
+
+  /// Сохраняет или обновляет цель (UPSERT).
+  Future<void> saveGoal(Map<String, dynamic> goalMap) async {
+    try {
+      await db.transaction((txn) async {
+        await txn.insert(
+          tableGoals,
+          goalMap,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      });
+    } catch (e) {
+      throw DatabaseException('Не удалось сохранить цель: $e');
+    }
+  }
+
+  /// Удаляет цель по ID.
+  Future<void> deleteGoal(String id) async {
+    try {
+      await db.delete(
+        tableGoals,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      throw DatabaseException('Не удалось удалить цель: $e');
+    }
+  }
+
+  /// Обновляет флаг rewarded для цели.
+  Future<void> updateGoalRewarded(String id, bool rewarded) async {
+    try {
+      await db.update(
+        tableGoals,
+        {
+          'rewarded': rewarded ? 1 : 0,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      throw DatabaseException('Не удалось обновить rewarded: $e');
+    }
+  }
+
+  /// Сбрасывает rewarded для daily целей (новый день).
+  Future<void> resetDailyRewards() async {
+    try {
+      await db.update(
+        tableGoals,
+        {'rewarded': 0},
+        where: 'type = ?',
+        whereArgs: ['daily_minutes'],
+      );
+    } catch (e) {
+      throw DatabaseException('Не удалось сбросить daily rewards: $e');
+    }
+  }
+
+  /// Сбрасывает rewarded для weekly целей (новая неделя).
+  Future<void> resetWeeklyRewards() async {
+    try {
+      await db.update(
+        tableGoals,
+        {'rewarded': 0},
+        where: 'type IN (?, ?)',
+        whereArgs: ['weekly_sessions', 'weekly_minutes'],
+      );
+    } catch (e) {
+      throw DatabaseException('Не удалось сбросить weekly rewards: $e');
+    }
+  }
+
+  /// Возвращает сумму bonus_xp всех целей с rewarded=1.
+  Future<int> getTotalBonusXp() async {
+    try {
+      final result = await db.rawQuery('''
+        SELECT COALESCE(SUM(bonus_xp), 0) AS total
+        FROM $tableGoals
+        WHERE rewarded = 1
+      ''');
+      return (result.first['total'] as num).toInt();
+    } catch (e) {
+      throw DatabaseException('Не удалось получить сумму бонусных XP: $e');
     }
   }
 

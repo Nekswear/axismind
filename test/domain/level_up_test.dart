@@ -104,14 +104,14 @@ void main() {
         await seedMinutes(db, 9);
 
         // Act: завершаем сессию на 2 минуты (120 секунд)
-        final levelUp = await repository.processSessionEnd(120);
+        final result = await repository.processSessionEnd(120);
 
         // Assert: уровень должен повыситься с 0 до 1
-        expect(levelUp, isNotNull,
+        expect(result.hasLevelUp, isTrue,
             reason: 'Должно вернуться событие повышения уровня');
-        expect(levelUp!.level, equals(1),
+        expect(result.levelUp!.level, equals(1),
             reason: 'Новый уровень должен быть 1');
-        expect(levelUp.rank, equals('Искатель спокойствия'),
+        expect(result.levelUp!.rank, equals('Искатель спокойствия'),
             reason: 'Ранг для уровня 1 — "Искатель спокойствия"');
       },
     );
@@ -126,14 +126,14 @@ void main() {
         await seedMinutes(db, 39);
 
         // Act: завершаем сессию на 1 минуту
-        final levelUp = await repository.processSessionEnd(60);
+        final result = await repository.processSessionEnd(60);
 
         // Assert: уровень должен повыситься с 1 до 2
-        expect(levelUp, isNotNull,
+        expect(result.hasLevelUp, isTrue,
             reason: 'Должно вернуться событие повышения уровня');
-        expect(levelUp!.level, equals(2),
+        expect(result.levelUp!.level, equals(2),
             reason: 'Новый уровень должен быть 2');
-        expect(levelUp.rank, equals('Искатель спокойствия'),
+        expect(result.levelUp!.rank, equals('Искатель спокойствия'),
             reason: 'Ранг для уровня 2 — "Искатель спокойствия"');
       },
     );
@@ -152,14 +152,14 @@ void main() {
         await seedMinutes(db, 159);
 
         // Act: завершаем сессию на 1 минуту
-        final levelUp = await repository.processSessionEnd(60);
+        final result = await repository.processSessionEnd(60);
 
         // Assert: уровень 3→4, ранг "Хранитель тишины"
-        expect(levelUp, isNotNull,
+        expect(result.hasLevelUp, isTrue,
             reason: 'Должно вернуться событие повышения уровня');
-        expect(levelUp!.level, equals(4),
+        expect(result.levelUp!.level, equals(4),
             reason: 'Новый уровень должен быть 4');
-        expect(levelUp.rank, equals('Хранитель тишины'),
+        expect(result.levelUp!.rank, equals('Хранитель тишины'),
             reason: 'Ранг для уровня 4 — "Хранитель тишины"');
       },
     );
@@ -173,14 +173,14 @@ void main() {
         await seedMinutes(db, 359);
 
         // Act: завершаем сессию на 1 минуту
-        final levelUp = await repository.processSessionEnd(60);
+        final result = await repository.processSessionEnd(60);
 
         // Assert: уровень 5→6, ранг "Мастер баланса"
-        expect(levelUp, isNotNull,
+        expect(result.hasLevelUp, isTrue,
             reason: 'Должно вернуться событие повышения уровня');
-        expect(levelUp!.level, equals(6),
+        expect(result.levelUp!.level, equals(6),
             reason: 'Новый уровень должен быть 6');
-        expect(levelUp.rank, equals('Мастер баланса'),
+        expect(result.levelUp!.rank, equals('Мастер баланса'),
             reason: 'Ранг для уровня 6 — "Мастер баланса"');
       },
     );
@@ -205,10 +205,10 @@ void main() {
     test('0 минут + 1 минута = уровень остаётся 0', () async {
       // Arrange: БД пуста (0 минут)
       // Act: завершаем сессию на 1 минуту
-      final levelUp = await repository.processSessionEnd(60);
+      final result = await repository.processSessionEnd(60);
 
       // Assert: уровень не изменился (0 → 0)
-      expect(levelUp, isNull,
+      expect(result.hasLevelUp, isFalse,
           reason: 'Уровень не должен повыситься с 0 при 1 минуте');
     });
 
@@ -218,10 +218,10 @@ void main() {
 
       // Act: +1 минута = 2 минуты → уровень всё ещё 0
       // floor(sqrt(2*10/100)) = floor(sqrt(0.2)) = floor(0.447) = 0
-      final levelUp = await repository.processSessionEnd(60);
+      final result = await repository.processSessionEnd(60);
 
       // Assert: уровень не изменился (0 → 0)
-      expect(levelUp, isNull,
+      expect(result.hasLevelUp, isFalse,
           reason: 'Уровень не должен повыситься: 2 минуты = уровень 0');
     });
 
@@ -231,10 +231,10 @@ void main() {
 
       // Act: +5 минут = 15 минут → уровень всё ещё 1
       // floor(sqrt(150/100)) = floor(1.22) = 1
-      final levelUp = await repository.processSessionEnd(300);
+      final result = await repository.processSessionEnd(300);
 
       // Assert: уровень не изменился (1 → 1)
-      expect(levelUp, isNull,
+      expect(result.hasLevelUp, isFalse,
           reason: 'Уровень не должен повыситься: 15 минут = уровень 1');
     });
   });

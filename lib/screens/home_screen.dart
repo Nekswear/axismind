@@ -8,6 +8,9 @@ import '../core/theme/zen_theme.dart';
 import '../core/version_info.dart';
 import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
+import '../data/goals_repository.dart';
+import '../data/meditation_goal.dart';
+import '../domain/progress_calculator.dart';
 import '../engine/timer_controller.dart';
 import '../services/app_service_locator.dart';
 import 'auth_screen.dart';
@@ -16,6 +19,7 @@ import 'meditation_guide_screen.dart';
 import 'timer_page.dart';
 import 'statistics_page.dart';
 import 'widgets/glassmorphic_hero.dart';
+import 'widgets/goals_panel.dart';
 import 'widgets/neuro_preset_info.dart';
 import 'widgets/widescreen_layout.dart';
 
@@ -42,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen>
     progress: 0.0,
     remainingMinutes: 0,
   );
+  List<GoalWithProgress> _goalsProgress = [];
   bool _loading = true;
 
   // Auth state
@@ -129,11 +134,13 @@ class _HomeScreenState extends State<HomeScreen>
       }
 
       _repository ??= AnalyticsRepository(syncRepo);
+      _repository!.goalsRepo = locator.goalsRepo;
       debugPrint('[DIAG] _loadProgression: fetching data...');
 
       final results = await Future.wait([
         _repository!.getUserProgression(),
         _repository!.getXpProgress(),
+        _loadGoalsProgress(locator.goalsRepo),
       ]);
       debugPrint('[DIAG] _loadProgression: data fetched successfully');
 
@@ -141,6 +148,7 @@ class _HomeScreenState extends State<HomeScreen>
         setState(() {
           _progression = results[0] as UserProgression;
           _xpProgress = results[1] as XpProgress;
+          _goalsProgress = results[2] as List<GoalWithProgress>;
           _loading = false;
         });
         debugPrint('[DIAG] _loadProgression: state updated, loading=false');
@@ -152,6 +160,71 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
   }
+
+  /// Загружает прогресс целей.
+  Future<List<GoalWithProgress>> _loadGoalsProgress(
+      GoalsRepository? goalsRepo) async {
+    if (goalsRepo == null) return [];
+
+    try {
+      final goals = await goalsRepo.getGoals();
+      if (goals.isEmpty) return [];
+
+      // Получаем метрики для расчёта прогресса
+      final todayMinutes = await _getTodayMinutes();
+      final weeklyMetrics = await _getWeeklyMetrics();
+      final dates = await _repository!.syncRepo.getDistinctSessionDates();
+      final currentStreak = ProgressCalculator.calculateStreak(dates);
+
+      return await goalsRepo.calculateAndUpdateProgress(
+        todayMinutes: todayMinutes,
+        weeklySessions: weeklyMetrics.$1,
+        weeklyMinutes: weeklyMetrics.$2,
+        currentStreak: currentStreak,
+      );
+    } catch (e) {
+      debugPrint('Ошибка загрузки прогресса целей: $e');
+      return [];
+    }
+  }
+
+  /// Возвращает количество минут медитации за сегодня.
+  Future<int> _getTodayMinutes() async {
+    try {
+      final now = DateTime.now();
+      final dateStr =
+          '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
+      final sessions =
+          await _repository!.syncRepo.getSessionsInRange(dateStr, dateStr);
+      final totalSeconds =
+          sessions.fold<int>(0, (sum, s) => sum + s.seconds);
+      return (totalSeconds / 60).floor();
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// Возвращает (количество сессий за неделю, сумма минут за неделю).
+  Future<(int, int)> _getWeeklyMetrics() async {
+    try {
+      final now = DateTime.now();
+      final weekStart = now.subtract(Duration(days: now.weekday - 1));
+      final startStr =
+          '${weekStart.year}-${_pad(weekStart.month)}-${_pad(weekStart.day)}';
+      final endStr =
+          '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
+      final sessions =
+          await _repository!.syncRepo.getSessionsInRange(startStr, endStr);
+      final sessionCount = sessions.length;
+      final totalSeconds =
+          sessions.fold<int>(0, (sum, s) => sum + s.seconds);
+      return (sessionCount, (totalSeconds / 60).floor());
+    } catch (_) {
+      return (0, 0);
+    }
+  }
+
+  String _pad(int value) => value.toString().padLeft(2, '0');
 
   Future<void> _openAuthScreen() async {
     final auth = AppServiceLocator.instance.authService;
@@ -252,6 +325,8 @@ class _HomeScreenState extends State<HomeScreen>
       onAuthTap: _openAuthScreen,
       displayName: _displayName,
       photoUrl: _photoUrl,
+      goalsProgress: _goalsProgress,
+      onGoalsChanged: _loadProgression,
     );
   }
 
@@ -387,7 +462,16 @@ class _HomeScreenState extends State<HomeScreen>
                 child: const Text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'),
               ),
 
-              SizedBox(height: zen.gap(4) * gapScale),
+              SizedBox(height: zen.gap(3) * gapScale),
+
+              // Цели
+              if (!_loading) ...[
+                GoalsPanel(
+                  goalsProgress: _goalsProgress,
+                  onGoalsChanged: _loadProgression,
+                ),
+                SizedBox(height: zen.gap(3) * gapScale),
+              ],
 
               // Версия
               Padding(

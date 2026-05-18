@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../../core/theme/zen_theme.dart';
+import '../../data/meditation_goal.dart';
+import 'goals_panel.dart';
 import 'nav_sidebar.dart';
 import 'neuro_preset_info.dart';
 
@@ -33,6 +35,12 @@ class WidescreenLayout extends StatefulWidget {
   /// URL аватара пользователя (если авторизован).
   final String? photoUrl;
 
+  /// Прогресс целей для отображения.
+  final List<GoalWithProgress> goalsProgress;
+
+  /// Callback после изменения целей.
+  final VoidCallback? onGoalsChanged;
+
   const WidescreenLayout({
     super.key,
     required this.durationMinutes,
@@ -45,6 +53,8 @@ class WidescreenLayout extends StatefulWidget {
     this.onAuthTap,
     this.displayName,
     this.photoUrl,
+    this.goalsProgress = const [],
+    this.onGoalsChanged,
   });
 
   @override
@@ -134,6 +144,16 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
                     child: const Text('НАЧАТЬ ПРАКТИКУ'),
                   ),
                 ),
+                // Цели
+                if (widget.goalsProgress.isNotEmpty) ...[
+                  SizedBox(height: zen.gap(3)),
+                  const Divider(color: ZenColors.border),
+                  SizedBox(height: zen.gap(2)),
+                  GoalsPanel(
+                    goalsProgress: widget.goalsProgress,
+                    onGoalsChanged: widget.onGoalsChanged,
+                  ),
+                ],
               ],
             ),
           ),

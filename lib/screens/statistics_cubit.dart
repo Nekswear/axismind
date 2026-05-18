@@ -166,6 +166,7 @@ class StatisticsCubit extends Cubit<StatisticsState> {
         throw Exception('SyncRepository не инициализирован');
       }
       _repository = AnalyticsRepository(syncRepo);
+      _repository!.goalsRepo = locator.goalsRepo;
 
       final now = DateTime.now();
       final days = _chartDays;

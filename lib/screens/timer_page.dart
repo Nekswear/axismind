@@ -9,6 +9,7 @@ import '../data/analytics_repository.dart';
 import '../engine/gong_service.dart';
 import '../engine/timer_controller.dart';
 import '../services/app_service_locator.dart';
+import '../widgets/goal_completed_notification.dart';
 import '../widgets/journal_dialog.dart';
 import '../widgets/level_up_dialog.dart';
 import 'widgets/samadhi_view.dart';
@@ -105,8 +106,9 @@ class _TimerPageState extends State<TimerPage> {
       }
 
       _repository ??= AnalyticsRepository(syncRepo);
+      _repository!.goalsRepo = locator.goalsRepo;
 
-      final levelUp = await _repository!.processSessionEnd(
+      final sessionResult = await _repository!.processSessionEnd(
         _controller.totalSeconds,
       );
 
@@ -142,12 +144,27 @@ class _TimerPageState extends State<TimerPage> {
 
       if (!context.mounted) return;
 
-      if (levelUp != null) {
+      // Показываем GoalCompletedNotification, если были выполнены цели
+      if (sessionResult.hasCompletedGoals) {
         await showDialog<void>(
           // ignore: use_build_context_synchronously
           context: context,
           barrierDismissible: false,
-          builder: (_) => LevelUpDialog(event: levelUp),
+          builder: (_) => GoalCompletedNotification(
+            completedGoals: sessionResult.completedGoals,
+          ),
+        );
+      }
+
+      if (!context.mounted) return;
+
+      // Показываем LevelUpDialog, если был повышение уровня
+      if (sessionResult.hasLevelUp) {
+        await showDialog<void>(
+          // ignore: use_build_context_synchronously
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => LevelUpDialog(event: sessionResult.levelUp!),
         );
       }
 

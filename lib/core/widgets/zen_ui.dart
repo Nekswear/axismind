@@ -132,10 +132,17 @@ class ZenMetricBlock extends StatelessWidget {
 /// Иконка ранга, меняющаяся в зависимости от уровня пользователя.
 ///
 /// Маппинг:
-///   0      → 🌱 (Новичок осознанности)
-///   1–2    → 🌿 (Искатель спокойствия)
-///   3–5    → 🪷 (Хранитель тишины)
-///   6+     → 🌸 (Мастер баланса)
+///   0       → 🌱 (Новичок осознанности)
+///   1–2     → 🌿 (Искатель спокойствия)
+///   3–5     → 🪷 (Хранитель тишины)
+///   6–8     → 🌸 (Мастер баланса)
+///   9–11    → 🕊️ (Странник глубин)
+///   12–14   → ☀️ (Пробуждённый)
+///   15–18   → 🏔️ (Мудрец)
+///   19–23   → ✨ (Просветлённый)
+///   24–29   → 🔥 (Легенда)
+///   30–37   → ⚡ (Бессмертный)
+///   38+     → 👑 (Божественный)
 class RankIcon extends StatelessWidget {
   /// Текущий уровень пользователя.
   final int level;
@@ -155,6 +162,13 @@ class RankIcon extends StatelessWidget {
   }
 
   String _emojiForLevel(int level) {
+    if (level >= 38) return '👑';
+    if (level >= 30) return '⚡';
+    if (level >= 24) return '🔥';
+    if (level >= 19) return '✨';
+    if (level >= 15) return '🏔️';
+    if (level >= 12) return '☀️';
+    if (level >= 9) return '🕊️';
     if (level >= 6) return '🌸';
     if (level >= 3) return '🪷';
     if (level >= 1) return '🌿';

@@ -6,6 +6,8 @@ import '../domain/analytics_result.dart';
 import '../domain/level_up_event.dart';
 import '../domain/progress_calculator.dart';
 import '../utils/time_utils.dart';
+import 'goals_repository.dart';
+import 'meditation_goal.dart';
 import 'session.dart';
 import 'sync_repository.dart';
 
@@ -21,6 +23,9 @@ class AnalyticsRepository {
 
   /// Публичный доступ к SyncRepository для миграции данных.
   SyncRepository get syncRepo => _syncRepo;
+
+  /// GoalsRepository для учёта бонусных XP от целей.
+  GoalsRepository? goalsRepo;
 
   /// Счётчик запросов для защиты от race conditions.
   /// Каждый вызов [fetchStatistics] инкрементирует его.
@@ -67,41 +72,100 @@ class AnalyticsRepository {
     }
   }
 
-  /// Обрабатывает завершение сессии и проверяет повышение уровня.
+  /// Возвращает эффективные минуты = реальные минуты + бонусные XP от целей.
   ///
-  /// 1. Получает старое общее количество минут.
+  /// Бонусные XP учитываются как дополнительные минуты для расчёта уровня,
+  /// что даёт пользователю мотивацию выполнять цели.
+  Future<int> getEffectiveMinutes() async {
+    final realMinutes = await getTotalMinutes();
+    final bonusXp = await goalsRepo?.getTotalBonusXp() ?? 0;
+    return realMinutes + bonusXp;
+  }
+
+  /// Обрабатывает завершение сессии и проверяет повышение уровня и цели.
+  ///
+  /// 1. Получает старое общее количество минут (с учётом бонусных XP).
   /// 2. Сохраняет новую сессию.
-  /// 3. Получает новое общее количество минут.
+  /// 3. Получает новое общее количество минут (с учётом бонусных XP).
   /// 4. Сравнивает уровни через [ProgressCalculator].
-  /// 5. Если уровень вырос — возвращает [LevelUpEvent].
+  /// 5. Рассчитывает прогресс целей через [GoalsRepository].
+  /// 6. Возвращает [SessionEndResult] с levelUp и/или completedGoals.
   ///
-  /// Возвращает [LevelUpEvent] при повышении уровня, иначе `null`.
-  Future<LevelUpEvent?> processSessionEnd(int durationSeconds) async {
+  /// Возвращает [SessionEndResult] с информацией о повышении уровня и/или выполненных целях.
+  Future<SessionEndResult> processSessionEnd(int durationSeconds) async {
     try {
-      // Шаг 1: старый уровень до сохранения
-      final oldMinutes = await getTotalMinutes();
-      final oldLevel = ProgressCalculator.calculateLevel(oldMinutes);
+      // Шаг 1: старый уровень до сохранения (с учётом бонусных XP)
+      final oldEffectiveMinutes = await getEffectiveMinutes();
+      final oldLevel = ProgressCalculator.calculateLevel(oldEffectiveMinutes);
 
       // Шаг 2: сохраняем сессию (через SyncRepository — локально + облако)
       final session = Session(seconds: durationSeconds);
       await _syncRepo.saveSession(session);
 
-      // Шаг 3: новый уровень после сохранения
-      final newMinutes = await getTotalMinutes();
-      final newLevel = ProgressCalculator.calculateLevel(newMinutes);
+      // Шаг 3: новый уровень после сохранения (с учётом бонусных XP)
+      final newEffectiveMinutes = await getEffectiveMinutes();
+      final newLevel = ProgressCalculator.calculateLevel(newEffectiveMinutes);
 
-      // Шаг 4–5: сравниваем
+      // Шаг 4: проверяем повышение уровня
+      LevelUpEvent? levelUp;
       if (newLevel > oldLevel) {
-        return LevelUpEvent(
+        levelUp = LevelUpEvent(
           level: newLevel,
           rank: ProgressCalculator.getRank(newLevel),
         );
       }
 
-      return null;
+      // Шаг 5: рассчитываем прогресс целей
+      List<GoalWithProgress> completedGoals = [];
+      if (goalsRepo != null) {
+        // Получаем метрики для расчёта прогресса целей
+        final todayMinutes = await _getTodayMinutes();
+        final weeklyMetrics = await _getWeeklyMetrics();
+        final dates = await _syncRepo.getDistinctSessionDates();
+        final currentStreak = ProgressCalculator.calculateStreak(dates);
+
+        final allProgress = await goalsRepo!.calculateAndUpdateProgress(
+          todayMinutes: todayMinutes,
+          weeklySessions: weeklyMetrics.$1,
+          weeklyMinutes: weeklyMetrics.$2,
+          currentStreak: currentStreak,
+        );
+
+        completedGoals = allProgress.where((g) => g.isCompleted).toList();
+      }
+
+      // Шаг 6: возвращаем результат
+      return SessionEndResult(
+        levelUp: levelUp,
+        completedGoals: completedGoals,
+      );
     } catch (e) {
       throw AnalyticsException('Не удалось обработать завершение сессии: $e');
     }
+  }
+
+  /// Возвращает количество минут медитации за сегодня.
+  Future<int> _getTodayMinutes() async {
+    final today = DateTime.now();
+    final dateStr =
+        '${today.year}-${_pad(today.month)}-${_pad(today.day)}';
+    final sessions = await _syncRepo.getSessionsInRange(dateStr, dateStr);
+    final totalSeconds = sessions.fold<int>(0, (sum, s) => sum + s.seconds);
+    return (totalSeconds / 60).floor();
+  }
+
+  /// Возвращает (количество сессий за неделю, сумма минут за неделю).
+  Future<(int, int)> _getWeeklyMetrics() async {
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final startStr =
+        '${weekStart.year}-${_pad(weekStart.month)}-${_pad(weekStart.day)}';
+    final endStr =
+        '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
+    final sessions = await _syncRepo.getSessionsInRange(startStr, endStr);
+    int sessionCount = sessions.length;
+    int totalSeconds = sessions.fold<int>(0, (sum, s) => sum + s.seconds);
+    return (sessionCount, (totalSeconds / 60).floor());
   }
 
   /// Returns total meditation minutes (целое число) across all sessions.
@@ -135,16 +199,18 @@ class AnalyticsRepository {
 
   /// Загружает уровень, ранг и streak пользователя.
   ///
+  /// Уровень рассчитывается на основе эффективных минут (реальные + бонусные XP).
   /// Возвращает [UserProgression] с актуальными данными.
   Future<UserProgression> getUserProgression() async {
     try {
-      final minutes = await getTotalMinutes();
-      final level = ProgressCalculator.calculateLevel(minutes);
+      final effectiveMinutes = await getEffectiveMinutes();
+      final realMinutes = await getTotalMinutes();
+      final level = ProgressCalculator.calculateLevel(effectiveMinutes);
       final rank = ProgressCalculator.getRank(level);
       final dates = await _syncRepo.getDistinctSessionDates();
       final streak = ProgressCalculator.calculateStreak(dates);
       return UserProgression(
-        minutes: minutes,
+        minutes: realMinutes,
         level: level,
         rank: rank,
         streak: streak,
@@ -282,20 +348,20 @@ class AnalyticsRepository {
   /// и процентом заполнения шкалы.
   Future<XpProgress> getXpProgress() async {
     try {
-      final minutes = await getTotalMinutes();
-      final level = calculateLevel(minutes);
+      final effectiveMinutes = await getEffectiveMinutes();
+      final level = calculateLevel(effectiveMinutes);
 
       // Формула: level = floor(sqrt((minutes * 10) / 100))
       // Обратная: minutesForLevel = ((level + 1)^2 * 100) / 10
       final nextLevelMinutes = ((pow(level + 1, 2) * 100) / 10).round();
       final currentLevelMinutes = ((pow(level, 2) * 100) / 10).round();
 
-      final xpInLevel = minutes - currentLevelMinutes;
+      final xpInLevel = effectiveMinutes - currentLevelMinutes;
       final xpNeeded = nextLevelMinutes - currentLevelMinutes;
       final progress = xpNeeded > 0 ? xpInLevel / xpNeeded : 1.0;
 
       // Остаток минут до следующего уровня
-      final remainingMinutes = nextLevelMinutes - minutes;
+      final remainingMinutes = nextLevelMinutes - effectiveMinutes;
 
       return XpProgress(
         currentXp: xpInLevel,
