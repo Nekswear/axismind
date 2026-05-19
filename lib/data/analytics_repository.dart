@@ -115,29 +115,31 @@ class AnalyticsRepository {
         );
       }
 
-      // Шаг 5: рассчитываем прогресс целей
+      // Шаг 5: получаем даты сессий для расчёта streak и прогресса целей
+      final dates = await _syncRepo.getDistinctSessionDates();
+      final newStreak = ProgressCalculator.calculateStreak(dates);
+
+      // Шаг 6: рассчитываем прогресс целей
       List<GoalWithProgress> completedGoals = [];
       if (goalsRepo != null) {
-        // Получаем метрики для расчёта прогресса целей
         final todayMinutes = await _getTodayMinutes();
         final weeklyMetrics = await _getWeeklyMetrics();
-        final dates = await _syncRepo.getDistinctSessionDates();
-        final currentStreak = ProgressCalculator.calculateStreak(dates);
 
         final allProgress = await goalsRepo!.calculateAndUpdateProgress(
           todayMinutes: todayMinutes,
           weeklySessions: weeklyMetrics.$1,
           weeklyMinutes: weeklyMetrics.$2,
-          currentStreak: currentStreak,
+          currentStreak: newStreak,
         );
 
         completedGoals = allProgress.where((g) => g.isCompleted).toList();
       }
 
-      // Шаг 6: возвращаем результат
+      // Шаг 7: возвращаем результат
       return SessionEndResult(
         levelUp: levelUp,
         completedGoals: completedGoals,
+        newStreak: newStreak,
       );
     } catch (e) {
       throw AnalyticsException('Не удалось обработать завершение сессии: $e');

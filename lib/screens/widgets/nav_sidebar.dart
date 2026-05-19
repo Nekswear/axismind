@@ -32,6 +32,7 @@ class NavSidebar extends StatelessWidget {
   final VoidCallback onJournalTap;
   final VoidCallback onStatisticsTap;
   final VoidCallback onGuideTap;
+  final VoidCallback? onNotificationSettingsTap;
 
   const NavSidebar({
     super.key,
@@ -40,6 +41,7 @@ class NavSidebar extends StatelessWidget {
     required this.onJournalTap,
     required this.onStatisticsTap,
     required this.onGuideTap,
+    this.onNotificationSettingsTap,
   });
 
   @override
@@ -99,7 +101,14 @@ class NavSidebar extends StatelessWidget {
 
           const Spacer(),
 
-          // Нижняя группа: версия
+          // Нижняя группа: уведомления и версия
+          if (onNotificationSettingsTap != null)
+            _buildNavItem(
+              icon: Icons.notifications_outlined,
+              label: 'Уведомления',
+              isActive: false,
+              onTap: onNotificationSettingsTap!,
+            ),
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: Text(

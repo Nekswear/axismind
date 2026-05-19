@@ -41,6 +41,9 @@ class WidescreenLayout extends StatefulWidget {
   /// Callback после изменения целей.
   final VoidCallback? onGoalsChanged;
 
+  /// Callback для открытия настроек уведомлений.
+  final VoidCallback? onNotificationSettingsTap;
+
   const WidescreenLayout({
     super.key,
     required this.durationMinutes,
@@ -55,6 +58,7 @@ class WidescreenLayout extends StatefulWidget {
     this.photoUrl,
     this.goalsProgress = const [],
     this.onGoalsChanged,
+    this.onNotificationSettingsTap,
   });
 
   @override
@@ -85,6 +89,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
           onJournalTap: widget.onJournalTap,
           onStatisticsTap: widget.onStatisticsTap,
           onGuideTap: widget.onGuideTap,
+          onNotificationSettingsTap: widget.onNotificationSettingsTap,
         ),
 
         // === Левая панель (40%) ===

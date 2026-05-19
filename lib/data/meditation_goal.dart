@@ -192,14 +192,21 @@ class SessionEndResult {
   /// Список целей, которые были выполнены в этой сессии.
   final List<GoalWithProgress> completedGoals;
 
+  /// Новая длина streak после этой сессии.
+  final int newStreak;
+
   /// Был ли повышение уровня?
   bool get hasLevelUp => levelUp != null;
 
   /// Были ли выполнены какие-то цели?
   bool get hasCompletedGoals => completedGoals.isNotEmpty;
 
+  /// Был ли установлен новый рекорд streak?
+  bool get hasNewStreakRecord => newStreak > 1;
+
   const SessionEndResult({
     this.levelUp,
     this.completedGoals = const [],
+    this.newStreak = 0,
   });
 }

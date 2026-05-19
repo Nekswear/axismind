@@ -5,13 +5,15 @@ import 'core/theme/zen_theme.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
 import 'services/app_service_locator.dart';
+import 'services/notification_service.dart';
 
 /// Главная точка входа.
 ///
 /// 1. Инициализирует Firebase (через Firebase.initializeApp)
 /// 2. Инициализирует сервисы (БД, Auth) через AppServiceLocator
-/// 3. Показывает экран загрузки, пока сервисы не готовы
-/// 4. Если что-то не загрузилось — приложение всё равно работает,
+/// 3. Инициализирует NotificationService (FCM + локальные уведомления)
+/// 4. Показывает экран загрузки, пока сервисы не готовы
+/// 5. Если что-то не загрузилось — приложение всё равно работает,
 ///    экраны показывают fallback-состояния
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +31,15 @@ void main() async {
   // Инициализируем сервисы (БД, Auth, SyncRepository)
   // AppServiceLocator.initialize() уже содержит try/catch внутри
   await AppServiceLocator.initialize();
+
+  // Инициализируем сервис пуш-уведомлений (FCM + локальные уведомления)
+  // Должен быть после Firebase.initializeApp()
+  try {
+    await NotificationService.instance.init();
+    debugPrint('[MAIN] NotificationService initialized successfully');
+  } catch (e) {
+    debugPrint('[MAIN] NotificationService initialization failed (non-fatal): $e');
+  }
 
   runApp(const ZenBalanceApp());
 }

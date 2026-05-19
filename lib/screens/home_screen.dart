@@ -16,6 +16,7 @@ import '../services/app_service_locator.dart';
 import 'auth_screen.dart';
 import 'journal_screen.dart';
 import 'meditation_guide_screen.dart';
+import 'notification_settings_screen.dart';
 import 'timer_page.dart';
 import 'statistics_page.dart';
 import 'widgets/glassmorphic_hero.dart';
@@ -290,6 +291,18 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Future<void> _navigateToNotificationSettings() async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const NotificationSettingsScreen(),
+      ),
+    );
+    if (changed == true && mounted) {
+      _loadProgression();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -333,6 +346,7 @@ class _HomeScreenState extends State<HomeScreen>
       photoUrl: _photoUrl,
       goalsProgress: _goalsProgress,
       onGoalsChanged: _loadProgression,
+      onNotificationSettingsTap: _navigateToNotificationSettings,
     );
   }
 
@@ -478,6 +492,24 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 SizedBox(height: zen.gap(3) * gapScale),
               ],
+
+              // Уведомления
+              TextButton.icon(
+                onPressed: _navigateToNotificationSettings,
+                icon: Icon(
+                  Icons.notifications_outlined,
+                  size: 18,
+                  color: ZenColors.gold.withValues(alpha: 0.7),
+                ),
+                label: Text(
+                  'Уведомления',
+                  style: TextStyle(
+                    color: ZenColors.gold.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: zen.gap(1) * gapScale),
 
               // Версия
               Padding(

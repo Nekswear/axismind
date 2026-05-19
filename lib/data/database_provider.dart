@@ -30,7 +30,8 @@ class DatabaseProvider {
   ///   3 — mood_rating and tag now included in CREATE TABLE (for Web)
   ///   4 — Added updated_at column for conflict resolution during sync
   ///   5 — Added goals table for user meditation goals
-  static const int _dbVersion = 5;
+  ///   6 — Added notification_settings table for push notification preferences
+  static const int _dbVersion = 6;
 
   /// Database name.
   static const String _dbName = 'zenbalance.db';
@@ -40,6 +41,9 @@ class DatabaseProvider {
 
   /// Table name for user meditation goals.
   static const String tableGoals = 'goals';
+
+  /// Table name for push notification settings.
+  static const String tableNotificationSettings = 'notification_settings';
 
   /// Private constructor — use [instance()] to get the singleton.
   DatabaseProvider._();
@@ -142,6 +146,21 @@ class DatabaseProvider {
         updated_at TEXT NOT NULL
       )
     ''');
+
+    // Create notification_settings table (v6)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $tableNotificationSettings (
+        id TEXT PRIMARY KEY DEFAULT 'default',
+        enabled INTEGER NOT NULL DEFAULT 1,
+        reminder_time TEXT NOT NULL DEFAULT '08:00',
+        motivational_enabled INTEGER NOT NULL DEFAULT 0,
+        goal_reminder_enabled INTEGER NOT NULL DEFAULT 0,
+        quiet_hours_start TEXT,
+        quiet_hours_end TEXT,
+        fcm_token TEXT,
+        updated_at TEXT NOT NULL
+      )
+    ''');
   }
 
   /// Handles schema migrations for future versions.
@@ -191,6 +210,27 @@ class DatabaseProvider {
         debugPrint('Migration v4→v5: created goals table');
       } catch (e) {
         debugPrint('Migration v4→v5: error creating goals table: $e');
+      }
+    }
+    // Миграция v5 → v6: добавляем таблицу notification_settings
+    if (oldVersion < 6) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS $tableNotificationSettings (
+            id TEXT PRIMARY KEY DEFAULT 'default',
+            enabled INTEGER NOT NULL DEFAULT 1,
+            reminder_time TEXT NOT NULL DEFAULT '08:00',
+            motivational_enabled INTEGER NOT NULL DEFAULT 0,
+            goal_reminder_enabled INTEGER NOT NULL DEFAULT 0,
+            quiet_hours_start TEXT,
+            quiet_hours_end TEXT,
+            fcm_token TEXT,
+            updated_at TEXT NOT NULL
+          )
+        ''');
+        debugPrint('Migration v5→v6: created notification_settings table');
+      } catch (e) {
+        debugPrint('Migration v5→v6: error creating notification_settings table: $e');
       }
     }
   }
@@ -675,6 +715,95 @@ class DatabaseProvider {
       return (result.first['total'] as num).toInt();
     } catch (e) {
       throw DatabaseException('Не удалось получить сумму бонусных XP: $e');
+    }
+  }
+
+  // ===========================================================================
+  // Notification settings table methods
+  // ===========================================================================
+
+  /// Возвращает настройки уведомлений (одна строка с id='default').
+  /// Возвращает null, если запись не найдена.
+  Future<Map<String, dynamic>?> getNotificationSettings() async {
+    try {
+      final result = await db.query(
+        tableNotificationSettings,
+        where: 'id = ?',
+        whereArgs: ['default'],
+      );
+      return result.isNotEmpty ? result.first : null;
+    } catch (e) {
+      throw DatabaseException('Не удалось получить настройки уведомлений: $e');
+    }
+  }
+
+  /// Сохраняет настройки уведомлений (UPSERT).
+  Future<void> saveNotificationSettings(Map<String, dynamic> settings) async {
+    try {
+      await db.transaction((txn) async {
+        await txn.insert(
+          tableNotificationSettings,
+          settings,
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      });
+    } catch (e) {
+      throw DatabaseException('Не удалось сохранить настройки уведомлений: $e');
+    }
+  }
+
+  /// Сохраняет FCM токен устройства.
+  Future<void> saveFcmToken(String token) async {
+    try {
+      await db.transaction((txn) async {
+        // Проверяем, есть ли уже запись
+        final existing = await txn.query(
+          tableNotificationSettings,
+          where: 'id = ?',
+          whereArgs: ['default'],
+        );
+
+        if (existing.isNotEmpty) {
+          await txn.update(
+            tableNotificationSettings,
+            {
+              'fcm_token': token,
+              'updated_at': DateTime.now().toIso8601String(),
+            },
+            where: 'id = ?',
+            whereArgs: ['default'],
+          );
+        } else {
+          await txn.insert(
+            tableNotificationSettings,
+            {
+              'id': 'default',
+              'fcm_token': token,
+              'updated_at': DateTime.now().toIso8601String(),
+            },
+          );
+        }
+      });
+    } catch (e) {
+      throw DatabaseException('Не удалось сохранить FCM токен: $e');
+    }
+  }
+
+  /// Возвращает сохранённый FCM токен (null если нет).
+  Future<String?> getFcmToken() async {
+    try {
+      final result = await db.query(
+        tableNotificationSettings,
+        columns: ['fcm_token'],
+        where: 'id = ?',
+        whereArgs: ['default'],
+      );
+      if (result.isNotEmpty) {
+        return result.first['fcm_token'] as String?;
+      }
+      return null;
+    } catch (e) {
+      throw DatabaseException('Не удалось получить FCM токен: $e');
     }
   }
 

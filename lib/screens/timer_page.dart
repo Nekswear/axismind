@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -9,6 +8,7 @@ import '../data/analytics_repository.dart';
 import '../engine/gong_service.dart';
 import '../engine/timer_controller.dart';
 import '../services/app_service_locator.dart';
+import '../services/notification_service.dart';
 import '../widgets/goal_completed_notification.dart';
 import '../widgets/journal_dialog.dart';
 import '../widgets/level_up_dialog.dart';
@@ -148,6 +148,14 @@ class _TimerPageState extends State<TimerPage> {
           context: context,
           barrierDismissible: false,
           builder: (_) => LevelUpDialog(event: sessionResult.levelUp!),
+        );
+      }
+
+      // Показываем streak-уведомление, если есть новая серия
+      if (sessionResult.hasNewStreakRecord && context.mounted) {
+        // ignore: use_build_context_synchronously
+        await NotificationService.instance.showStreakNotification(
+          sessionResult.newStreak,
         );
       }
 
