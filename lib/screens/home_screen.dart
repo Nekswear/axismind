@@ -12,6 +12,7 @@ import '../data/goals_repository.dart';
 import '../data/meditation_goal.dart';
 import '../domain/progress_calculator.dart';
 import '../engine/timer_controller.dart';
+import '../l10n/app_localizations.dart';
 import '../services/app_service_locator.dart';
 import 'auth_screen.dart';
 import 'journal_screen.dart';
@@ -417,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen>
                         letterSpacing: 2,
                       ),
                     ),
-                    child: const Text('НАЧАТЬ ПРАКТИКУ'),
+                    child: Text(AppLocalizations.of(context)!.startPractice),
                   ),
                 ),
               ),
@@ -433,7 +434,7 @@ class _HomeScreenState extends State<HomeScreen>
                   color: ZenColors.gold.withValues(alpha: 0.7),
                 ),
                 label: Text(
-                  'Дневник',
+                  AppLocalizations.of(context)!.journal,
                   style: TextStyle(
                     color: ZenColors.gold.withValues(alpha: 0.7),
                   ),
@@ -451,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen>
                   color: ZenColors.gold.withValues(alpha: 0.7),
                 ),
                 label: Text(
-                  'Статистика',
+                  AppLocalizations.of(context)!.statistics,
                   style: TextStyle(
                     color: ZenColors.gold.withValues(alpha: 0.7),
                   ),
@@ -479,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen>
                     letterSpacing: 2.0,
                   ),
                 ),
-                child: const Text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'),
+                child: Text(AppLocalizations.of(context)!.openGuide),
               ),
 
               SizedBox(height: zen.gap(3) * gapScale),
@@ -502,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen>
                   color: ZenColors.gold.withValues(alpha: 0.7),
                 ),
                 label: Text(
-                  'Уведомления',
+                  AppLocalizations.of(context)!.notifications,
                   style: TextStyle(
                     color: ZenColors.gold.withValues(alpha: 0.7),
                   ),
@@ -572,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       children: [
         Text(
-          'Выбери длительность:',
+          AppLocalizations.of(context)!.chooseDuration,
           style: theme.textTheme.bodyLarge?.copyWith(
             color: ZenColors.textSecondary,
           ),
@@ -586,32 +587,32 @@ class _HomeScreenState extends State<HomeScreen>
             DurationPreset(
               minutes: 5,
               icon: Icons.coffee_outlined,
-              label: 'Быстрая',
-              subtitle: 'Перерыв',
+              label: AppLocalizations.of(context)!.presetQuick,
+              subtitle: AppLocalizations.of(context)!.presetQuickSub,
               isSelected: _durationMinutes == 5,
               onTap: () => setState(() => _durationMinutes = 5),
             ),
             DurationPreset(
               minutes: 10,
               icon: Icons.self_improvement,
-              label: 'Стандарт',
-              subtitle: 'Ежедневная',
+              label: AppLocalizations.of(context)!.presetStandard,
+              subtitle: AppLocalizations.of(context)!.presetStandardSub,
               isSelected: _durationMinutes == 10,
               onTap: () => setState(() => _durationMinutes = 10),
             ),
             DurationPreset(
               minutes: 15,
               icon: Icons.water_drop_outlined,
-              label: 'Глубокая',
-              subtitle: 'Вечерняя',
+              label: AppLocalizations.of(context)!.presetDeep,
+              subtitle: AppLocalizations.of(context)!.presetDeepSub,
               isSelected: _durationMinutes == 15,
               onTap: () => setState(() => _durationMinutes = 15),
             ),
             DurationPreset(
               minutes: 20,
               icon: Icons.auto_awesome_outlined,
-              label: 'Мастер',
-              subtitle: 'Выходная',
+              label: AppLocalizations.of(context)!.presetMaster,
+              subtitle: AppLocalizations.of(context)!.presetMasterSub,
               isSelected: _durationMinutes == 20,
               onTap: () => setState(() => _durationMinutes = 20),
             ),

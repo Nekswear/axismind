@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/zen_theme.dart';
 import '../../core/version_info.dart';
+import '../../l10n/app_localizations.dart';
+import '../../services/subscription_service.dart';
+import '../../widgets/premium_badge.dart';
 
 /// Навигационный элемент боковой панели.
 class _NavItem {
@@ -33,6 +36,7 @@ class NavSidebar extends StatelessWidget {
   final VoidCallback onStatisticsTap;
   final VoidCallback onGuideTap;
   final VoidCallback? onNotificationSettingsTap;
+  final VoidCallback? onPremiumTap;
 
   const NavSidebar({
     super.key,
@@ -42,29 +46,31 @@ class NavSidebar extends StatelessWidget {
     required this.onStatisticsTap,
     required this.onGuideTap,
     this.onNotificationSettingsTap,
+    this.onPremiumTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final items = [
       _NavItem(
         icon: Icons.self_improvement,
-        label: 'Практика',
+        label: l10n.navPractice,
         onTap: onPracticeTap,
       ),
       _NavItem(
         icon: Icons.book_outlined,
-        label: 'Дневник',
+        label: l10n.navJournal,
         onTap: onJournalTap,
       ),
       _NavItem(
         icon: Icons.bar_chart_outlined,
-        label: 'Статистика',
+        label: l10n.navStatistics,
         onTap: onStatisticsTap,
       ),
       _NavItem(
         icon: Icons.explore_outlined,
-        label: 'Путь к ясности',
+        label: l10n.navGuide,
         onTap: onGuideTap,
       ),
     ];
@@ -101,11 +107,13 @@ class NavSidebar extends StatelessWidget {
 
           const Spacer(),
 
-          // Нижняя группа: уведомления и версия
+          // Нижняя группа: Premium, уведомления и версия
+          // Кнопка Premium
+          _buildPremiumButton(context),
           if (onNotificationSettingsTap != null)
             _buildNavItem(
               icon: Icons.notifications_outlined,
-              label: 'Уведомления',
+              label: AppLocalizations.of(context)!.navNotifications,
               isActive: false,
               onTap: onNotificationSettingsTap!,
             ),
@@ -149,6 +157,61 @@ class NavSidebar extends StatelessWidget {
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: ZenColors.background,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumButton(BuildContext context) {
+    final isPremium = SubscriptionService.instance.isPremium;
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Tooltip(
+        message: isPremium ? l10n.premiumActive : l10n.premium,
+        preferBelow: false,
+        child: GestureDetector(
+          onTap: onPremiumTap,
+          child: Container(
+            width: 72,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: isPremium
+                  ? const LinearGradient(
+                      colors: [
+                        ZenColors.gold,
+                        ZenColors.goldLight,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: isPremium ? null : Colors.transparent,
+              borderRadius: isPremium ? BorderRadius.circular(12) : null,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isPremium)
+                  const Icon(Icons.workspace_premium, size: 20, color: ZenColors.background)
+                else
+                  const Icon(Icons.workspace_premium_outlined, size: 20, color: ZenColors.gold),
+                const SizedBox(height: 2),
+                if (isPremium)
+                  const Text(
+                    'PREMIUM',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 7,
+                      fontWeight: FontWeight.w800,
+                      color: ZenColors.background,
+                    ),
+                  )
+                else
+                  const PremiumBadge(fontSize: 7),
+              ],
+            ),
           ),
         ),
       ),

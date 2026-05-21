@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/zen_theme.dart';
+import '../l10n/app_localizations.dart';
 import '../data/meditation_goal.dart';
 
 // =============================================================================
@@ -54,7 +55,7 @@ class GoalCompletedNotification extends StatelessWidget {
 
           // Заголовок
           Text(
-            'Цель выполнена!',
+            AppLocalizations.of(context)!.goalCompleted,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: zen.goldGradient.colors.first,
@@ -109,7 +110,7 @@ class GoalCompletedNotification extends StatelessWidget {
             style: FilledButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
             ),
-            child: const Text('Отлично!'),
+            child: Text(AppLocalizations.of(context)!.goalCompletedClose),
           ),
         ],
       ),

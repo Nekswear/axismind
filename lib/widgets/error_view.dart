@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 /// Отображение ошибки с иконкой, сообщением и кнопкой повтора.
 ///
 /// Сообщение об ошибке переводится на русский язык.
@@ -22,19 +24,19 @@ class ErrorView extends StatelessWidget {
   ///
   /// Пробует извлечь понятный текст из исключений различных типов.
   /// Если распознать не удалось — возвращает переданное [message].
-  static String formatError(dynamic error, {String fallback = 'Произошла неизвестная ошибка'}) {
+  static String formatError(dynamic error, {String fallback = 'An unknown error occurred'}) {
     if (error == null) return fallback;
 
     final msg = error.toString();
 
     // Ошибки БД
     if (msg.contains('DatabaseException') || msg.contains('Database error')) {
-      return 'Ошибка базы данных. Попробуйте перезапустить приложение.';
+      return 'Database error. Please restart the app.';
     }
 
     // Ошибки сети/API
     if (msg.contains('SocketException') || msg.contains('HttpException')) {
-      return 'Проблема с подключением. Проверьте интернет-соединение.';
+      return 'Connection issue. Check your internet connection.';
     }
 
     // Ошибки аналитики
@@ -44,12 +46,12 @@ class ErrorView extends StatelessWidget {
       if (colonIndex > 0 && colonIndex < msg.length - 1) {
         return msg.substring(colonIndex + 2).trim();
       }
-      return 'Ошибка при загрузке статистики.';
+      return 'Failed to load statistics.';
     }
 
     // StaleRequest — не показываем пользователю, это не ошибка
     if (msg.contains('StaleRequestException')) {
-      return 'Данные обновляются...';
+      return 'Data is updating...';
     }
 
     // Любая другая ошибка
@@ -100,7 +102,7 @@ class ErrorView extends StatelessWidget {
               FilledButton.tonalIcon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Повторить'),
+                label: Text(AppLocalizations.of(context)!.retry),
               ),
           ],
         ),

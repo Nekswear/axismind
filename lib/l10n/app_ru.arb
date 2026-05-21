@@ -1,0 +1,469 @@
+{
+  "@@locale": "ru",
+  "@@info": "Русские переводы для приложения медитации ZenBalance",
+
+  "appTitle": "ZenBalance",
+
+  "startPractice": "НАЧАТЬ ПРАКТИКУ",
+  "openPathToClarity": "ОТКРЫТЬ ПУТЬ К ЯСНОСТИ",
+  "continueLabel": "Продолжить",
+  "save": "Сохранить",
+  "cancel": "Отмена",
+  "delete": "Удалить",
+  "retry": "Повторить",
+  "skip": "Пропустить",
+  "close": "Закрыть",
+  "done": "Готово",
+  "edit": "Изменить",
+  "add": "Добавить",
+  "setup": "Настроить",
+  "create": "Создать",
+  "sendTest": "Отправить тестовое",
+  "learnMore": "УЗНАТЬ БОЛЬШЕ",
+  "startPracticeBtn": "НАЧАТЬ ПРАКТИКУ",
+  "exhale": "ВЫДОХ",
+  "reset": "СБРОС",
+  "repeat": "Повторить",
+  "ok": "Отлично!",
+  "great": "Отлично!",
+
+  "chooseDuration": "Выбери длительность",
+  "selectDurationColon": "Выбери длительность:",
+
+  "presetQuick": "Быстрая",
+  "presetQuickSub": "Перерыв",
+  "presetStandard": "Стандарт",
+  "presetStandardSub": "Ежедневная",
+  "presetDeep": "Глубокая",
+  "presetDeepSub": "Вечерняя",
+  "presetMaster": "Мастер",
+  "presetMasterSub": "Выходная",
+
+  "min": "{minutes} мин",
+  "@min": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "minutesLabelWithName": "{minutes} мин — {name}",
+  "@minutesLabelWithName": {
+    "placeholders": {
+      "minutes": {},
+      "name": {}
+    }
+  },
+
+  "navPractice": "Практика",
+  "navJournal": "Дневник",
+  "navStatistics": "Статистика",
+  "navGuide": "Путь к ясности",
+  "navNotifications": "Уведомления",
+
+  "premium": "Премиум",
+  "premiumActive": "Premium активно",
+
+  "authGoogle": "Войти через Google",
+  "authContinueWithout": "Продолжить без входа",
+  "authTitle": "Ваш путь к осознанности",
+  "authSubtitle": "Вход используется только для синхронизации\nваших данных между устройствами",
+  "authGoogleTitle": "Авторизация через Google",
+  "authGoogleSubtitle": "Доступна на мобильных устройствах и в веб-версии.\nНа компьютере приложение работает в локальном режиме.",
+  "authError": "Ошибка входа: {error}",
+  "@authError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "authCloseTooltip": "Закрыть",
+
+  "userPlaceholder": "Пользователь",
+
+  "paywallTitle": "Откройте полный\nпотенциал ZenBalance",
+  "try7DaysFree": "Попробуйте 7 дней бесплатно",
+  "thenPrice": "Попробовать 7 дней бесплатно\nзатем {price}",
+  "@thenPrice": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "cancelAnytime": "Отмена в любое время",
+  "restorePurchases": "Восстановить покупки",
+  "continueFree": "Продолжить бесплатно",
+  "paywallCloseTooltip": "Закрыть",
+  "purchaseFailed": "Покупка не удалась. Попробуйте позже.",
+  "subscriptionRestored": "Подписка восстановлена!",
+  "noActivePurchases": "Активных покупок не найдено.",
+  "paymentTerms": "Оплата будет списана с вашего аккаунта Google Play после подтверждения покупки. Подписка автоматически продлевается, если не отменена за 24 часа до окончания текущего периода. Управлять подпиской можно в настройках Google Play.",
+
+  "featureMotivationalNotifications": "Мотивационные уведомления",
+  "featureMotivationalNotificationsSub": "Вдохновляющие цитаты и статистика прогресса",
+  "featureGoalReminders": "Напоминания о целях",
+  "featureGoalRemindersSub": "Ежедневное напоминание, если цель не выполнена",
+  "featureMeditationGoals": "Цели медитации",
+  "featureMeditationGoalsSub": "Создавайте и отслеживайте свои цели",
+  "featureDetailedStats": "Детальная статистика",
+  "featureDetailedStatsSub": "Тепловая карта, прогресс уровней и XP",
+  "featureDeviceSync": "Синхронизация устройств",
+  "featureDeviceSyncSub": "Ваши данные всегда с вами",
+
+  "journalTitle": "Дневник медитаций",
+  "journalEdit": "Редактировать запись ✏️",
+  "journalNew": "Запиши свои ощущения 📝",
+  "journalSession": "Сессия: {duration}",
+  "@journalSession": {
+    "placeholders": {
+      "duration": {}
+    }
+  },
+  "journalMood": "Как ты себя чувствуешь?",
+  "journalNote": "Напиши, что пришло в голову...",
+  "journalTag": "Тег (необязательно)",
+  "journalSearch": "Поиск по заметкам...",
+  "journalAllTags": "Все",
+  "journalEmpty": "Здесь пока пусто",
+  "journalEmptySubtitle": "Заверши медитацию,\nчтобы появилась первая запись",
+  "journalUpdateFailed": "Не удалось обновить запись",
+  "journalDeleteConfirm": "Удалить запись?",
+  "journalDeleteConfirmSub": "Это действие нельзя отменить.",
+  "journalDeleted": "Запись удалена",
+  "journalDeleteFailed": "Не удалось удалить запись",
+
+  "tagMorning": "Утро",
+  "tagDay": "День",
+  "tagEvening": "Вечер",
+  "tagStress": "Стресс",
+  "tagCalm": "Спокойствие",
+  "tagGratitude": "Благодарность",
+
+  "goalsTitle": "Настройка целей",
+  "goalsSubtitle": "Цели помогают отслеживать регулярность практики\nи дают бонусные XP за выполнение.",
+  "goalsCurrent": "Текущие цели",
+  "goalsMaxReached": "Максимум 4 цели",
+  "goalsAdd": "Добавить цель",
+  "goalsNoGoals": "У вас пока нет целей",
+  "goalsNoGoalsSubtitle": "Поставьте цель, чтобы отслеживать прогресс\nи получать бонусные XP",
+  "goalsCreate": "Создать цель",
+  "goalsEdit": "Изменить цель",
+  "goalsNew": "Новая цель",
+  "goalsDeleteConfirm": "Удалить цель?",
+  "goalsDeleteConfirmSub": "Вы уверены, что хотите удалить цель\n«{name}»?",
+  "@goalsDeleteConfirmSub": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "goalsGoalLabel": "{target} {unit} · +{xp} XP",
+  "@goalsGoalLabel": {
+    "placeholders": {
+      "target": {},
+      "unit": {},
+      "xp": {}
+    }
+  },
+  "goalsTypeLabel": "Тип цели",
+  "goalsTargetLabel": "Целевое значение",
+  "goalsTargetHintDaily": "Например: 10 минут в день",
+  "goalsTargetHintWeeklySessions": "Например: 5 сессий в неделю",
+  "goalsTargetHintWeeklyMinutes": "Например: 60 минут в неделю",
+  "goalsTargetHintStreak": "Например: 7 дней подряд",
+
+  "goalDailyMinutes": "Ежедневная практика",
+  "goalWeeklySessions": "Сессий в неделю",
+  "goalWeeklyMinutes": "Минут в неделю",
+  "goalStreakDays": "Дней подряд",
+
+  "goalUnitMinPerDay": "мин/день",
+  "goalUnitSessPerWeek": "сесс./нед.",
+  "goalUnitMinPerWeek": "мин/нед.",
+  "goalUnitDays": "дней",
+
+  "statsTitle": "Статистика",
+  "statsLastDays": "Последние {days} дней",
+  "@statsLastDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "statsTotalMinutes": "Всего минут",
+  "statsSessions": "Сессий",
+  "statsStreak": "Серия",
+  "statsStreakUnit": "день",
+  "statsStreakUnitPlural": "дней",
+  "statsGrowth": "Рост",
+  "statsGrowthPeriod": "за {days} д.",
+  "@statsGrowthPeriod": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "statsAverage": "в среднем",
+  "statsAveragePerDay": "в среднем в день",
+  "statsBest": "лучший",
+  "statsRegularity": "регулярность",
+  "statsActivity30": "Активность за 30 дней",
+  "statsDynamics": "Динамика",
+  "statsAvgLabel": "сред. {minutes}",
+  "@statsAvgLabel": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "statsPeriod7": "7д",
+  "statsPeriod14": "14д",
+  "statsPeriod30": "30д",
+
+  "notifTitle": "Уведомления",
+  "notifSubtitle": "Настройте пуш-уведомления, чтобы не пропускать\nпрактику и отслеживать прогресс.",
+  "notifGeneral": "Общие",
+  "notifEnabled": "Уведомления",
+  "notifEnabledSub": "Включить или отключить все уведомления",
+  "notifDailyReminder": "Ежедневное напоминание",
+  "notifReminderTime": "Время напоминания",
+  "notifReminderTimeSub": "Ежедневное уведомление о медитации",
+  "notifMotivation": "Мотивация",
+  "notifMotivationMessages": "Мотивационные сообщения",
+  "notifMotivationSub": "Вдохновляющие цитаты и статистика прогресса",
+  "notifMotivationTime": "Время мотивации",
+  "notifMotivationTimeSub": "Ежедневное мотивационное уведомление",
+  "notifGoals": "Цели",
+  "notifGoalReminder": "Напоминание о целях",
+  "notifGoalReminderSub": "Напоминание вечером, если цель дня не выполнена",
+  "notifGoalReminderTime": "Время напоминания",
+  "notifGoalReminderTimeSub": "Ежедневное напоминание о целях",
+  "notifQuietHours": "Тихие часы",
+  "notifQuietHoursSubEnabled": "Не беспокоить с {start} до {end}",
+  "@notifQuietHoursSubEnabled": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "notifQuietHoursSubDisabled": "Отключить уведомления на ночь",
+  "notifQuietHoursStart": "Начало",
+  "notifQuietHoursEnd": "Конец",
+  "notifTesting": "Проверка",
+  "notifTestSent": "Тестовое уведомление отправлено!",
+  "notifQuietHoursActive": "Сейчас тихие часы ({start}–{end}). Уведомление не будет показано.",
+  "@notifQuietHoursActive": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "notifTimePickerHelp": "Выберите время напоминания",
+  "notifTimePickerMotivationHelp": "Время мотивационных сообщений",
+  "notifTimePickerGoalHelp": "Время напоминания о целях",
+  "notifTimePickerQuietStartHelp": "Начало тихих часов",
+  "notifTimePickerQuietEndHelp": "Конец тихих часов",
+  "notifTimePickerCancel": "Отмена",
+  "notifTimePickerConfirm": "Готово",
+
+  "notifTypeReminder": "Напоминания",
+  "notifTypeMotivation": "Мотивация",
+  "notifTypeGoals": "Цели",
+  "notifTypeStreak": "Серия",
+
+  "notifChannelReminders": "Напоминания",
+  "notifChannelRemindersDesc": "Ежедневные напоминания о медитации",
+  "notifChannelMotivation": "Мотивация",
+  "notifChannelMotivationDesc": "Мотивационные сообщения и цитаты",
+  "notifChannelGoals": "Цели",
+  "notifChannelGoalsDesc": "Уведомления о прогрессе целей",
+  "notifChannelStreak": "Серия",
+  "notifChannelStreakDesc": "Поздравления с рекордами дней подряд",
+
+  "notifBodyReminder": "🧘 Пора медитировать!\nВыделите 10 минут для внутренней тишины и покоя.",
+  "notifBodyGoalReminder": "🎯 Осталось время до выполнения цели!\nВсего несколько минут медитации — и вы получите бонусные XP!",
+  "notifBodyStreak": "🔥 Новый рекорд: {streak} дней подряд!\nПоздравляем! Вы побили свой личный рекорд!",
+  "@notifBodyStreak": {
+    "placeholders": {
+      "streak": {}
+    }
+  },
+
+  "timerPause": "ПАУЗА",
+  "timerResume": "ПРОДОЛЖИТЬ",
+  "timerStop": "СТОП",
+  "timerPosture": "Спина прямая\nВзгляд вниз 45°\nФокус размыт",
+  "timerEndMeditation": "Завершить медитацию?",
+  "timerEndMeditationSub": "Ваша практика ещё не завершена.",
+  "timerContinue": "Продолжить",
+  "timerEnd": "Завершить",
+  "timerSaveFailed": "Не удалось сохранить сессию. Попробуйте снова.",
+  "timerRetry": "Повторить",
+
+  "guideHeroLabel": "Alex Merch Foundation",
+  "guideTitle": "ZenBalance",
+  "guideSubtitle": "Рациональный путь к ясности ума",
+  "guideFinalEdition": "FINAL EDITION 2026",
+  "guideTechnique": "Техника: Сусокукан (Счёт дыхания)",
+  "guideArithmetic": "Арифметика осознанности",
+  "guidePosture": "ПОСАДКА",
+  "guidePostureDesc": "Сядьте на край стула или в дзадзен. Спина прямая, но без напряжения. Плечи расслаблены, руки в мудре (овальный замок).",
+  "guideGaze": "ВЗГЛЯД",
+  "guideGazeDesc": "Глаза приоткрыты, взгляд направлен вниз под углом ~45° на пол перед собой (1–1.5 метра). Не закрывайте глаза — это уводит в сонливость и грёзы.",
+  "guideFocus": "ФОКУС",
+  "guideFocusDesc": "Размойте зрение — не всматривайтесь в текстуру пола, не фиксируйтесь на точках. Используйте периферическое зрение. Вы смотрите, но не видите деталей.",
+  "guideAlgorithm": "Считайте каждый выдох. Дойдя до 10, начните обратный отсчёт до 1. Если мысль прервала счёт — вернитесь к единице.",
+  "guideBioEffect": "Биологический эффект",
+  "guideBioEffectDesc": "Счёт задействует префронтальную кору, блокируя «дефолт-систему» мозга, отвечающую за блуждание мыслей и тревогу.",
+  "guideZenRule": "Правило Дзен",
+  "guideZenRuleQuote": "«Если вы потеряли счёт на цифре 9 — вы проиграли битву за внимание. Смиренно вернитесь к 1. Это и есть практика.»",
+  "guideZazenGeometry": "Геометрия Дзадзен",
+  "guideFormContent": "Форма и Содержание",
+  "guideVertical": "Вертикаль",
+  "guideVerticalDesc": "Спина прямая, как струна. Это физиологическая база для бодрствующего сознания.",
+  "guideGazeZazen": "Взгляд",
+  "guideGazeZazenDesc": "Глаза приоткрыты, взгляд под 45° вниз, фокус размыт. Вы не уходите в мир грёз, вы остаётесь здесь и сейчас.",
+  "guideMudra": "Мудра",
+  "guideMudraDesc": "Руки в овальном замке. Это ваш физический датчик глубины концентрации.",
+  "guideResistance": "Преодоление сопротивления",
+  "guidePracticalGuide": "Практическое руководство",
+  "guideProblem": "Проблема",
+  "guideMindMechanism": "Механизм ума",
+  "guideZenSolution": "Дзен-решение",
+  "guideProblemItch": "Зуд и беспокойство",
+  "guideLogicItch": "Защитная реакция эго на непривычную тишину.",
+  "guideActionItch": "Мусётоку. Наблюдай зуд как посторонний объект. Он уйдет сам.",
+  "guideProblemNoise": "Ментальный шум",
+  "guideLogicNoise": "Попытка мозга заполнить вакуум привычными планами.",
+  "guideActionNoise": "Сусокукан. Мягко верни внимание к счёту «Один». Без агрессии.",
+  "guideProblemSleep": "Сонливость",
+  "guideLogicSleep": "Признак потери тонуса и соскальзывания в транс.",
+  "guideActionSleep": "Энергия. Выпрями спину. Приоткрой глаза. Дыши чуть глубже.",
+  "guideWitness": "Будьте Свидетелем.",
+  "guideQuote": "Ваш ум — ваш главный актив.",
+  "guideFooter": "ALEX MERCH • ZENBALANCE SYSTEM • 2026",
+
+  "levelUpTitle": "Уровень {level}",
+  "@levelUpTitle": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+
+  "goalCompleted": "Цель выполнена!",
+  "goalCompletedClose": "Отлично!",
+
+  "emptyDashboardTitle": "Ваш путь к спокойствию\nначинается с первой минуты",
+  "emptyDashboardSubtitle": "Завершите свою первую медитацию,\nчтобы увидеть здесь свою статистику",
+
+  "errorUnknown": "Произошла неизвестная ошибка",
+  "errorDatabase": "Ошибка базы данных. Попробуйте перезапустить приложение.",
+  "errorNetwork": "Проблема с подключением. Проверьте интернет-соединение.",
+  "errorStats": "Ошибка при загрузке статистики.",
+  "errorStatsRetry": "Не удалось загрузить статистику. Попробуйте снова.",
+  "errorStatsRefresh": "Не удалось загрузить статистику. Попробуйте снова.",
+  "errorDataRefreshing": "Данные обновляются...",
+
+  "rankNovice": "Новичок осознанности",
+  "rankSeeker": "Искатель спокойствия",
+  "rankGuardian": "Хранитель тишины",
+  "rankMaster": "Мастер баланса",
+  "rankWanderer": "Странник глубин",
+  "rankAwakened": "Пробуждённый",
+  "rankSage": "Мудрец",
+  "rankEnlightened": "Просветлённый",
+  "rankLegend": "Легенда",
+  "rankImmortal": "Бессмертный",
+  "rankDivine": "Божественный",
+
+  "rankDescriptionNovice": "Первый шаг на пути к осознанности",
+  "rankDescriptionSeeker": "Поиск внутренней гармонии",
+  "rankDescriptionGuardian": "Умение находить тишину внутри",
+  "rankDescriptionMaster": "Баланс между усилием и покоем",
+  "rankDescriptionWanderer": "Исследование глубин сознания",
+  "rankDescriptionAwakened": "Пробуждение внутреннего света",
+  "rankDescriptionSage": "Мудрость, рождённая практикой",
+  "rankDescriptionEnlightened": "Свет осознанности ведёт вас",
+  "rankDescriptionLegend": "Ваш путь вдохновляет других",
+  "rankDescriptionImmortal": "Вневременная практика",
+  "rankDescriptionDivine": "Вы достигли просветления",
+
+  "rankLevel": "Уровень {level}",
+  "@rankLevel": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "rankYouAreHere": "Вы здесь",
+  "rankContinuePractice": "Продолжайте практику, чтобы открыть новые ранги",
+  "rankClose": "Закрыть",
+  "rankTiers": "Уровни",
+  "rankRequiredPractice": "Требуется практики",
+  "rankProgressToNext": "Прогресс до следующего ранга",
+  "rankRemainingMinutes": "Осталось ~{minutes} мин до следующего ранга",
+  "@rankRemainingMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "rankRemainingToNext": "Осталось {minutes} мин до следующего уровня",
+  "@rankRemainingToNext": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+
+  "subscriptionGuardLoading": "ZenBalance",
+
+  "samadhiExitHint": "Нажмите Пробел или кликните для выхода",
+
+  "neuroPreset5": "Снижение активности дефолт-системы мозга.\nБыстрый возврат контроля над вниманием.",
+  "neuroPreset10": "Преодоление стадии адаптации.\nСтабилизация сердечного ритма и запуск альфа-волн.",
+  "neuroPreset15": "Глубокое ментальное погружение.\nСозерцание и упорядочивание внутренних процессов.",
+  "neuroPreset20": "Классический Дзадзен.\nУстойчивое торможение симпатической нервной системы\nи вход в чистую ясность.",
+
+  "daySun": "Вс",
+  "dayMon": "Пн",
+  "dayTue": "Вт",
+  "dayWed": "Ср",
+  "dayThu": "Чт",
+  "dayFri": "Пт",
+  "daySat": "Сб",
+
+  "dayShortSun": "Вс",
+  "dayShortMon": "Пн",
+  "dayShortTue": "Вт",
+  "dayShortWed": "Ср",
+  "dayShortThu": "Чт",
+  "dayShortFri": "Пт",
+  "dayShortSat": "Сб",
+
+  "monthJan": "янв",
+  "monthFeb": "фев",
+  "monthMar": "мар",
+  "monthApr": "апр",
+  "monthMay": "май",
+  "monthJun": "июн",
+  "monthJul": "июл",
+  "monthAug": "авг",
+  "monthSep": "сен",
+  "monthOct": "окт",
+  "monthNov": "ноя",
+  "monthDec": "дек",
+
+  "month": "/мес",
+
+  "openGuide": "ОТКРЫТЬ ПУТЬ К ЯСНОСТИ",
+  "journal": "Дневник",
+  "statistics": "Статистика",
+  "notifications": "Уведомления",
+  "user": "Пользователь",
+
+  "quote1": "Тишина — это не отсутствие звуков, а присутствие себя.",
+  "quote2": "Каждая минута медитации — это инвестиция в спокойствие.",
+  "quote3": "Дышите глубже — внутри вас целый океан покоя.",
+  "quote4": "Не пытайтесь остановить мысли. Научитесь не вовлекаться в них.",
+  "quote5": "Медитация — это не техника, а способ быть.",
+  "quote6": "Внутренний покой начинается с того момента, как вы решаете не позволять внешнему миру управлять вами.",
+  "quote7": "Осознанность — это ключ, который открывает дверь к гармонии.",
+  "quote8": "Ваша практика — это ваш остров. Никто не может отнять его у вас.",
+  "quote9": "Сделайте паузу. Вдохните. Вы уже на правильном пути.",
+  "quote10": "Каждый день — это новая возможность вернуться к себе.",
+  "quote11": "Сила не в напряжении, а в расслаблении.",
+  "quote12": "Медитация — это возвращение домой, в своё истинное Я.",
+  "quote13": "Не ждите идеального момента. Начните сейчас.",
+  "quote14": "Ваше дыхание — это якорь в настоящем моменте.",
+  "quote15": "Прогресс — это не прямая линия. Каждая минута практики имеет значение."
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/zen_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../data/meditation_goal.dart';
 import '../goal_settings_screen.dart';
 import 'goal_progress_card.dart';
@@ -50,7 +51,7 @@ class GoalsPanel extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Цели',
+                AppLocalizations.of(context)!.goalsTitle,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: theme.colorScheme.onSurface,
@@ -61,7 +62,7 @@ class GoalsPanel extends StatelessWidget {
               TextButton.icon(
                 onPressed: () => _openGoalSettings(context),
                 icon: const Icon(Icons.settings_rounded, size: 16),
-                label: const Text('Настроить'),
+                label: Text(AppLocalizations.of(context)!.setup),
                 style: TextButton.styleFrom(
                   foregroundColor: zen.goldGradient.colors.first,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -111,14 +112,14 @@ class GoalsPanel extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'У вас пока нет целей',
+              AppLocalizations.of(context)!.goalsNoGoals,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Поставьте цель, чтобы отслеживать прогресс\nи получать бонусные XP',
+              AppLocalizations.of(context)!.goalsNoGoalsSubtitle,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant
@@ -129,7 +130,7 @@ class GoalsPanel extends StatelessWidget {
             FilledButton.tonalIcon(
               onPressed: () => _openGoalSettings(context),
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Создать цель'),
+              label: Text(AppLocalizations.of(context)!.goalsCreate),
               style: FilledButton.styleFrom(
                 foregroundColor: zen.goldGradient.colors.first,
                 backgroundColor:

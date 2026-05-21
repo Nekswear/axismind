@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/zen_theme.dart';
 import '../../data/meditation_goal.dart';
+import '../../l10n/app_localizations.dart';
+import '../../screens/paywall_screen.dart';
 import 'goals_panel.dart';
 import 'nav_sidebar.dart';
 import 'neuro_preset_info.dart';
@@ -68,12 +70,15 @@ class WidescreenLayout extends StatefulWidget {
 class _WidescreenLayoutState extends State<WidescreenLayout> {
   int _hoveredMinutes = 5;
 
-  static const _presets = [
-    (minutes: 5, icon: Icons.coffee_outlined, label: 'Быстрая', subtitle: 'Перерыв'),
-    (minutes: 10, icon: Icons.self_improvement, label: 'Стандарт', subtitle: 'Ежедневная'),
-    (minutes: 15, icon: Icons.water_drop_outlined, label: 'Глубокая', subtitle: 'Вечерняя'),
-    (minutes: 20, icon: Icons.auto_awesome_outlined, label: 'Мастер', subtitle: 'Выходная'),
-  ];
+  List<({int minutes, IconData icon, String label, String subtitle})> _presets(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      (minutes: 5, icon: Icons.coffee_outlined, label: l10n.presetQuick, subtitle: l10n.presetQuickSub),
+      (minutes: 10, icon: Icons.self_improvement, label: l10n.presetStandard, subtitle: l10n.presetStandardSub),
+      (minutes: 15, icon: Icons.water_drop_outlined, label: l10n.presetDeep, subtitle: l10n.presetDeepSub),
+      (minutes: 20, icon: Icons.auto_awesome_outlined, label: l10n.presetMaster, subtitle: l10n.presetMasterSub),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +95,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
           onStatisticsTap: widget.onStatisticsTap,
           onGuideTap: widget.onGuideTap,
           onNotificationSettingsTap: widget.onNotificationSettingsTap,
+          onPremiumTap: () => _openPaywall(context),
         ),
 
         // === Левая панель (40%) ===
@@ -102,14 +108,14 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Выбери длительность',
+                  AppLocalizations.of(context)!.chooseDuration,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: ZenColors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: zen.gap(4)),
-                ..._presets.map((p) => _buildPresetButton(
+                ..._presets(context).map((p) => _buildPresetButton(
                   zen: zen,
                   theme: theme,
                   minutes: p.minutes,
@@ -146,7 +152,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
                         letterSpacing: 2,
                       ),
                     ),
-                    child: const Text('НАЧАТЬ ПРАКТИКУ'),
+                    child: Text(AppLocalizations.of(context)!.startPractice),
                   ),
                 ),
                 // Цели
@@ -218,7 +224,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
             ),
           const SizedBox(width: 8),
           Text(
-            widget.displayName ?? 'Пользователь',
+            widget.displayName ?? AppLocalizations.of(context)!.user,
             style: theme.textTheme.bodySmall?.copyWith(
               color: ZenColors.textSecondary,
               fontSize: 13,
@@ -235,8 +241,8 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
       child: OutlinedButton.icon(
         onPressed: widget.onAuthTap,
         icon: const Icon(Icons.login, size: 16),
-        label: const Text(
-          'Войти через Google',
+        label: Text(
+          AppLocalizations.of(context)!.authGoogle,
           style: TextStyle(fontSize: 12),
         ),
         style: OutlinedButton.styleFrom(
@@ -254,6 +260,13 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
           ),
         ),
       ),
+    );
+  }
+
+  void _openPaywall(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PaywallScreen()),
     );
   }
 
@@ -281,7 +294,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
             children: [
               // Крупное время
               Text(
-                '$displayMinutes мин',
+                '$displayMinutes ${AppLocalizations.of(context)!.min}',
                 style: theme.textTheme.displayLarge?.copyWith(
                   fontFamily: 'PlayfairDisplay',
                   fontSize: 96,
@@ -351,7 +364,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$minutes мин — $label',
+                        '$minutes ${AppLocalizations.of(context)!.min} — $label',
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight:
                               isActive ? FontWeight.w600 : FontWeight.w400,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/zen_theme.dart';
 import '../../core/widgets/zen_ui.dart';
 import '../../data/analytics_repository.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Hero section with gradient card, rank icon, XP bar, and streak.
 class HeroSection extends StatelessWidget {
@@ -49,7 +50,7 @@ class HeroSection extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      'Уровень ${progression.level}',
+                      AppLocalizations.of(context)!.rankLevel(progression.level.toString()),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.white.withValues(alpha: 0.8),
                       ),
@@ -61,7 +62,7 @@ class HeroSection extends StatelessWidget {
           ),
           SizedBox(height: zen.gap(3)),
           // XP bar
-          _buildXpBar(theme, zen, xp),
+          _buildXpBar(context, theme, zen, xp),
           SizedBox(height: zen.gap(2)),
           // Streak
           Row(
@@ -74,7 +75,7 @@ class HeroSection extends StatelessWidget {
               ),
               SizedBox(width: zen.spacingUnit),
               Text(
-                '$streak дней подряд',
+                '$streak ${streak == 1 ? AppLocalizations.of(context)!.statsStreakUnit : AppLocalizations.of(context)!.statsStreakUnitPlural}',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -87,7 +88,7 @@ class HeroSection extends StatelessWidget {
     );
   }
 
-  Widget _buildXpBar(ThemeData theme, ZenStyles zen, XpProgress xp) {
+  Widget _buildXpBar(BuildContext context, ThemeData theme, ZenStyles zen, XpProgress xp) {
     return Column(
       children: [
         ClipRRect(
@@ -110,7 +111,7 @@ class HeroSection extends StatelessWidget {
         ),
         SizedBox(height: zen.spacingUnit),
         Text(
-          'Осталось ${xp.remainingMinutes} мин до следующего уровня',
+          AppLocalizations.of(context)!.rankRemainingToNext(xp.remainingMinutes.toString()),
           style: theme.textTheme.bodySmall?.copyWith(
             color: Colors.white.withValues(alpha: 0.8),
             fontSize: 13,

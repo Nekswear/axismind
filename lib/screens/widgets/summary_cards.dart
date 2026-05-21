@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/zen_theme.dart';
 import '../../core/widgets/zen_ui.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/time_utils.dart';
 
 /// Summary cards row — total minutes and session count.
@@ -27,7 +28,7 @@ class SummaryCards extends StatelessWidget {
             child: _SummaryCard(
               theme: theme,
               zen: zen,
-              label: 'Всего минут',
+              label: AppLocalizations.of(context)!.statsTotalMinutes,
               value: TimeUtils.formatMinutes(totalMinutes.toDouble()),
               icon: Icons.timer_outlined,
             ),
@@ -37,7 +38,7 @@ class SummaryCards extends StatelessWidget {
             child: _SummaryCard(
               theme: theme,
               zen: zen,
-              label: 'Сессий',
+              label: AppLocalizations.of(context)!.statsSessions,
               value: '$sessionCount',
               icon: Icons.spa_outlined,
             ),
@@ -120,10 +121,10 @@ class StreakGrowthCards extends StatelessWidget {
               zen: zen,
               icon: Icons.local_fire_department_rounded,
               iconColor: Colors.deepOrange,
-              label: 'Серия',
+              label: AppLocalizations.of(context)!.statsStreak,
               subtitle: null,
               value: '$streak',
-              unit: streak == 1 ? 'день' : 'дней',
+              unit: streak == 1 ? AppLocalizations.of(context)!.statsStreakUnit : AppLocalizations.of(context)!.statsStreakUnitPlural,
             ),
           ),
           SizedBox(width: zen.spacingUnit * 1.5),
@@ -139,8 +140,8 @@ class StreakGrowthCards extends StatelessWidget {
               iconColor: growth != null
                   ? (growth! >= 0 ? Colors.green : theme.colorScheme.error)
                   : Colors.grey,
-              label: 'Рост',
-              subtitle: 'за $chartDays д.',
+              label: AppLocalizations.of(context)!.statsGrowth,
+              subtitle: AppLocalizations.of(context)!.statsGrowthPeriod(chartDays.toString()),
               value: growth != null ? '${(growth! * 100).round()}%' : '—',
               unit: '',
             ),

@@ -37,11 +37,23 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
 
   /// FCM messaging instance.
-  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  /// Инициализируется в [init] — late для возможности тестирования без Firebase.
+  late final FirebaseMessaging _fcm;
 
   /// Локальный плагин уведомлений.
-  final FlutterLocalNotificationsPlugin _localNotif =
-      FlutterLocalNotificationsPlugin();
+  /// Инициализируется в [init] — late для возможности тестирования без плагина.
+  late final FlutterLocalNotificationsPlugin _localNotif;
+
+  /// Инициализация для тестов (без Firebase и нативных плагинов).
+  ///
+  /// Устанавливает заглушки для [_fcm] и [_localNotif], чтобы методы
+  /// планирования можно было тестировать без реальных нативных вызовов.
+  /// Вызывается в setUp() тестов.
+  // visibleForTesting
+  void initForTest() {
+    _fcm = FirebaseMessaging.instance;
+    _localNotif = FlutterLocalNotificationsPlugin();
+  }
 
   /// Текущий FCM токен устройства.
   String? _deviceToken;
@@ -63,19 +75,23 @@ class NotificationService {
     if (_initialized) return;
 
     try {
-      // 0. Инициализируем timezone database для zonedSchedule
+      // 0. Инициализируем поля, зависящие от нативных плагинов
+      _fcm = FirebaseMessaging.instance;
+      _localNotif = FlutterLocalNotificationsPlugin();
+
+      // 1. Инициализируем timezone database для zonedSchedule
       tz_data.initializeTimeZones();
 
-      // 1. Инициализируем локальные уведомления
+      // 2. Инициализируем локальные уведомления
       await _initLocalNotifications();
 
-      // 2. Запрашиваем разрешения
+      // 3. Запрашиваем разрешения
       await _requestPermissions();
 
-      // 3. Получаем FCM токен
+      // 4. Получаем FCM токен
       await _getFcmToken();
 
-      // 4. Настраиваем обработчики FCM
+      // 5. Настраиваем обработчики FCM
       await _setupFcmHandlers();
 
       _initialized = true;
@@ -298,7 +314,7 @@ class NotificationService {
     // Проверяем, не попадает ли время напоминания в тихие часы
     if (quietHoursStart != null && quietHoursEnd != null) {
       final reminderTime = DateTime(2000, 1, 1, hour, minute);
-      if (_isTimeInQuietHours(reminderTime, quietHoursStart, quietHoursEnd)) {
+      if (isTimeInQuietHours(reminderTime, quietHoursStart, quietHoursEnd)) {
         debugPrint(
           '[NotificationService] Daily reminder time $time is within quiet hours '
           '($quietHoursStart–$quietHoursEnd), skipping',
@@ -359,20 +375,26 @@ class NotificationService {
 
   /// Планирует напоминание о целях (вечером, если цель не выполнена).
   ///
-  /// [quietHoursStart] и [quietHoursEnd] — если 19:00 попадает
+  /// [time] — время в формате HH:mm (например, "19:00").
+  /// [quietHoursStart] и [quietHoursEnd] — если время попадает
   /// в тихие часы, уведомление не планируется.
-  Future<void> scheduleGoalReminder({
+  Future<void> scheduleGoalReminder(
+    String time, {
     String? quietHoursStart,
     String? quietHoursEnd,
   }) async {
     await cancelByType(settings.NotificationType.goalReminder);
 
-    // Проверяем, не попадает ли 19:00 в тихие часы
+    final parts = time.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+
+    // Проверяем, не попадает ли время в тихие часы
     if (quietHoursStart != null && quietHoursEnd != null) {
-      final reminderTime = DateTime(2000, 1, 1, 19, 0);
-      if (_isTimeInQuietHours(reminderTime, quietHoursStart, quietHoursEnd)) {
+      final reminderTime = DateTime(2000, 1, 1, hour, minute);
+      if (isTimeInQuietHours(reminderTime, quietHoursStart, quietHoursEnd)) {
         debugPrint(
-          '[NotificationService] Goal reminder time 19:00 is within quiet hours '
+          '[NotificationService] Goal reminder time $time is within quiet hours '
           '($quietHoursStart–$quietHoursEnd), skipping',
         );
         return;
@@ -399,14 +421,12 @@ class NotificationService {
       'screen': 'goals',
     });
 
-    // Рассчитываем ближайшее время 19:00 в локальной timezone
-    const targetHour = 19;
-    const targetMinute = 0;
+    // Рассчитываем ближайшее время в локальной timezone
     final now = DateTime.now();
     final location = tz.local;
-    var scheduledDate = tz.TZDateTime(location, now.year, now.month, now.day, targetHour, targetMinute);
+    var scheduledDate = tz.TZDateTime(location, now.year, now.month, now.day, hour, minute);
     if (scheduledDate.isBefore(now) || scheduledDate.isAtSameMomentAs(now)) {
-      // Если 19:00 уже прошло сегодня — планируем на завтра
+      // Если время уже прошло сегодня — планируем на завтра
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
@@ -425,7 +445,7 @@ class NotificationService {
     );
 
     debugPrint(
-      '[NotificationService] Goal reminder scheduled daily at 19:00 '
+      '[NotificationService] Goal reminder scheduled daily at $time '
       '(next: ${scheduledDate.hour.toString().padLeft(2, '0')}:'
       '${scheduledDate.minute.toString().padLeft(2, '0')})',
     );
@@ -523,12 +543,14 @@ class NotificationService {
 
   /// Отменяет все запланированные уведомления.
   Future<void> cancelAll() async {
+    if (!_initialized) return;
     await _localNotif.cancelAll();
     debugPrint('[NotificationService] All notifications cancelled');
   }
 
   /// Отменяет уведомления определённого типа по ID.
   Future<void> cancelByType(settings.NotificationType type) async {
+    if (!_initialized) return;
     switch (type) {
       case settings.NotificationType.dailyReminder:
         await _localNotif.cancel(1001);
@@ -570,6 +592,7 @@ class NotificationService {
     // Планируем goal reminder (если включено, с проверкой тихих часов)
     if (s.goalReminderEnabled) {
       await scheduleGoalReminder(
+        s.goalReminderTime,
         quietHoursStart: s.quietHoursStart,
         quietHoursEnd: s.quietHoursEnd,
       );
@@ -578,6 +601,7 @@ class NotificationService {
     // Планируем мотивационные уведомления (если включено)
     if (s.motivationalEnabled) {
       await scheduleMotivationalNotification(
+        s.motivationalTime,
         quietHoursStart: s.quietHoursStart,
         quietHoursEnd: s.quietHoursEnd,
       );
@@ -586,22 +610,28 @@ class NotificationService {
     debugPrint('[NotificationService] All notifications rescheduled');
   }
 
-  /// Планирует мотивационное уведомление (один раз в день в 12:00).
+  /// Планирует мотивационное уведомление (один раз в день).
   ///
-  /// [quietHoursStart] и [quietHoursEnd] — если 12:00 попадает
+  /// [time] — время в формате HH:mm (например, "12:00").
+  /// [quietHoursStart] и [quietHoursEnd] — если время попадает
   /// в тихие часы, уведомление не планируется.
-  Future<void> scheduleMotivationalNotification({
+  Future<void> scheduleMotivationalNotification(
+    String time, {
     String? quietHoursStart,
     String? quietHoursEnd,
   }) async {
     await cancelByType(settings.NotificationType.motivational);
 
-    // Проверяем, не попадает ли 12:00 в тихие часы
+    final parts = time.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+
+    // Проверяем, не попадает ли время в тихие часы
     if (quietHoursStart != null && quietHoursEnd != null) {
-      final reminderTime = DateTime(2000, 1, 1, 12, 0);
-      if (_isTimeInQuietHours(reminderTime, quietHoursStart, quietHoursEnd)) {
+      final reminderTime = DateTime(2000, 1, 1, hour, minute);
+      if (isTimeInQuietHours(reminderTime, quietHoursStart, quietHoursEnd)) {
         debugPrint(
-          '[NotificationService] Motivational time 12:00 is within quiet hours '
+          '[NotificationService] Motivational time $time is within quiet hours '
           '($quietHoursStart–$quietHoursEnd), skipping',
         );
         return;
@@ -632,14 +662,12 @@ class NotificationService {
       'screen': 'home',
     });
 
-    // Рассчитываем ближайшее время 12:00 в локальной timezone
-    const targetHour = 12;
-    const targetMinute = 0;
+    // Рассчитываем ближайшее время в локальной timezone
     final now = DateTime.now();
     final location = tz.local;
-    var scheduledDate = tz.TZDateTime(location, now.year, now.month, now.day, targetHour, targetMinute);
+    var scheduledDate = tz.TZDateTime(location, now.year, now.month, now.day, hour, minute);
     if (scheduledDate.isBefore(now) || scheduledDate.isAtSameMomentAs(now)) {
-      // Если 12:00 уже прошло сегодня — планируем на завтра
+      // Если время уже прошло сегодня — планируем на завтра
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
@@ -658,7 +686,7 @@ class NotificationService {
     );
 
     debugPrint(
-      '[NotificationService] Motivational notification scheduled daily at 12:00 '
+      '[NotificationService] Motivational notification scheduled daily at $time '
       '(next: ${scheduledDate.hour.toString().padLeft(2, '0')}:'
       '${scheduledDate.minute.toString().padLeft(2, '0')})',
     );
@@ -669,7 +697,8 @@ class NotificationService {
   /// [time] — время для проверки (дата игнорируется).
   /// [start] и [end] — границы в формате HH:mm.
   /// Поддерживает диапазоны через полночь (например, 22:00–07:00).
-  bool _isTimeInQuietHours(DateTime time, String start, String end) {
+  // visibleForTesting
+  bool isTimeInQuietHours(DateTime time, String start, String end) {
     final partsStart = start.split(':');
     final partsEnd = end.split(':');
     final startMin =

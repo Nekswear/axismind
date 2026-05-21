@@ -8,10 +8,10 @@ class VersionInfo {
 
   /// Версия приложения (должна совпадать с pubspec.yaml).
   /// Формат: major.minor.patch
-  static const String version = '2.0.0';
+  static const String version = '2.1.0';
 
   /// Номер сборки.
-  static const int buildNumber = 6;
+  static const int buildNumber = 7;
 
   /// Полная строка версии для отображения.
   static String get displayVersion => 'v$version+$buildNumber';

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/zen_theme.dart';
 import '../../core/widgets/zen_ui.dart';
 import '../../data/analytics_repository.dart';
+import '../../l10n/app_localizations.dart';
 import 'gyro_controller.dart';
 import 'mouse_tilt_controller.dart';
 import 'rank_roadmap.dart';
@@ -112,7 +113,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
     final theme = Theme.of(context);
 
-    final cardContent = _buildCardContent(theme, zen);
+    final cardContent = _buildCardContent(context, theme, zen);
 
     // Desktop/Web: оборачиваем в MouseRegion
     if (widget.isDesktop && _mouseTilt != null) {
@@ -275,12 +276,12 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
       ..translateByDouble(_tiltX * 15, _tiltY * 15, 0, 1);
   }
 
-  Widget _buildCardContent(ThemeData theme, ZenStyles zen) {
+  Widget _buildCardContent(BuildContext context, ThemeData theme, ZenStyles zen) {
     return Padding(
       padding: EdgeInsets.all(zen.spacingUnit * 3),
       child: Column(
         children: [
-          _buildProfileRow(theme, zen),
+          _buildProfileRow(context, theme, zen),
           SizedBox(height: zen.gap(2)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -327,7 +328,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      'Уровень ${widget.progression.level}',
+                      AppLocalizations.of(context)!.rankLevel(widget.progression.level.toString()),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: ZenColors.textSecondary,
                       ),
@@ -339,16 +340,16 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
           ),
           if (!widget.isCompact) ...[
             SizedBox(height: zen.gap(3)),
-            _buildXpBar(theme, zen),
+            _buildXpBar(context, theme, zen),
             SizedBox(height: zen.gap(2)),
-            _buildStreakRow(theme, zen),
+            _buildStreakRow(context, theme, zen),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildProfileRow(ThemeData theme, ZenStyles zen) {
+  Widget _buildProfileRow(BuildContext context, ThemeData theme, ZenStyles zen) {
     if (widget.isAuthenticated) {
       // Авторизован: показываем аватар и имя
       return Padding(
@@ -373,7 +374,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
               ),
             SizedBox(width: zen.spacingUnit),
             Text(
-              widget.displayName ?? 'Пользователь',
+              widget.displayName ?? AppLocalizations.of(context)!.userPlaceholder,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: ZenColors.textSecondary,
                 fontSize: 13,
@@ -395,9 +396,9 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
         child: OutlinedButton.icon(
           onPressed: widget.onAuthTap,
           icon: const Icon(Icons.login, size: 16),
-          label: const Text(
-            'Войти через Google',
-            style: TextStyle(fontSize: 12),
+          label: Text(
+            AppLocalizations.of(context)!.authGoogle,
+            style: const TextStyle(fontSize: 12),
           ),
           style: OutlinedButton.styleFrom(
             foregroundColor: ZenColors.gold,
@@ -418,7 +419,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     );
   }
 
-  Widget _buildXpBar(ThemeData theme, ZenStyles zen) {
+  Widget _buildXpBar(BuildContext context, ThemeData theme, ZenStyles zen) {
     return Column(
       children: [
         ClipRRect(
@@ -444,7 +445,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
         ),
         SizedBox(height: zen.spacingUnit),
         Text(
-          'Осталось ${widget.xpProgress.remainingMinutes} мин до следующего уровня',
+          AppLocalizations.of(context)!.rankRemainingToNext(widget.xpProgress.remainingMinutes.toString()),
           style: theme.textTheme.bodySmall?.copyWith(
             color: ZenColors.textSecondary,
             fontSize: 13,
@@ -454,7 +455,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     );
   }
 
-  Widget _buildStreakRow(ThemeData theme, ZenStyles zen) {
+  Widget _buildStreakRow(BuildContext context, ThemeData theme, ZenStyles zen) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -465,7 +466,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
         ),
         SizedBox(width: zen.spacingUnit),
         Text(
-          '${widget.progression.streak} дней подряд',
+          '${widget.progression.streak} ${widget.progression.streak == 1 ? AppLocalizations.of(context)!.statsStreakUnit : AppLocalizations.of(context)!.statsStreakUnitPlural}',
           style: theme.textTheme.bodyLarge?.copyWith(
             color: ZenColors.textPrimary,
             fontWeight: FontWeight.w600,

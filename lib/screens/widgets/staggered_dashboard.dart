@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/theme/zen_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/time_utils.dart';
 import '../statistics_cubit.dart';
 import 'chart_section.dart';
@@ -330,7 +331,7 @@ class _AverageMetric extends StatelessWidget {
           ),
           SizedBox(height: zen.spacingUnit),
           Text(
-            'в среднем в день',
+            AppLocalizations.of(context)!.statsAveragePerDay,
             style: (theme.textTheme.bodySmall ?? const TextStyle()).copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),

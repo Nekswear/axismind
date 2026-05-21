@@ -31,7 +31,9 @@ class DatabaseProvider {
   ///   4 — Added updated_at column for conflict resolution during sync
   ///   5 — Added goals table for user meditation goals
   ///   6 — Added notification_settings table for push notification preferences
-  static const int _dbVersion = 6;
+  ///   7 — Added motivational_time and goal_reminder_time columns
+  ///   8 — Added subscription table for RevenueCat subscription caching
+  static const int _dbVersion = 8;
 
   /// Database name.
   static const String _dbName = 'zenbalance.db';
@@ -44,6 +46,9 @@ class DatabaseProvider {
 
   /// Table name for push notification settings.
   static const String tableNotificationSettings = 'notification_settings';
+
+  /// Table name for subscription caching.
+  static const String tableSubscription = 'subscription';
 
   /// Private constructor — use [instance()] to get the singleton.
   DatabaseProvider._();
@@ -147,14 +152,16 @@ class DatabaseProvider {
       )
     ''');
 
-    // Create notification_settings table (v6)
+    // Create notification_settings table (v6, extended in v7)
     await db.execute('''
       CREATE TABLE IF NOT EXISTS $tableNotificationSettings (
         id TEXT PRIMARY KEY DEFAULT 'default',
         enabled INTEGER NOT NULL DEFAULT 1,
         reminder_time TEXT NOT NULL DEFAULT '08:00',
         motivational_enabled INTEGER NOT NULL DEFAULT 0,
+        motivational_time TEXT NOT NULL DEFAULT '12:00',
         goal_reminder_enabled INTEGER NOT NULL DEFAULT 0,
+        goal_reminder_time TEXT NOT NULL DEFAULT '19:00',
         quiet_hours_start TEXT,
         quiet_hours_end TEXT,
         fcm_token TEXT,
@@ -231,6 +238,44 @@ class DatabaseProvider {
         debugPrint('Migration v5→v6: created notification_settings table');
       } catch (e) {
         debugPrint('Migration v5→v6: error creating notification_settings table: $e');
+      }
+    }
+    // Миграция v6 → v7: добавляем колонки motivational_time и goal_reminder_time
+    if (oldVersion < 7) {
+      try {
+        await db.execute(
+          'ALTER TABLE $tableNotificationSettings ADD COLUMN motivational_time TEXT NOT NULL DEFAULT \'12:00\'',
+        );
+        debugPrint('Migration v6→v7: added motivational_time column');
+      } catch (e) {
+        debugPrint('Migration v6→v7: motivational_time column may already exist: $e');
+      }
+      try {
+        await db.execute(
+          'ALTER TABLE $tableNotificationSettings ADD COLUMN goal_reminder_time TEXT NOT NULL DEFAULT \'19:00\'',
+        );
+        debugPrint('Migration v6→v7: added goal_reminder_time column');
+      } catch (e) {
+        debugPrint('Migration v6→v7: goal_reminder_time column may already exist: $e');
+      }
+    }
+    // Миграция v7 → v8: добавляем таблицу subscription для кэширования подписки
+    if (oldVersion < 8) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS $tableSubscription (
+            id TEXT PRIMARY KEY DEFAULT 'default',
+            is_active INTEGER NOT NULL DEFAULT 0,
+            is_trial INTEGER NOT NULL DEFAULT 0,
+            expiration_date TEXT,
+            product_id TEXT,
+            purchased_at TEXT,
+            updated_at TEXT NOT NULL
+          )
+        ''');
+        debugPrint('Migration v7→v8: created subscription table');
+      } catch (e) {
+        debugPrint('Migration v7→v8: error creating subscription table: $e');
       }
     }
   }

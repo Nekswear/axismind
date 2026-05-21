@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../core/theme/zen_theme.dart';
+import '../l10n/app_localizations.dart';
 import '../services/auth_service.dart';
 
 /// Экран входа через Google аккаунт.
@@ -36,7 +37,7 @@ class AuthScreen extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
-          tooltip: 'Закрыть',
+          tooltip: AppLocalizations.of(context)!.authCloseTooltip,
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -77,7 +78,7 @@ class AuthScreen extends StatelessWidget {
                 SizedBox(height: zen.spacingUnit), // 8px
 
                 Text(
-                  'Ваш путь к осознанности',
+                  AppLocalizations.of(context)!.authTitle,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
@@ -86,7 +87,6 @@ class AuthScreen extends StatelessWidget {
                 SizedBox(height: zen.gap(8)), // 64px
 
                 if (_isGoogleSignInSupported(context))
-                  // Кнопка "Войти через Google" (Android, iOS, Web)
                   _GoogleSignInButton(
                     onPressed: () async {
                       try {
@@ -98,7 +98,7 @@ class AuthScreen extends StatelessWidget {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Ошибка входа: $e'),
+                              content: Text(AppLocalizations.of(context)!.authError(e.toString())),
                               backgroundColor: theme.colorScheme.error,
                             ),
                           );
@@ -114,7 +114,7 @@ class AuthScreen extends StatelessWidget {
 
                 // Текст о приватности
                 Text(
-                  'Вход используется только для синхронизации\nваших данных между устройствами',
+                  AppLocalizations.of(context)!.authSubtitle,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
@@ -127,7 +127,7 @@ class AuthScreen extends StatelessWidget {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    'Продолжить без входа',
+                    AppLocalizations.of(context)!.authContinueWithout,
                     style: TextStyle(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                       fontSize: 14,
@@ -173,15 +173,14 @@ class _UnsupportedPlatformInfo extends StatelessWidget {
           ),
           SizedBox(height: zen.spacingUnit * 2),
           Text(
-            'Авторизация через Google',
+            AppLocalizations.of(context)!.authGoogleTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
           SizedBox(height: zen.spacingUnit),
           Text(
-            'Доступна на мобильных устройствах и в веб-версии.\n'
-            'На компьютере приложение работает в локальном режиме.',
+            AppLocalizations.of(context)!.authGoogleSubtitle,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -238,8 +237,8 @@ class _GoogleSignInButton extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'Войти через Google',
+            Text(
+              AppLocalizations.of(context)!.authGoogle,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,

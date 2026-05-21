@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/theme/zen_theme.dart';
+import '../l10n/app_localizations.dart';
 import '../data/analytics_repository.dart';
 import '../engine/gong_service.dart';
 import '../engine/timer_controller.dart';
@@ -171,11 +172,11 @@ class _TimerPageState extends State<TimerPage> {
         // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Не удалось сохранить сессию. Попробуйте снова.'),
+            content: Text(AppLocalizations.of(context)!.timerSaveFailed),
             // ignore: use_build_context_synchronously
             backgroundColor: Theme.of(context).colorScheme.error,
             action: SnackBarAction(
-              label: 'Повторить',
+              label: AppLocalizations.of(context)!.timerRetry,
               textColor: Colors.white,
               onPressed: () {
                 _sessionSaved = true;
@@ -209,16 +210,16 @@ class _TimerPageState extends State<TimerPage> {
         final shouldPop = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Завершить медитацию?'),
-            content: const Text('Ваша практика ещё не завершена.'),
+            title: Text(AppLocalizations.of(context)!.timerEndMeditation),
+            content: Text(AppLocalizations.of(context)!.timerEndMeditationSub),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Продолжить'),
+                child: Text(AppLocalizations.of(context)!.timerContinue),
               ),
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Завершить'),
+                child: Text(AppLocalizations.of(context)!.timerEnd),
               ),
             ],
           ),
@@ -380,7 +381,7 @@ class _TimerPageState extends State<TimerPage> {
 
   Widget _buildPostureHint(ThemeData theme) {
     return Text(
-      'Спина прямая\nВзгляд вниз 45°\nФокус размыт',
+      AppLocalizations.of(context)!.timerPosture,
       style: theme.textTheme.bodySmall?.copyWith(
         color: Colors.white.withValues(alpha: 0.50),
         fontSize: 15,
@@ -404,7 +405,7 @@ class _TimerPageState extends State<TimerPage> {
               icon: isRunning
                   ? Icons.pause_rounded
                   : Icons.play_arrow_rounded,
-              label: isRunning ? 'ПАУЗА' : 'ПРОДОЛЖИТЬ',
+              label: isRunning ? AppLocalizations.of(context)!.timerPause : AppLocalizations.of(context)!.timerResume,
               onPressed: () {
                 if (isRunning) {
                   _controller.stop();
@@ -419,7 +420,7 @@ class _TimerPageState extends State<TimerPage> {
         const SizedBox(width: 16),
         _TimerControlButton(
           icon: Icons.stop_rounded,
-          label: 'СТОП',
+          label: AppLocalizations.of(context)!.timerStop,
           isOutlined: true,
           onPressed: () {
             _controller.stop();

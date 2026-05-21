@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 /// Пустое состояние панели статистики.
 ///
 /// Отображается, когда у пользователя ещё нет ни одной сессии.
@@ -37,7 +39,7 @@ class EmptyDashboard extends StatelessWidget {
 
             // Главное сообщение
             Text(
-              'Ваш путь к спокойствию\nначинается с первой минуты',
+              AppLocalizations.of(context)!.emptyDashboardTitle,
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontSize: 20,
@@ -50,7 +52,7 @@ class EmptyDashboard extends StatelessWidget {
 
             // Подсказка
             Text(
-              'Завершите свою первую медитацию,\nчтобы увидеть здесь свою статистику',
+              AppLocalizations.of(context)!.emptyDashboardSubtitle,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontSize: 14,

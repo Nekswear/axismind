@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../data/database_provider.dart';
 import '../data/goals_repository.dart';
 import '../data/notification_repository.dart';
+import '../data/subscription_repository.dart';
 import '../data/sync_repository.dart';
 import 'auth_service.dart';
 
@@ -71,6 +72,12 @@ class AppServiceLocator {
       locator._notificationRepo = NotificationRepository(locator._db!);
     }
 
+    // Инициализация SubscriptionRepository и SubscriptionService
+    if (locator._db != null) {
+      locator._subscriptionRepo = SubscriptionRepository(locator._db!);
+      // SubscriptionService инициализируем после Firebase в main.dart
+    }
+
     _instance = locator;
     return allOk;
   }
@@ -80,6 +87,7 @@ class AppServiceLocator {
   SyncRepository? _syncRepo;
   GoalsRepository? _goalsRepo;
   NotificationRepository? _notificationRepo;
+  SubscriptionRepository? _subscriptionRepo;
 
   /// DatabaseProvider (может быть null, если БД не инициализирована).
   DatabaseProvider? get db => _db;
@@ -95,6 +103,9 @@ class AppServiceLocator {
 
   /// NotificationRepository (может быть null, если БД не инициализирована).
   NotificationRepository? get notificationRepo => _notificationRepo;
+
+  /// SubscriptionRepository (может быть null, если БД не инициализирована).
+  SubscriptionRepository? get subscriptionRepo => _subscriptionRepo;
 
   /// Wakelock поддерживается только на мобильных платформах.
   static bool get isWakelockSupported {

@@ -1,11 +1,15 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/theme/zen_theme.dart';
 import 'firebase_options.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/home_screen.dart';
 import 'services/app_service_locator.dart';
 import 'services/notification_service.dart';
+import 'services/subscription_service.dart';
+import 'widgets/subscription_guard.dart';
 
 /// Главная точка входа.
 ///
@@ -41,6 +45,18 @@ void main() async {
     debugPrint('[MAIN] NotificationService initialization failed (non-fatal): $e');
   }
 
+  // Инициализируем сервис подписки (RevenueCat)
+  // Должен быть после Firebase.initializeApp() и AppServiceLocator
+  try {
+    final locator = AppServiceLocator.instance;
+    if (locator.subscriptionRepo != null) {
+      await SubscriptionService.instance.init(locator.subscriptionRepo!);
+      debugPrint('[MAIN] SubscriptionService initialized successfully');
+    }
+  } catch (e) {
+    debugPrint('[MAIN] SubscriptionService initialization failed (non-fatal): $e');
+  }
+
   runApp(const ZenBalanceApp());
 }
 
@@ -53,7 +69,27 @@ class ZenBalanceApp extends StatelessWidget {
       title: 'ZenBalance',
       debugShowCheckedModeBanner: false,
       theme: ZenTheme.build(),
-      home: const HomeScreen(),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ru'),
+      ],
+      localeResolutionCallback: (locale, supportedLocales) {
+        // Если язык системы не поддерживается — используем английский
+        if (locale == null) return const Locale('en');
+        for (final supported in supportedLocales) {
+          if (supported.languageCode == locale.languageCode) {
+            return supported;
+          }
+        }
+        return const Locale('en');
+      },
+      home: SubscriptionGuard(child: const HomeScreen()),
     );
   }
 }

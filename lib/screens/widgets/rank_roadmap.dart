@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/zen_theme.dart';
 import '../../domain/progress_calculator.dart';
+import '../../l10n/app_localizations.dart';
 
 // =============================================================================
 // RankRoadmap — визуальная дорожная карта всех рангов
@@ -182,7 +183,7 @@ class _RankRoadmapState extends State<RankRoadmap>
                 SizedBox(width: zen.spacingUnit),
                 Expanded(
                   child: Text(
-                    'Roadmap рангов',
+                    AppLocalizations.of(context)!.rankTiers,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: ZenColors.textPrimary,
                       fontWeight: FontWeight.w700,
@@ -208,7 +209,7 @@ class _RankRoadmapState extends State<RankRoadmap>
             child: Row(
               children: [
                 Text(
-                  'Уровень ${widget.currentLevel}',
+                  AppLocalizations.of(context)!.rankLevel(widget.currentLevel.toString()),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: ZenColors.gold,
                     fontWeight: FontWeight.w600,
@@ -276,7 +277,7 @@ class _RankRoadmapState extends State<RankRoadmap>
           Padding(
             padding: EdgeInsets.all(zen.spacingUnit * 2),
             child: Text(
-              'Продолжайте практику, чтобы открыть новые ранги',
+              AppLocalizations.of(context)!.rankContinuePractice,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: ZenColors.textMuted,
                 fontSize: 12,
@@ -292,9 +293,9 @@ class _RankRoadmapState extends State<RankRoadmap>
   String _formatMinutes(int minutes) {
     if (minutes >= 1000) {
       final thousands = (minutes / 1000).toStringAsFixed(1);
-      return '$thousands тыс. мин всего';
+      return '$thousands k min total';
     }
-    return '$minutes мин всего';
+    return '$minutes min total';
   }
 }
 
@@ -707,7 +708,7 @@ class _TierRow extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Закрыть'),
+                child: Text(AppLocalizations.of(context)!.rankClose),
               ),
             ),
           ],

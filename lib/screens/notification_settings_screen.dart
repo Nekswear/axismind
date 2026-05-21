@@ -117,6 +117,46 @@ class _NotificationSettingsScreenState
     }
   }
 
+  Future<void> _pickMotivationalTime() async {
+    final parts = _settings.motivationalTime.split(':');
+    final initialHour = int.parse(parts[0]);
+    final initialMinute = int.parse(parts[1]);
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
+      helpText: 'Время мотивационных сообщений',
+      cancelText: 'Отмена',
+      confirmText: 'Готово',
+    );
+
+    if (picked != null) {
+      final timeStr =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      await _saveSettings(_settings.copyWith(motivationalTime: timeStr));
+    }
+  }
+
+  Future<void> _pickGoalReminderTime() async {
+    final parts = _settings.goalReminderTime.split(':');
+    final initialHour = int.parse(parts[0]);
+    final initialMinute = int.parse(parts[1]);
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
+      helpText: 'Время напоминания о целях',
+      cancelText: 'Отмена',
+      confirmText: 'Готово',
+    );
+
+    if (picked != null) {
+      final timeStr =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      await _saveSettings(_settings.copyWith(goalReminderTime: timeStr));
+    }
+  }
+
   Future<void> _pickQuietHoursStart() async {
     final initial = _settings.quietHoursStart != null
         ? _parseTime(_settings.quietHoursStart!)
@@ -270,6 +310,17 @@ class _NotificationSettingsScreenState
                           _settings.copyWith(motivationalEnabled: v),
                         ),
                       ),
+                      if (_settings.motivationalEnabled) ...[
+                        const SizedBox(height: 4),
+                        _buildTimeTile(
+                          theme: theme,
+                          icon: Icons.schedule_rounded,
+                          title: 'Время мотивации',
+                          subtitle: 'Ежедневное мотивационное уведомление',
+                          time: _settings.motivationalTime,
+                          onTap: _pickMotivationalTime,
+                        ),
+                      ],
                       const SizedBox(height: 24),
 
                       // =========================================================
@@ -281,13 +332,23 @@ class _NotificationSettingsScreenState
                         theme: theme,
                         icon: Icons.track_changes_rounded,
                         title: 'Напоминание о целях',
-                        subtitle:
-                            'Напоминание вечером, если цель дня не выполнена',
+                        subtitle: 'Напоминание вечером, если цель дня не выполнена',
                         value: _settings.goalReminderEnabled,
                         onChanged: (v) => _saveSettings(
                           _settings.copyWith(goalReminderEnabled: v),
                         ),
                       ),
+                      if (_settings.goalReminderEnabled) ...[
+                        const SizedBox(height: 4),
+                        _buildTimeTile(
+                          theme: theme,
+                          icon: Icons.schedule_rounded,
+                          title: 'Время напоминания',
+                          subtitle: 'Ежедневное напоминание о целях',
+                          time: _settings.goalReminderTime,
+                          onTap: _pickGoalReminderTime,
+                        ),
+                      ],
                       const SizedBox(height: 24),
 
                       // =========================================================

@@ -1,0 +1,469 @@
+{
+  "@@locale": "en",
+  "@@info": "English translations for ZenBalance meditation app",
+
+  "appTitle": "ZenBalance",
+
+  "startPractice": "START PRACTICE",
+  "openPathToClarity": "OPEN PATH TO CLARITY",
+  "continueLabel": "Continue",
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "retry": "Retry",
+  "skip": "Skip",
+  "close": "Close",
+  "done": "Done",
+  "edit": "Edit",
+  "add": "Add",
+  "setup": "Setup",
+  "create": "Create",
+  "sendTest": "Send Test",
+  "learnMore": "LEARN MORE",
+  "startPracticeBtn": "START PRACTICE",
+  "exhale": "EXHALE",
+  "reset": "RESET",
+  "repeat": "Repeat",
+  "ok": "OK!",
+  "great": "Great!",
+
+  "chooseDuration": "Choose duration",
+  "selectDurationColon": "Choose duration:",
+
+  "presetQuick": "Quick",
+  "presetQuickSub": "Break",
+  "presetStandard": "Standard",
+  "presetStandardSub": "Daily",
+  "presetDeep": "Deep",
+  "presetDeepSub": "Evening",
+  "presetMaster": "Master",
+  "presetMasterSub": "Weekend",
+
+  "min": "{minutes} min",
+  "@min": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "minutesLabelWithName": "{minutes} min — {name}",
+  "@minutesLabelWithName": {
+    "placeholders": {
+      "minutes": {},
+      "name": {}
+    }
+  },
+
+  "navPractice": "Practice",
+  "navJournal": "Journal",
+  "navStatistics": "Statistics",
+  "navGuide": "Path to Clarity",
+  "navNotifications": "Notifications",
+
+  "premium": "Premium",
+  "premiumActive": "Premium active",
+
+  "authGoogle": "Sign in with Google",
+  "authContinueWithout": "Continue without sign in",
+  "authTitle": "Your path to mindfulness",
+  "authSubtitle": "Sign in is only used to sync\nyour data between devices",
+  "authGoogleTitle": "Google Authorization",
+  "authGoogleSubtitle": "Available on mobile devices and web.\nOn desktop, the app works in local mode.",
+  "authError": "Sign in error: {error}",
+  "@authError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "authCloseTooltip": "Close",
+
+  "userPlaceholder": "User",
+
+  "paywallTitle": "Unlock the full\npotential of ZenBalance",
+  "try7DaysFree": "Try 7 days free",
+  "thenPrice": "then {price}",
+  "@thenPrice": {
+    "placeholders": {
+      "price": {}
+    }
+  },
+  "cancelAnytime": "Cancel anytime",
+  "restorePurchases": "Restore purchases",
+  "continueFree": "Continue free",
+  "paywallCloseTooltip": "Close",
+  "purchaseFailed": "Purchase failed. Please try again.",
+  "subscriptionRestored": "Subscription restored!",
+  "noActivePurchases": "No active purchases found.",
+  "paymentTerms": "Payment will be charged to your Google Play account after purchase confirmation. Subscription automatically renews unless canceled 24 hours before the end of the current period. Manage your subscription in Google Play settings.",
+
+  "featureMotivationalNotifications": "Motivational notifications",
+  "featureMotivationalNotificationsSub": "Inspiring quotes and progress statistics",
+  "featureGoalReminders": "Goal reminders",
+  "featureGoalRemindersSub": "Daily reminder if a goal is not completed",
+  "featureMeditationGoals": "Meditation goals",
+  "featureMeditationGoalsSub": "Create and track your goals",
+  "featureDetailedStats": "Detailed statistics",
+  "featureDetailedStatsSub": "Heat map, level progress and XP",
+  "featureDeviceSync": "Device sync",
+  "featureDeviceSyncSub": "Your data is always with you",
+
+  "journalTitle": "Meditation Journal",
+  "journalEdit": "Edit entry",
+  "journalNew": "Record your feelings",
+  "journalSession": "Session: {duration}",
+  "@journalSession": {
+    "placeholders": {
+      "duration": {}
+    }
+  },
+  "journalMood": "How do you feel?",
+  "journalNote": "Write what came to mind...",
+  "journalTag": "Tag (optional)",
+  "journalSearch": "Search notes...",
+  "journalAllTags": "All",
+  "journalEmpty": "Nothing here yet",
+  "journalEmptySubtitle": "Complete a meditation\nto see your first entry",
+  "journalUpdateFailed": "Failed to update entry",
+  "journalDeleteConfirm": "Delete entry?",
+  "journalDeleteConfirmSub": "This action cannot be undone.",
+  "journalDeleted": "Entry deleted",
+  "journalDeleteFailed": "Failed to delete entry",
+
+  "tagMorning": "Morning",
+  "tagDay": "Day",
+  "tagEvening": "Evening",
+  "tagStress": "Stress",
+  "tagCalm": "Calm",
+  "tagGratitude": "Gratitude",
+
+  "goalsTitle": "Goal Settings",
+  "goalsSubtitle": "Goals help track practice regularity\nand give bonus XP for completion.",
+  "goalsCurrent": "Current Goals",
+  "goalsMaxReached": "Maximum 4 goals",
+  "goalsAdd": "Add goal",
+  "goalsNoGoals": "You have no goals yet",
+  "goalsNoGoalsSubtitle": "Set a goal to track progress\nand earn bonus XP",
+  "goalsCreate": "Create goal",
+  "goalsEdit": "Edit goal",
+  "goalsNew": "New goal",
+  "goalsDeleteConfirm": "Delete goal?",
+  "goalsDeleteConfirmSub": "Are you sure you want to delete the goal \"{name}\"?",
+  "@goalsDeleteConfirmSub": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "goalsGoalLabel": "{target} {unit} · +{xp} XP",
+  "@goalsGoalLabel": {
+    "placeholders": {
+      "target": {},
+      "unit": {},
+      "xp": {}
+    }
+  },
+  "goalsTypeLabel": "Goal type",
+  "goalsTargetLabel": "Target value",
+  "goalsTargetHintDaily": "For example: 10 minutes per day",
+  "goalsTargetHintWeeklySessions": "For example: 5 sessions per week",
+  "goalsTargetHintWeeklyMinutes": "For example: 60 minutes per week",
+  "goalsTargetHintStreak": "For example: 7 days in a row",
+
+  "goalDailyMinutes": "Daily practice",
+  "goalWeeklySessions": "Sessions per week",
+  "goalWeeklyMinutes": "Minutes per week",
+  "goalStreakDays": "Days in a row",
+
+  "goalUnitMinPerDay": "min/day",
+  "goalUnitSessPerWeek": "sess./week",
+  "goalUnitMinPerWeek": "min/week",
+  "goalUnitDays": "days",
+
+  "statsTitle": "Statistics",
+  "statsLastDays": "Last {days} days",
+  "@statsLastDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "statsTotalMinutes": "Total minutes",
+  "statsSessions": "Sessions",
+  "statsStreak": "Streak",
+  "statsStreakUnit": "day",
+  "statsStreakUnitPlural": "days",
+  "statsGrowth": "Growth",
+  "statsGrowthPeriod": "over {days} d.",
+  "@statsGrowthPeriod": {
+    "placeholders": {
+      "days": {}
+    }
+  },
+  "statsAverage": "average",
+  "statsAveragePerDay": "per day on average",
+  "statsBest": "best",
+  "statsRegularity": "regularity",
+  "statsActivity30": "Activity over 30 days",
+  "statsDynamics": "Dynamics",
+  "statsAvgLabel": "avg. {minutes}",
+  "@statsAvgLabel": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "statsPeriod7": "7d",
+  "statsPeriod14": "14d",
+  "statsPeriod30": "30d",
+
+  "notifTitle": "Notifications",
+  "notifSubtitle": "Configure push notifications to never miss\na practice session and track your progress.",
+  "notifGeneral": "General",
+  "notifEnabled": "Notifications",
+  "notifEnabledSub": "Enable or disable all notifications",
+  "notifDailyReminder": "Daily Reminder",
+  "notifReminderTime": "Reminder time",
+  "notifReminderTimeSub": "Daily meditation notification",
+  "notifMotivation": "Motivation",
+  "notifMotivationMessages": "Motivational messages",
+  "notifMotivationSub": "Inspiring quotes and progress statistics",
+  "notifMotivationTime": "Motivation time",
+  "notifMotivationTimeSub": "Daily motivational notification",
+  "notifGoals": "Goals",
+  "notifGoalReminder": "Goal reminder",
+  "notifGoalReminderSub": "Evening reminder if daily goal is not completed",
+  "notifGoalReminderTime": "Reminder time",
+  "notifGoalReminderTimeSub": "Daily goal reminder",
+  "notifQuietHours": "Quiet Hours",
+  "notifQuietHoursSubEnabled": "Do not disturb from {start} to {end}",
+  "@notifQuietHoursSubEnabled": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "notifQuietHoursSubDisabled": "Disable notifications at night",
+  "notifQuietHoursStart": "Start",
+  "notifQuietHoursEnd": "End",
+  "notifTesting": "Testing",
+  "notifTestSent": "Test notification sent!",
+  "notifQuietHoursActive": "Quiet hours are active ({start}–{end}). Notification will not be shown.",
+  "@notifQuietHoursActive": {
+    "placeholders": {
+      "start": {},
+      "end": {}
+    }
+  },
+  "notifTimePickerHelp": "Select reminder time",
+  "notifTimePickerMotivationHelp": "Motivational messages time",
+  "notifTimePickerGoalHelp": "Goal reminder time",
+  "notifTimePickerQuietStartHelp": "Quiet hours start",
+  "notifTimePickerQuietEndHelp": "Quiet hours end",
+  "notifTimePickerCancel": "Cancel",
+  "notifTimePickerConfirm": "Done",
+
+  "notifTypeReminder": "Reminders",
+  "notifTypeMotivation": "Motivation",
+  "notifTypeGoals": "Goals",
+  "notifTypeStreak": "Streak",
+
+  "notifChannelReminders": "Reminders",
+  "notifChannelRemindersDesc": "Daily meditation reminders",
+  "notifChannelMotivation": "Motivation",
+  "notifChannelMotivationDesc": "Motivational messages and quotes",
+  "notifChannelGoals": "Goals",
+  "notifChannelGoalsDesc": "Goal progress notifications",
+  "notifChannelStreak": "Streak",
+  "notifChannelStreakDesc": "Streak celebration notifications",
+
+  "notifBodyReminder": "🧘 Time to meditate!\nTake 10 minutes for inner silence and peace.",
+  "notifBodyGoalReminder": "🎯 Time left to reach your goal!\nJust a few minutes of meditation and you'll earn bonus XP!",
+  "notifBodyStreak": "🔥 New record: {streak} days in a row!\nCongratulations! You've beaten your personal record!",
+  "@notifBodyStreak": {
+    "placeholders": {
+      "streak": {}
+    }
+  },
+
+  "timerPause": "PAUSE",
+  "timerResume": "RESUME",
+  "timerStop": "STOP",
+  "timerPosture": "Back straight\nGaze down 45°\nFocus soft",
+  "timerEndMeditation": "End meditation?",
+  "timerEndMeditationSub": "Your practice is not yet complete.",
+  "timerContinue": "Continue",
+  "timerEnd": "End",
+  "timerSaveFailed": "Failed to save session. Please try again.",
+  "timerRetry": "Retry",
+
+  "guideHeroLabel": "Alex Merch Foundation",
+  "guideTitle": "ZenBalance",
+  "guideSubtitle": "The rational path to mental clarity",
+  "guideFinalEdition": "FINAL EDITION 2026",
+  "guideTechnique": "Technique: Susokukan (Breath Counting)",
+  "guideArithmetic": "Arithmetic of Mindfulness",
+  "guidePosture": "POSTURE",
+  "guidePostureDesc": "Sit on the edge of a chair or in zazen. Back straight but relaxed. Shoulders relaxed, hands in mudra (oval lock).",
+  "guideGaze": "GAZE",
+  "guideGazeDesc": "Eyes half-open, gaze directed downward at ~45° to the floor 1–1.5 meters ahead. Do not close your eyes — this leads to drowsiness and daydreaming.",
+  "guideFocus": "FOCUS",
+  "guideFocusDesc": "Blur your vision — don't stare at the floor texture, don't fixate on points. Use peripheral vision. You look but don't see details.",
+  "guideAlgorithm": "Count each exhale. When you reach 10, start counting backward to 1. If a thought interrupts the count — return to one.",
+  "guideBioEffect": "Biological Effect",
+  "guideBioEffectDesc": "Counting engages the prefrontal cortex, blocking the brain's \"default mode network\" responsible for mind-wandering and anxiety.",
+  "guideZenRule": "Zen Rule",
+  "guideZenRuleQuote": "\"If you lose count at 9 — you've lost the battle for attention. Humbly return to 1. This is the practice.\"",
+  "guideZazenGeometry": "Zazen Geometry",
+  "guideFormContent": "Form and Content",
+  "guideVertical": "Vertical",
+  "guideVerticalDesc": "Spine straight like a string. This is the physiological foundation for an alert consciousness.",
+  "guideGazeZazen": "Gaze",
+  "guideGazeZazenDesc": "Eyes half-open, gaze at 45° down, focus soft. You don't drift into dreams, you stay here and now.",
+  "guideMudra": "Mudra",
+  "guideMudraDesc": "Hands in an oval lock. This is your physical sensor of concentration depth.",
+  "guideResistance": "Overcoming Resistance",
+  "guidePracticalGuide": "Practical Guide",
+  "guideProblem": "Problem",
+  "guideMindMechanism": "Mind Mechanism",
+  "guideZenSolution": "Zen Solution",
+  "guideProblemItch": "Itching and restlessness",
+  "guideLogicItch": "Ego's defensive reaction to unfamiliar silence.",
+  "guideActionItch": "Musōtoku. Observe the itch as an external object. It will pass on its own.",
+  "guideProblemNoise": "Mental noise",
+  "guideLogicNoise": "The brain's attempt to fill the vacuum with habitual plans.",
+  "guideActionNoise": "Susokukan. Gently return attention to counting \"One\". Without aggression.",
+  "guideProblemSleep": "Drowsiness",
+  "guideLogicSleep": "A sign of lost tone and slipping into trance.",
+  "guideActionSleep": "Energy. Straighten your back. Open your eyes slightly. Breathe a little deeper.",
+  "guideWitness": "Be the Witness.",
+  "guideQuote": "Your mind — your greatest asset.",
+  "guideFooter": "ALEX MERCH • ZENBALANCE SYSTEM • 2026",
+
+  "levelUpTitle": "Level {level}",
+  "@levelUpTitle": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+
+  "goalCompleted": "Goal completed!",
+  "goalCompletedClose": "Great!",
+
+  "emptyDashboardTitle": "Your path to peace\nbegins with the first minute",
+  "emptyDashboardSubtitle": "Complete your first meditation\nto see your statistics here",
+
+  "errorUnknown": "An unknown error occurred",
+  "errorDatabase": "Database error. Please restart the app.",
+  "errorNetwork": "Connection issue. Check your internet connection.",
+  "errorStats": "Failed to load statistics.",
+  "errorStatsRetry": "Failed to load statistics. Please try again.",
+  "errorStatsRefresh": "Failed to load statistics. Please try again.",
+  "errorDataRefreshing": "Data is updating...",
+
+  "rankNovice": "Mindfulness Novice",
+  "rankSeeker": "Peace Seeker",
+  "rankGuardian": "Silence Guardian",
+  "rankMaster": "Balance Master",
+  "rankWanderer": "Depth Wanderer",
+  "rankAwakened": "Awakened One",
+  "rankSage": "Sage",
+  "rankEnlightened": "Enlightened One",
+  "rankLegend": "Legend",
+  "rankImmortal": "Immortal",
+  "rankDivine": "Divine",
+
+  "rankDescriptionNovice": "First step on the path to mindfulness",
+  "rankDescriptionSeeker": "Searching for inner harmony",
+  "rankDescriptionGuardian": "Finding silence within",
+  "rankDescriptionMaster": "Balance between effort and peace",
+  "rankDescriptionWanderer": "Exploring the depths of consciousness",
+  "rankDescriptionAwakened": "Awakening inner light",
+  "rankDescriptionSage": "Wisdom born from practice",
+  "rankDescriptionEnlightened": "The light of mindfulness guides you",
+  "rankDescriptionLegend": "Your journey inspires others",
+  "rankDescriptionImmortal": "Timeless practice",
+  "rankDescriptionDivine": "You have reached enlightenment",
+
+  "rankLevel": "Level {level}",
+  "@rankLevel": {
+    "placeholders": {
+      "level": {}
+    }
+  },
+  "rankYouAreHere": "You are here",
+  "rankContinuePractice": "Continue practicing to unlock new ranks",
+  "rankClose": "Close",
+  "rankTiers": "Tiers",
+  "rankRequiredPractice": "Practice required",
+  "rankProgressToNext": "Progress to next rank",
+  "rankRemainingMinutes": "~{minutes} min remaining to next rank",
+  "@rankRemainingMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "rankRemainingToNext": "{minutes} min remaining to next level",
+  "@rankRemainingToNext": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+
+  "subscriptionGuardLoading": "ZenBalance",
+
+  "samadhiExitHint": "Press Space or click to exit",
+
+  "neuroPreset5": "Reduced default mode network activity.\nRapid return of attentional control.",
+  "neuroPreset10": "Overcoming the adaptation stage.\nHeart rate stabilization and alpha wave onset.",
+  "neuroPreset15": "Deep mental immersion.\nContemplation and ordering of internal processes.",
+  "neuroPreset20": "Classic Zazen.\nSustained inhibition of the sympathetic nervous system\nand entry into pure clarity.",
+
+  "daySun": "Sun",
+  "dayMon": "Mon",
+  "dayTue": "Tue",
+  "dayWed": "Wed",
+  "dayThu": "Thu",
+  "dayFri": "Fri",
+  "daySat": "Sat",
+
+  "dayShortSun": "Su",
+  "dayShortMon": "Mo",
+  "dayShortTue": "Tu",
+  "dayShortWed": "We",
+  "dayShortThu": "Th",
+  "dayShortFri": "Fr",
+  "dayShortSat": "Sa",
+
+  "monthJan": "Jan",
+  "monthFeb": "Feb",
+  "monthMar": "Mar",
+  "monthApr": "Apr",
+  "monthMay": "May",
+  "monthJun": "Jun",
+  "monthJul": "Jul",
+  "monthAug": "Aug",
+  "monthSep": "Sep",
+  "monthOct": "Oct",
+  "monthNov": "Nov",
+  "monthDec": "Dec",
+
+  "month": "/month",
+
+  "openGuide": "OPEN PATH TO CLARITY",
+  "journal": "Journal",
+  "statistics": "Statistics",
+  "notifications": "Notifications",
+  "user": "User",
+
+  "quote1": "Silence is not the absence of sound, but the presence of self.",
+  "quote2": "Every minute of meditation is an investment in peace.",
+  "quote3": "Breathe deeper — there is a whole ocean of calm within you.",
+  "quote4": "Don't try to stop your thoughts. Learn not to engage with them.",
+  "quote5": "Meditation is not a technique, but a way of being.",
+  "quote6": "Inner peace begins the moment you decide not to let the outer world control you.",
+  "quote7": "Mindfulness is the key that opens the door to harmony.",
+  "quote8": "Your practice is your island. No one can take it from you.",
+  "quote9": "Pause. Breathe. You are already on the right path.",
+  "quote10": "Every day is a new opportunity to return to yourself.",
+  "quote11": "Strength is not in tension, but in relaxation.",
+  "quote12": "Meditation is coming home to your true Self.",
+  "quote13": "Don't wait for the perfect moment. Start now.",
+  "quote14": "Your breath is an anchor in the present moment.",
+  "quote15": "Progress is not a straight line. Every minute of practice matters."
+}

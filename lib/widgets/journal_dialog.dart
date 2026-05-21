@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/zen_theme.dart';
+import '../l10n/app_localizations.dart';
 
 /// Результат, возвращаемый из [JournalDialog].
 ///
@@ -61,14 +62,17 @@ class _JournalDialogState extends State<JournalDialog> {
 
   bool get _isEditing => widget.initialResult != null;
 
-  static const _tags = [
-    'Утро',
-    'День',
-    'Вечер',
-    'Стресс',
-    'Спокойствие',
-    'Благодарность',
-  ];
+  List<String> _tags(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.tagMorning,
+      l10n.tagDay,
+      l10n.tagEvening,
+      l10n.tagStress,
+      l10n.tagCalm,
+      l10n.tagGratitude,
+    ];
+  }
 
   static const _moodEmojis = ['😔', '😐', '🙂', '😊', '🧘'];
 
@@ -87,11 +91,12 @@ class _JournalDialogState extends State<JournalDialog> {
     super.dispose();
   }
 
-  String get _durationLabel {
+  String _durationLabel(BuildContext context) {
     final min = widget.durationSeconds ~/ 60;
     final sec = widget.durationSeconds % 60;
-    if (min > 0) return '$min мин $sec сек';
-    return '$sec сек';
+    final l10n = AppLocalizations.of(context)!;
+    if (min > 0) return l10n.min(min.toString());
+    return '$sec sec';
   }
 
   @override
@@ -106,10 +111,10 @@ class _JournalDialogState extends State<JournalDialog> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_isEditing ? 'Редактировать запись ✏️' : 'Запиши свои ощущения 📝'),
+          Text(_isEditing ? AppLocalizations.of(context)!.journalEdit : AppLocalizations.of(context)!.journalNew),
           const SizedBox(height: 4),
           Text(
-            'Сессия: $_durationLabel',
+            AppLocalizations.of(context)!.journalSession(_durationLabel(context)),
             style: theme.textTheme.bodySmall?.copyWith(
               color: Colors.grey[600],
             ),
@@ -123,7 +128,7 @@ class _JournalDialogState extends State<JournalDialog> {
           children: [
             // === Оценка настроения (1-5) ===
             Text(
-              'Как ты себя чувствуешь?',
+              AppLocalizations.of(context)!.journalMood,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -159,11 +164,11 @@ class _JournalDialogState extends State<JournalDialog> {
               controller: _noteController,
               maxLines: 3,
               maxLength: 500,
-              decoration: const InputDecoration(
-                hintText: 'Напиши, что пришло в голову...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.journalNote,
+                border: const OutlineInputBorder(),
                 counterText: '',
-                contentPadding: EdgeInsets.all(12),
+                contentPadding: const EdgeInsets.all(12),
               ),
               textCapitalization: TextCapitalization.sentences,
             ),
@@ -172,7 +177,7 @@ class _JournalDialogState extends State<JournalDialog> {
 
             // === Теги ===
             Text(
-              'Тег (необязательно)',
+              AppLocalizations.of(context)!.journalTag,
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -181,7 +186,7 @@ class _JournalDialogState extends State<JournalDialog> {
             Wrap(
               spacing: 8,
               runSpacing: 6,
-              children: _tags.map((tag) {
+              children: _tags(context).map((tag) {
                 final selected = _selectedTag == tag;
                 return ChoiceChip(
                   label: Text(
@@ -207,7 +212,7 @@ class _JournalDialogState extends State<JournalDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Пропустить'),
+          child: Text(AppLocalizations.of(context)!.skip),
         ),
         FilledButton(
           onPressed: () {
@@ -218,7 +223,7 @@ class _JournalDialogState extends State<JournalDialog> {
               tag: _selectedTag,
             ));
           },
-          child: const Text('Сохранить'),
+          child: Text(AppLocalizations.of(context)!.save),
         ),
       ],
     );

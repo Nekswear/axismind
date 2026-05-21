@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/zen_theme.dart';
 import '../../core/widgets/zen_ui.dart';
 import '../../data/analytics_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/time_utils.dart';
 import 'dot_chart_painter.dart';
 
@@ -38,17 +39,18 @@ class HeatmapSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Активность за 30 дней',
+            AppLocalizations.of(context)!.statsActivity30,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurface,
             ),
           ),
           SizedBox(height: zen.spacingUnit * 2),
-          _buildMiniCalendar(theme, zen, data, maxMinutes, primaryColor),
+          _buildMiniCalendar(context, theme, zen, data, maxMinutes, primaryColor),
           SizedBox(height: zen.spacingUnit * 2),
-          _buildDotChart(theme, zen, data, primaryColor),
+          _buildDotChart(context, theme, zen, data, primaryColor),
           SizedBox(height: zen.spacingUnit * 2),
           _buildActivitySummary(
+            context,
             theme,
             zen,
             regularity: regularity,
@@ -63,6 +65,7 @@ class HeatmapSection extends StatelessWidget {
   }
 
   Widget _buildMiniCalendar(
+    BuildContext context,
     ThemeData theme,
     ZenStyles zen,
     List<HeatmapDay> data,
@@ -101,7 +104,8 @@ class HeatmapSection extends StatelessWidget {
       weeks.add(currentWeek);
     }
 
-    const dayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    final l10n = AppLocalizations.of(context)!;
+    final dayLabels = [l10n.dayShortMon, l10n.dayShortTue, l10n.dayShortWed, l10n.dayShortThu, l10n.dayShortFri, l10n.dayShortSat, l10n.dayShortSun];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,6 +233,7 @@ class HeatmapSection extends StatelessWidget {
   }
 
   Widget _buildDotChart(
+    BuildContext context,
     ThemeData theme,
     ZenStyles zen,
     List<HeatmapDay> data,
@@ -249,7 +254,7 @@ class HeatmapSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Динамика',
+          AppLocalizations.of(context)!.statsDynamics,
           style: theme.textTheme.bodySmall?.copyWith(
             fontSize: 11,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
@@ -295,6 +300,7 @@ class HeatmapSection extends StatelessWidget {
   }
 
   Widget _buildActivitySummary(
+    BuildContext context,
     ThemeData theme,
     ZenStyles zen, {
     required double regularity,
@@ -311,7 +317,7 @@ class HeatmapSection extends StatelessWidget {
             icon: Icons.spa_outlined,
             iconColor: theme.colorScheme.primary,
             value: '${(regularity * 100).round()}%',
-            label: 'регулярность',
+            label: AppLocalizations.of(context)!.statsRegularity,
           ),
         ),
         Expanded(
@@ -320,7 +326,7 @@ class HeatmapSection extends StatelessWidget {
             icon: Icons.timer_outlined,
             iconColor: Colors.green,
             value: TimeUtils.formatMinutes(average),
-            label: 'в среднем',
+            label: AppLocalizations.of(context)!.statsAverage,
           ),
         ),
         Expanded(
@@ -331,7 +337,7 @@ class HeatmapSection extends StatelessWidget {
             value: bestDay != null
                 ? TimeUtils.formatMinutes(bestDay.minutes)
                 : '—',
-            label: 'лучший',
+            label: AppLocalizations.of(context)!.statsBest,
           ),
         ),
       ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../domain/level_up_event.dart';
+import '../l10n/app_localizations.dart';
 
 /// Диалог повышения уровня с высококонтрастным текстом.
 ///
@@ -14,8 +15,8 @@ class LevelUpDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text(
-        '🎉 Новый уровень!',
+      title: Text(
+        AppLocalizations.of(context)!.levelUpTitle(event.level.toString()),
         style: TextStyle(
           fontWeight: FontWeight.w900,
           color: Colors.black87,
@@ -27,7 +28,7 @@ class LevelUpDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Уровень ${event.level}',
+            AppLocalizations.of(context)!.rankLevel(event.level.toString()),
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               color: Colors.black87,
@@ -57,7 +58,7 @@ class LevelUpDialog extends StatelessWidget {
                 fontSize: 16,
               ),
             ),
-            child: const Text('Продолжить'),
+            child: Text(AppLocalizations.of(context)!.continueLabel),
           ),
         ),
       ],

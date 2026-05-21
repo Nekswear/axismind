@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/zen_theme.dart';
 import '../../core/widgets/zen_ui.dart';
 import '../../data/analytics_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/time_utils.dart';
 import '../statistics_cubit.dart';
 
@@ -47,19 +48,19 @@ class ChartSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Последние $_chartDays дней',
+                AppLocalizations.of(context)!.statsLastDays(_chartDays.toString()),
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurface,
                 ),
               ),
-              _buildPeriodToggle(theme, zen),
+              _buildPeriodToggle(context, theme, zen),
             ],
           ),
           SizedBox(height: zen.gap(2)),
           RepaintBoundary(
             child: SizedBox(
               height: 240,
-              child: _buildAreaChart(theme, dailyStats),
+              child: _buildAreaChart(context, theme, dailyStats),
             ),
           ),
         ],
@@ -67,7 +68,7 @@ class ChartSection extends StatelessWidget {
     );
   }
 
-  Widget _buildPeriodToggle(ThemeData theme, ZenStyles zen) {
+  Widget _buildPeriodToggle(BuildContext context, ThemeData theme, ZenStyles zen) {
     return ToggleButtons(
       isSelected: [
         selectedPeriod == ChartPeriod.days7,
@@ -82,15 +83,15 @@ class ChartSection extends StatelessWidget {
       textStyle: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
       selectedColor: theme.colorScheme.primary,
       fillColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-      children: const [
-        Text('7д'),
-        Text('14д'),
-        Text('30д'),
+      children: [
+        Text(AppLocalizations.of(context)!.statsPeriod7),
+        Text(AppLocalizations.of(context)!.statsPeriod14),
+        Text(AppLocalizations.of(context)!.statsPeriod30),
       ],
     );
   }
 
-  Widget _buildAreaChart(ThemeData theme, List<DailyStats> stats) {
+  Widget _buildAreaChart(BuildContext context, ThemeData theme, List<DailyStats> stats) {
     if (stats.isEmpty || stats.length < 2) {
       return const SizedBox.shrink();
     }
@@ -239,7 +240,7 @@ class ChartSection extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
                 labelResolver: (_) =>
-                    'сред. ${TimeUtils.formatMinutes(chartAverage)}',
+                    AppLocalizations.of(context)!.statsAvgLabel(TimeUtils.formatMinutes(chartAverage)),
               ),
             ),
           ],

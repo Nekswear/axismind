@@ -75,8 +75,14 @@ class NotificationSettings {
   /// Включены ли мотивационные уведомления.
   final bool motivationalEnabled;
 
+  /// Время показа мотивационных уведомлений (HH:mm).
+  final String motivationalTime;
+
   /// Включено ли напоминание о целях (вечером).
   final bool goalReminderEnabled;
+
+  /// Время напоминания о целях (HH:mm).
+  final String goalReminderTime;
 
   /// Время начала тихих часов (HH:mm), null = отключено.
   final String? quietHoursStart;
@@ -95,7 +101,9 @@ class NotificationSettings {
     this.enabled = true,
     this.reminderTime = '08:00',
     this.motivationalEnabled = false,
+    this.motivationalTime = '12:00',
     this.goalReminderEnabled = false,
+    this.goalReminderTime = '19:00',
     this.quietHoursStart,
     this.quietHoursEnd,
     this.fcmToken,
@@ -106,16 +114,24 @@ class NotificationSettings {
   factory NotificationSettings.fromMap(Map<String, dynamic> map) {
     return NotificationSettings(
       id: map['id'] as String? ?? 'default',
-      enabled: (map['enabled'] as num?)?.toInt() == 1,
+      enabled: map.containsKey('enabled')
+          ? (map['enabled'] as num).toInt() == 1
+          : true,
       reminderTime: map['reminder_time'] as String? ?? '08:00',
-      motivationalEnabled:
-          (map['motivational_enabled'] as num?)?.toInt() == 1,
-      goalReminderEnabled:
-          (map['goal_reminder_enabled'] as num?)?.toInt() == 1,
+      motivationalEnabled: map.containsKey('motivational_enabled')
+          ? (map['motivational_enabled'] as num).toInt() == 1
+          : false,
+      motivationalTime: map['motivational_time'] as String? ?? '12:00',
+      goalReminderEnabled: map.containsKey('goal_reminder_enabled')
+          ? (map['goal_reminder_enabled'] as num).toInt() == 1
+          : false,
+      goalReminderTime: map['goal_reminder_time'] as String? ?? '19:00',
       quietHoursStart: map['quiet_hours_start'] as String?,
       quietHoursEnd: map['quiet_hours_end'] as String?,
       fcmToken: map['fcm_token'] as String?,
-      updatedAt: DateTime.parse(map['updated_at'] as String),
+      updatedAt: map.containsKey('updated_at')
+          ? DateTime.parse(map['updated_at'] as String)
+          : DateTime.now(),
     );
   }
 
@@ -126,7 +142,9 @@ class NotificationSettings {
       'enabled': enabled ? 1 : 0,
       'reminder_time': reminderTime,
       'motivational_enabled': motivationalEnabled ? 1 : 0,
+      'motivational_time': motivationalTime,
       'goal_reminder_enabled': goalReminderEnabled ? 1 : 0,
+      'goal_reminder_time': goalReminderTime,
       'quiet_hours_start': quietHoursStart,
       'quiet_hours_end': quietHoursEnd,
       'fcm_token': fcmToken,
@@ -140,7 +158,9 @@ class NotificationSettings {
     bool? enabled,
     String? reminderTime,
     bool? motivationalEnabled,
+    String? motivationalTime,
     bool? goalReminderEnabled,
+    String? goalReminderTime,
     String? quietHoursStart,
     String? quietHoursEnd,
     String? fcmToken,
@@ -151,7 +171,9 @@ class NotificationSettings {
       enabled: enabled ?? this.enabled,
       reminderTime: reminderTime ?? this.reminderTime,
       motivationalEnabled: motivationalEnabled ?? this.motivationalEnabled,
+      motivationalTime: motivationalTime ?? this.motivationalTime,
       goalReminderEnabled: goalReminderEnabled ?? this.goalReminderEnabled,
+      goalReminderTime: goalReminderTime ?? this.goalReminderTime,
       quietHoursStart: quietHoursStart ?? this.quietHoursStart,
       quietHoursEnd: quietHoursEnd ?? this.quietHoursEnd,
       fcmToken: fcmToken ?? this.fcmToken,
@@ -192,6 +214,7 @@ class NotificationSettings {
   @override
   String toString() =>
       'NotificationSettings(enabled: $enabled, reminderTime: $reminderTime, '
-      'motivational: $motivationalEnabled, goalReminder: $goalReminderEnabled, '
+      'motivational: $motivationalEnabled ($motivationalTime), '
+      'goalReminder: $goalReminderEnabled ($goalReminderTime), '
       'quietHours: $quietHoursStart–$quietHoursEnd)';
 }
