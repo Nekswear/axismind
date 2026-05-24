@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme/zen_theme.dart';
 import '../../data/meditation_goal.dart';
 import '../../l10n/app_localizations.dart';
-import '../../screens/paywall_screen.dart';
 import 'goals_panel.dart';
 import 'nav_sidebar.dart';
 import 'neuro_preset_info.dart';
@@ -95,7 +94,6 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
           onStatisticsTap: widget.onStatisticsTap,
           onGuideTap: widget.onGuideTap,
           onNotificationSettingsTap: widget.onNotificationSettingsTap,
-          onPremiumTap: () => _openPaywall(context),
         ),
 
         // === Левая панель (40%) ===
@@ -260,13 +258,6 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
           ),
         ),
       ),
-    );
-  }
-
-  void _openPaywall(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const PaywallScreen()),
     );
   }
 

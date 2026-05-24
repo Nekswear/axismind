@@ -931,19 +931,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get neuroPreset5 =>
-      'Reduced default mode network activity.\nRapid return of attentional control.';
+      'Stopping «mental noise».\nRapid return of attentional control.';
 
   @override
   String get neuroPreset10 =>
-      'Overcoming the adaptation stage.\nHeart rate stabilization and alpha wave onset.';
+      'Reduction of physical tension.\nDeep ordering of mental activity.';
 
   @override
   String get neuroPreset15 =>
-      'Deep mental immersion.\nContemplation and ordering of internal processes.';
+      'Deep stabilization of perception.\nTransition to mental silence and peace.';
 
   @override
   String get neuroPreset20 =>
-      'Classic Zazen.\nSustained inhibition of the sympathetic nervous system\nand entry into pure clarity.';
+      'Classic Zen training.\nReduction of sympathetic tone and absolute clarity of mind.';
 
   @override
   String get daySun => 'Sun';

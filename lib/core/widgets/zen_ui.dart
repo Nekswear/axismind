@@ -224,10 +224,10 @@ class DurationPreset extends StatelessWidget {
       child: AnimatedContainer(
         duration: zen.animationDuration,
         curve: zen.animationCurve,
-        width: 80,
+        width: 90,
         padding: EdgeInsets.symmetric(
           vertical: zen.spacingUnit * 1.5,
-          horizontal: zen.spacingUnit,
+          horizontal: zen.spacingUnit * 0.75,
         ),
         decoration: BoxDecoration(
           color: isSelected
@@ -273,6 +273,8 @@ class DurationPreset extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected ? primaryColor : Colors.grey[600],
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
             Text(
               subtitle,
@@ -280,6 +282,8 @@ class DurationPreset extends StatelessWidget {
                 fontSize: 10,
                 color: Colors.grey[400],
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ],
         ),

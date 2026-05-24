@@ -4,7 +4,6 @@ import '../core/theme/zen_theme.dart';
 import '../data/analytics_repository.dart';
 import '../data/session.dart';
 import '../services/app_service_locator.dart';
-import '../services/subscription_service.dart';
 import '../widgets/journal_dialog.dart';
 
 /// Экран дневника медитаций.
@@ -260,8 +259,8 @@ class _JournalScreenState extends State<JournalScreen> {
               ),
             ),
 
-          // === Фильтр по тегам (Premium) ===
-          if (_availableTags.isNotEmpty && SubscriptionService.instance.isPremium)
+          // === Фильтр по тегам ===
+          if (_availableTags.isNotEmpty)
             SizedBox(
               height: 48,
               child: ListView(

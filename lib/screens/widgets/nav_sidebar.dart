@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme/zen_theme.dart';
 import '../../core/version_info.dart';
 import '../../l10n/app_localizations.dart';
-import '../../services/subscription_service.dart';
-import '../../widgets/premium_badge.dart';
 
 /// Навигационный элемент боковой панели.
 class _NavItem {
@@ -36,8 +34,6 @@ class NavSidebar extends StatelessWidget {
   final VoidCallback onStatisticsTap;
   final VoidCallback onGuideTap;
   final VoidCallback? onNotificationSettingsTap;
-  final VoidCallback? onPremiumTap;
-
   const NavSidebar({
     super.key,
     this.activeIndex = 0,
@@ -46,7 +42,6 @@ class NavSidebar extends StatelessWidget {
     required this.onStatisticsTap,
     required this.onGuideTap,
     this.onNotificationSettingsTap,
-    this.onPremiumTap,
   });
 
   @override
@@ -107,9 +102,7 @@ class NavSidebar extends StatelessWidget {
 
           const Spacer(),
 
-          // Нижняя группа: Premium, уведомления и версия
-          // Кнопка Premium
-          _buildPremiumButton(context),
+          // Нижняя группа: уведомления и версия
           if (onNotificationSettingsTap != null)
             _buildNavItem(
               icon: Icons.notifications_outlined,
@@ -157,61 +150,6 @@ class NavSidebar extends StatelessWidget {
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: ZenColors.background,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPremiumButton(BuildContext context) {
-    final isPremium = SubscriptionService.instance.isPremium;
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Tooltip(
-        message: isPremium ? l10n.premiumActive : l10n.premium,
-        preferBelow: false,
-        child: GestureDetector(
-          onTap: onPremiumTap,
-          child: Container(
-            width: 72,
-            height: 56,
-            decoration: BoxDecoration(
-              gradient: isPremium
-                  ? const LinearGradient(
-                      colors: [
-                        ZenColors.gold,
-                        ZenColors.goldLight,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              color: isPremium ? null : Colors.transparent,
-              borderRadius: isPremium ? BorderRadius.circular(12) : null,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isPremium)
-                  const Icon(Icons.workspace_premium, size: 20, color: ZenColors.background)
-                else
-                  const Icon(Icons.workspace_premium_outlined, size: 20, color: ZenColors.gold),
-                const SizedBox(height: 2),
-                if (isPremium)
-                  const Text(
-                    'PREMIUM',
-                    style: TextStyle(
-                      fontFamily: 'Manrope',
-                      fontSize: 7,
-                      fontWeight: FontWeight.w800,
-                      color: ZenColors.background,
-                    ),
-                  )
-                else
-                  const PremiumBadge(fontSize: 7),
-              ],
-            ),
           ),
         ),
       ),

@@ -8,8 +8,6 @@ import 'l10n/app_localizations.dart';
 import 'screens/home_screen.dart';
 import 'services/app_service_locator.dart';
 import 'services/notification_service.dart';
-import 'services/subscription_service.dart';
-import 'widgets/subscription_guard.dart';
 
 /// Главная точка входа.
 ///
@@ -45,18 +43,6 @@ void main() async {
     debugPrint('[MAIN] NotificationService initialization failed (non-fatal): $e');
   }
 
-  // Инициализируем сервис подписки (RevenueCat)
-  // Должен быть после Firebase.initializeApp() и AppServiceLocator
-  try {
-    final locator = AppServiceLocator.instance;
-    if (locator.subscriptionRepo != null) {
-      await SubscriptionService.instance.init(locator.subscriptionRepo!);
-      debugPrint('[MAIN] SubscriptionService initialized successfully');
-    }
-  } catch (e) {
-    debugPrint('[MAIN] SubscriptionService initialization failed (non-fatal): $e');
-  }
-
   runApp(const ZenBalanceApp());
 }
 
@@ -89,7 +75,7 @@ class ZenBalanceApp extends StatelessWidget {
         }
         return const Locale('en');
       },
-      home: SubscriptionGuard(child: const HomeScreen()),
+      home: const HomeScreen(),
     );
   }
 }

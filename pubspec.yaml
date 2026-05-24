@@ -73,9 +73,6 @@ dependencies:
   # Timezone support for exact notification scheduling
   timezone: ^0.10.0
 
-  # In-app purchases / subscriptions via RevenueCat
-  purchases_flutter: ^10.1.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
