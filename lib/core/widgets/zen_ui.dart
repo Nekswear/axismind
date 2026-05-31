@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme/zen_theme.dart';
 
 // =============================================================================
@@ -218,6 +219,7 @@ class DurationPreset extends StatelessWidget {
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
+    final l10n = AppLocalizations.of(context)!;
 
     return GestureDetector(
       onTap: onTap,
@@ -260,7 +262,7 @@ class DurationPreset extends StatelessWidget {
             Icon(icon, color: isSelected ? primaryColor : Colors.grey[600]),
             SizedBox(height: zen.spacingUnit),
             Text(
-              '$minutes мин',
+              l10n.min(minutes.toString()),
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                 color: isSelected ? primaryColor : null,

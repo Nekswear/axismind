@@ -101,69 +101,71 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
           flex: 4,
           child: Container(
             padding: EdgeInsets.all(zen.spacingUnit * 4),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.chooseDuration,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: ZenColors.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: zen.gap(4)),
-                ..._presets(context).map((p) => _buildPresetButton(
-                  zen: zen,
-                  theme: theme,
-                  minutes: p.minutes,
-                  icon: p.icon,
-                  label: p.label,
-                  subtitle: p.subtitle,
-                  isSelected: widget.durationMinutes == p.minutes,
-                  isHovered: _hoveredMinutes == p.minutes,
-                  onTap: () => widget.onDurationChanged(p.minutes.toDouble()),
-                  onHover: (hovered) {
-                    if (hovered) {
-                      setState(() => _hoveredMinutes = p.minutes);
-                    }
-                  },
-                )),
-                // Кнопка входа / информация о пользователе
-                _buildAuthSection(zen, theme),
-                SizedBox(height: zen.gap(2)),
-                // CTA-кнопка
-                SizedBox(
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: widget.onStartPractice,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ZenColors.gold,
-                      foregroundColor: ZenColors.background,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      textStyle: const TextStyle(
-                        fontFamily: 'Manrope',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
-                      ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.chooseDuration,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: ZenColors.textSecondary,
                     ),
-                    child: Text(AppLocalizations.of(context)!.startPractice),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                // Цели
-                if (widget.goalsProgress.isNotEmpty) ...[
-                  SizedBox(height: zen.gap(3)),
-                  const Divider(color: ZenColors.border),
+                  SizedBox(height: zen.gap(4)),
+                  ..._presets(context).map((p) => _buildPresetButton(
+                    zen: zen,
+                    theme: theme,
+                    minutes: p.minutes,
+                    icon: p.icon,
+                    label: p.label,
+                    subtitle: p.subtitle,
+                    isSelected: widget.durationMinutes == p.minutes,
+                    isHovered: _hoveredMinutes == p.minutes,
+                    onTap: () => widget.onDurationChanged(p.minutes.toDouble()),
+                    onHover: (hovered) {
+                      if (hovered) {
+                        setState(() => _hoveredMinutes = p.minutes);
+                      }
+                    },
+                  )),
+                  // Кнопка входа / информация о пользователе
+                  _buildAuthSection(zen, theme),
                   SizedBox(height: zen.gap(2)),
-                  GoalsPanel(
-                    goalsProgress: widget.goalsProgress,
-                    onGoalsChanged: widget.onGoalsChanged,
+                  // CTA-кнопка
+                  SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: widget.onStartPractice,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ZenColors.gold,
+                        foregroundColor: ZenColors.background,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        textStyle: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      child: Text(AppLocalizations.of(context)!.startPractice),
+                    ),
                   ),
+                  // Цели
+                  if (widget.goalsProgress.isNotEmpty) ...[
+                    SizedBox(height: zen.gap(3)),
+                    const Divider(color: ZenColors.border),
+                    SizedBox(height: zen.gap(2)),
+                    GoalsPanel(
+                      goalsProgress: widget.goalsProgress,
+                      onGoalsChanged: widget.onGoalsChanged,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -285,7 +287,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
             children: [
               // Крупное время
               Text(
-                '$displayMinutes ${AppLocalizations.of(context)!.min}',
+                AppLocalizations.of(context)!.min(displayMinutes.toString()),
                 style: theme.textTheme.displayLarge?.copyWith(
                   fontFamily: 'PlayfairDisplay',
                   fontSize: 96,
@@ -355,7 +357,7 @@ class _WidescreenLayoutState extends State<WidescreenLayout> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$minutes ${AppLocalizations.of(context)!.min} — $label',
+                        '${AppLocalizations.of(context)!.min(minutes.toString())} — $label',
                         style: theme.textTheme.bodyLarge?.copyWith(
                           fontWeight:
                               isActive ? FontWeight.w600 : FontWeight.w400,

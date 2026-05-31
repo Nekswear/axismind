@@ -1,11 +1,15 @@
 # build_release.ps1
-# Скрипт для автоматического увеличения версии и сборки Windows release
+# Скрипт для автоматического увеличения версии и сборки release
 #
 # Использование:
 #   .\build_release.ps1              - интерактивный режим (с подсказками)
 #   .\build_release.ps1 patch        - увеличить patch (1.0.0 -> 1.0.1)
 #   .\build_release.ps1 minor        - увеличить minor (1.0.0 -> 1.1.0)
 #   .\build_release.ps1 major        - увеличить major (1.0.0 -> 2.0.0)
+#
+# ⚠️ ВНИМАНИЕ: Все Firebase-ключи вынесены в --dart-define.
+#    Перед сборкой убедитесь, что переменные окружения FIREBASE_* заданы,
+#    или передайте их вручную. См. README.md для полного списка.
 
 param(
     [ValidateSet('major', 'minor', 'patch', '')]
@@ -55,7 +59,7 @@ if (-not $Level) {
 }
 
 # --- 1. Читаем текущую версию из pubspec.yaml ---
-Write-Host "`n[1/5] Reading current version from pubspec.yaml..." -ForegroundColor Yellow
+Write-Host "`n[1/7] Reading current version from pubspec.yaml..." -ForegroundColor Yellow
 
 $content = Get-Content $pubspecPath -Raw
 $versionMatch = [regex]::Match($content, 'version:\s*(\d+)\.(\d+)\.(\d+)\+(\d+)')
@@ -73,7 +77,7 @@ $build = [int]$versionMatch.Groups[4].Value
 Write-Host "  Current version: $major.$minor.$patch+$build" -ForegroundColor White
 
 # --- 2. Увеличиваем версию ---
-Write-Host "`n[2/5] Incrementing $Level version..." -ForegroundColor Yellow
+Write-Host "`n[2/7] Incrementing $Level version..." -ForegroundColor Yellow
 
 switch ($Level) {
     'major' {
@@ -97,7 +101,7 @@ $newVersionDisplay = "$major.$minor.$patch"
 Write-Host "  New version: $newVersion" -ForegroundColor Green
 
 # --- 3. Обновляем pubspec.yaml ---
-Write-Host "`n[3/5] Updating pubspec.yaml..." -ForegroundColor Yellow
+Write-Host "`n[3/7] Updating pubspec.yaml..." -ForegroundColor Yellow
 
 $newContent = $content -replace 'version:\s*\d+\.\d+\.\d+\+\d+', "version: $newVersion"
 Set-Content $pubspecPath -Value $newContent -NoNewline
@@ -105,7 +109,7 @@ Set-Content $pubspecPath -Value $newContent -NoNewline
 Write-Host "  pubspec.yaml updated successfully" -ForegroundColor Green
 
 # --- 4. Обновляем version_info.dart ---
-Write-Host "`n[4/5] Updating lib/core/version_info.dart..." -ForegroundColor Yellow
+Write-Host "`n[4/7] Updating lib/core/version_info.dart..." -ForegroundColor Yellow
 
 $versionInfoContent = Get-Content $versionInfoPath -Raw
 $versionInfoContent = $versionInfoContent -replace "static const String version = '[\d.]+'", "static const String version = '$newVersionDisplay'"
@@ -114,8 +118,52 @@ Set-Content $versionInfoPath -Value $versionInfoContent -NoNewline
 
 Write-Host "  version_info.dart updated successfully" -ForegroundColor Green
 
-# --- 5. Сборка проекта ---
-Write-Host "`n[5/5] Building Windows release..." -ForegroundColor Yellow
+# --- 5. Формируем --dart-define из переменных окружения ---
+Write-Host "`n[5/7] Resolving --dart-define values..." -ForegroundColor Yellow
+
+# Список всех required dart-defines для Firebase
+$firebaseDefines = @(
+    'FIREBASE_ANDROID_API_KEY',
+    'FIREBASE_ANDROID_APP_ID',
+    'FIREBASE_IOS_API_KEY',
+    'FIREBASE_IOS_APP_ID',
+    'FIREBASE_WEB_API_KEY',
+    'FIREBASE_WEB_APP_ID',
+    'FIREBASE_MESSAGING_SENDER_ID',
+    'FIREBASE_PROJECT_ID',
+    'FIREBASE_AUTH_DOMAIN',
+    'FIREBASE_STORAGE_BUCKET',
+    'FIREBASE_IOS_BUNDLE_ID',
+    'FIREBASE_VAPID_KEY',
+    'GOOGLE_SIGNIN_CLIENT_ID'
+)
+
+$dartDefineArgs = @()
+$missingVars = @()
+
+foreach ($define in $firebaseDefines) {
+    $value = [Environment]::GetEnvironmentVariable($define)
+    if ([string]::IsNullOrEmpty($value)) {
+        $missingVars += $define
+    } else {
+        $dartDefineArgs += "--dart-define=$define=$value"
+    }
+}
+
+if ($missingVars.Count -gt 0) {
+    Write-Host "  WARNING: Missing environment variables:" -ForegroundColor Yellow
+    foreach ($var in $missingVars) {
+        Write-Host "    - $var" -ForegroundColor Yellow
+    }
+    Write-Host "  Build will FAIL if these are required at compile time." -ForegroundColor Yellow
+    Write-Host "  Set them before running this script, e.g.:" -ForegroundColor Gray
+    Write-Host "    `$env:FIREBASE_PROJECT_ID = 'zenbalance-app-295e3'" -ForegroundColor Gray
+}
+
+$dartDefineString = if ($dartDefineArgs.Count -gt 0) { "--release $($dartDefineArgs -join ' ')" } else { "--release" }
+
+# --- 6. Сборка проекта ---
+Write-Host "`n[6/7] Building Windows release..." -ForegroundColor Yellow
 
 # Fix for CMake 4.x compatibility: Firebase SDK uses cmake_minimum_required(VERSION 3.5)
 # which is no longer supported by CMake 4.x without this policy flag.
@@ -129,9 +177,10 @@ if (Test-Path $buildDir) {
     Remove-Item -Path $buildDir -Recurse -Force
 }
 
-Write-Host "  Running: flutter build windows --release" -ForegroundColor Gray
+$buildCommand = "flutter build windows $dartDefineString"
+Write-Host "  Running: $buildCommand" -ForegroundColor Gray
 
-$buildOutput = flutter build windows --release 2>&1
+$buildOutput = Invoke-Expression $buildCommand 2>&1
 $buildSuccess = $LASTEXITCODE -eq 0
 
 if (-not $buildSuccess) {
@@ -142,7 +191,7 @@ if (-not $buildSuccess) {
 
 Write-Host "  Build completed successfully!" -ForegroundColor Green
 
-# --- 6. Копируем с версией в имени ---
+# --- 7. Копируем с версией в имени ---
 $sourceDir = "$projectRoot\build\windows\x64\runner\Release"
 $outputDir = "$projectRoot\release_builds"
 
