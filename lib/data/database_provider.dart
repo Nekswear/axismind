@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:path/path.dart' as p;
 
 import 'session.dart';
@@ -109,15 +110,30 @@ class DatabaseProvider {
 
   /// Initializes the database with schema and migrations.
   Future<void> _init() async {
-    final dbPath = await getDatabasesPath();
-    final path = p.join(dbPath, _dbName);
+    // На веб-платформе используем FFI (SQLite через WebAssembly)
+    if (kIsWeb) {
+      // Используем databaseFactoryFfiWebNoWebWorker (без shared worker)
+      // для простоты — всё работает в основном потоке
+      final dbPath = '$_dbName';
+      _db = await databaseFactoryFfiWebNoWebWorker.openDatabase(
+        dbPath,
+        options: OpenDatabaseOptions(
+          version: _dbVersion,
+          onCreate: _onCreate,
+          onUpgrade: _onUpgrade,
+        ),
+      );
+    } else {
+      final dbPath = await getDatabasesPath();
+      final path = p.join(dbPath, _dbName);
 
-    _db = await openDatabase(
-      path,
-      version: _dbVersion,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+      _db = await openDatabase(
+        path,
+        version: _dbVersion,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+      );
+    }
   }
 
   /// Creates the initial database schema.

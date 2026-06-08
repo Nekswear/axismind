@@ -134,7 +134,7 @@ class ChartSection extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 28,
-              interval: 1,
+              interval: _chartDays >= 30 ? 5 : (_chartDays >= 14 ? 2 : 1),
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index < 0 || index >= stats.length) {
@@ -153,6 +153,7 @@ class ChartSection extends StatelessWidget {
               },
             ),
           ),
+
         ),
         minY: 0,
         maxY: chartMaxY,

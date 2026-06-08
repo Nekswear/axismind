@@ -20,14 +20,21 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Инициализируем Firebase (нужен для AuthService и Firestore)
+  // Инициализируем Firebase (нужен для AuthService и Firestore).
+  // На Android с google-services.json можно вызывать без options.
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    await Firebase.initializeApp();
     debugPrint('[MAIN] Firebase initialized successfully');
   } catch (e) {
-    debugPrint('[MAIN] Firebase initialization failed (non-fatal): $e');
+    try {
+      // Fallback: пробуем с options (для платформ без google-services.json)
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      debugPrint('[MAIN] Firebase initialized with options');
+    } catch (e2) {
+      debugPrint('[MAIN] Firebase initialization failed (non-fatal): $e2');
+    }
   }
 
   // Инициализируем сервисы (БД, Auth, SyncRepository)
@@ -40,7 +47,9 @@ void main() async {
     await NotificationService.instance.init();
     debugPrint('[MAIN] NotificationService initialized successfully');
   } catch (e) {
-    debugPrint('[MAIN] NotificationService initialization failed (non-fatal): $e');
+    debugPrint(
+      '[MAIN] NotificationService initialization failed (non-fatal): $e',
+    );
   }
 
   runApp(const ZenBalanceApp());
@@ -61,10 +70,7 @@ class ZenBalanceApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ru'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('ru')],
       localeResolutionCallback: (locale, supportedLocales) {
         // Если язык системы не поддерживается — используем английский
         if (locale == null) return const Locale('en');

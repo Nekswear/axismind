@@ -90,9 +90,7 @@ class _TimerPageState extends State<TimerPage> {
       final locator = AppServiceLocator.instance;
       final syncRepo = locator.syncRepo;
       if (syncRepo == null) {
-        _sessionSaved = false;
-        _isSaving = false;
-        return;
+        throw StateError('SyncRepository не инициализирован');
       }
 
       _repository ??= AnalyticsRepository(syncRepo);
@@ -109,9 +107,8 @@ class _TimerPageState extends State<TimerPage> {
         // ignore: use_build_context_synchronously
         context: context,
         barrierDismissible: false,
-        builder: (_) => JournalDialog(
-          durationSeconds: _controller.totalSeconds,
-        ),
+        builder: (_) =>
+            JournalDialog(durationSeconds: _controller.totalSeconds),
       );
 
       if (journalResult != null && context.mounted) {
@@ -200,7 +197,8 @@ class _TimerPageState extends State<TimerPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return PopScope(
       canPop: false,
@@ -236,9 +234,7 @@ class _TimerPageState extends State<TimerPage> {
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: zen.focusGradient,
-          ),
+          decoration: BoxDecoration(gradient: zen.focusGradient),
           child: SafeArea(
             child: Stack(
               children: [
@@ -266,7 +262,9 @@ class _TimerPageState extends State<TimerPage> {
                 Center(
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: isLandscape ? zen.spacingUnit * 2 : zen.spacingUnit * 4,
+                      horizontal: isLandscape
+                          ? zen.spacingUnit * 2
+                          : zen.spacingUnit * 4,
                     ),
                     child: isLandscape
                         ? Row(
@@ -311,7 +309,11 @@ class _TimerPageState extends State<TimerPage> {
     );
   }
 
-  Widget _buildTimerCard(ThemeData theme, ZenStyles zen, [bool isLandscape = false]) {
+  Widget _buildTimerCard(
+    ThemeData theme,
+    ZenStyles zen, [
+    bool isLandscape = false,
+  ]) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
@@ -402,10 +404,10 @@ class _TimerPageState extends State<TimerPage> {
           builder: (context, seconds, _) {
             final isRunning = _controller.isRunning;
             return _TimerControlButton(
-              icon: isRunning
-                  ? Icons.pause_rounded
-                  : Icons.play_arrow_rounded,
-              label: isRunning ? AppLocalizations.of(context)!.timerPause : AppLocalizations.of(context)!.timerResume,
+              icon: isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              label: isRunning
+                  ? AppLocalizations.of(context)!.timerPause
+                  : AppLocalizations.of(context)!.timerResume,
               onPressed: () {
                 if (isRunning) {
                   _controller.stop();
@@ -457,9 +459,7 @@ class _TimerControlButton extends StatelessWidget {
               label: Text(label),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white.withValues(alpha: 0.6),
-                side: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.25),
-                ),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),

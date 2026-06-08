@@ -47,6 +47,9 @@ app.*.map.json
 # Release builds (compiled binaries)
 /release_builds/
 
+# Environment variables with real API keys — must NOT be committed
+.env
+
 # Firebase configuration files with API keys — must NOT be committed
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist

@@ -24,7 +24,7 @@ import 'package:zenbalance/data/database_provider.dart';
 import 'package:zenbalance/data/analytics_repository.dart';
 import 'package:zenbalance/data/sync_repository.dart';
 import 'package:zenbalance/domain/progress_calculator.dart';
-import 'package:zenbalance/services/auth_service.dart';
+import '../mocks/mock_auth_service.dart';
 
 // =============================================================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -38,7 +38,7 @@ Future<Database> createInMemoryDatabase() async {
   final db = await databaseFactory.openDatabase(
     ':memory:',
     options: OpenDatabaseOptions(
-      version: 2,
+      version: 8,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE sessions (
@@ -47,7 +47,8 @@ Future<Database> createInMemoryDatabase() async {
             seconds INTEGER NOT NULL,
             note TEXT,
             mood_rating INTEGER,
-            tag TEXT
+            tag TEXT,
+            updated_at TEXT
           )
         ''');
         await db.execute('''
@@ -65,7 +66,7 @@ Future<Database> createInMemoryDatabase() async {
 /// чистая БД + свежий репозиторий.
 Future<AnalyticsRepository> createTestRepository(Database db) async {
   final dbProvider = DatabaseProvider.forTest(db);
-  final syncRepo = SyncRepository(localDb: dbProvider, auth: AuthService());
+  final syncRepo = SyncRepository(localDb: dbProvider, auth: MockAuthService());
   return AnalyticsRepository(syncRepo);
 }
 
@@ -324,8 +325,8 @@ void main() {
       expect(ProgressCalculator.getRank(6), equals('Мастер баланса'));
     });
 
-    test('Уровень 10 → "Мастер баланса"', () {
-      expect(ProgressCalculator.getRank(10), equals('Мастер баланса'));
+    test('Уровень 10 → "Странник глубин"', () {
+      expect(ProgressCalculator.getRank(10), equals('Странник глубин'));
     });
   });
 }

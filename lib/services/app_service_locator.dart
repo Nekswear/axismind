@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 import '../data/database_provider.dart';
@@ -54,10 +55,22 @@ class AppServiceLocator {
     }
 
     // Инициализация SyncRepository (только если БД и Auth доступны)
+    // Всегда передаём Firestore.instance, даже если Firebase не инициализировался
+    // — SyncRepository сам обработает null-случай внутри
+    final firestore = _tryGetFirestore();
     if (locator._db != null && locator._authService != null) {
       locator._syncRepo = SyncRepository(
         localDb: locator._db!,
         auth: locator._authService!,
+        firestore: firestore,
+      );
+    } else if (locator._db != null) {
+      // Если Auth не работает — создаём SyncRepository только с локальной БД
+      // (данные будут сохраняться локально, синхронизация будет при следующем входе)
+      locator._syncRepo = SyncRepository(
+        localDb: locator._db!,
+        auth: locator._authService ?? AuthService(),
+        firestore: firestore,
       );
     }
 
@@ -80,6 +93,7 @@ class AppServiceLocator {
   SyncRepository? _syncRepo;
   GoalsRepository? _goalsRepo;
   NotificationRepository? _notificationRepo;
+
   /// DatabaseProvider (может быть null, если БД не инициализирована).
   DatabaseProvider? get db => _db;
 
@@ -94,6 +108,17 @@ class AppServiceLocator {
 
   /// NotificationRepository (может быть null, если БД не инициализирована).
   NotificationRepository? get notificationRepo => _notificationRepo;
+
+  /// Пытается получить FirebaseFirestore.instance.
+  /// Возвращает null, если Firestore не инициализирован.
+  static FirebaseFirestore? _tryGetFirestore() {
+    try {
+      return FirebaseFirestore.instance;
+    } catch (e) {
+      debugPrint('Firestore not available: $e');
+      return null;
+    }
+  }
 
   /// Wakelock поддерживается только на мобильных платформах.
   static bool get isWakelockSupported {

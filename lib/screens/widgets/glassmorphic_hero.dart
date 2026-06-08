@@ -40,6 +40,10 @@ class GlassmorphicHero extends StatefulWidget {
   /// Если null — кнопка входа не показывается.
   final VoidCallback? onAuthTap;
 
+  /// Колбэк для выхода из аккаунта.
+  /// Если null — кнопка выхода не показывается.
+  final VoidCallback? onSignOutTap;
+
   /// Отображаемое имя пользователя (если авторизован).
   final String? displayName;
 
@@ -54,6 +58,7 @@ class GlassmorphicHero extends StatefulWidget {
     this.isDesktop = false,
     this.isAuthenticated = false,
     this.onAuthTap,
+    this.onSignOutTap,
     this.displayName,
     this.photoUrl,
   });
@@ -159,10 +164,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(zen.cardRadius),
-          border: Border.all(
-            color: ZenColors.border,
-            width: 1,
-          ),
+          border: Border.all(color: ZenColors.border, width: 1),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(zen.cardRadius),
@@ -187,21 +189,14 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
           Positioned.fill(
             child: BackdropFilter(
               filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                color: ZenColors.surface.withValues(alpha: 0.4),
-              ),
+              child: Container(color: ZenColors.surface.withValues(alpha: 0.4)),
             ),
           ),
           // Золотой градиент
           Positioned.fill(
             child: Transform(
               transform: Matrix4.identity()
-                ..translateByDouble(
-                  _tiltX * 30,
-                  _tiltY * 30,
-                  0,
-                  1,
-                ),
+                ..translateByDouble(_tiltX * 30, _tiltY * 30, 0, 1),
               child: Container(
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
@@ -223,12 +218,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
           Positioned.fill(
             child: Transform(
               transform: Matrix4.identity()
-                ..translateByDouble(
-                  -_tiltX * 8,
-                  -_tiltY * 8,
-                  0,
-                  1,
-                ),
+                ..translateByDouble(-_tiltX * 8, -_tiltY * 8, 0, 1),
               child: content,
             ),
           ),
@@ -241,26 +231,15 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
       decoration: BoxDecoration(
         color: ZenColors.surface.withValues(alpha: 0.5),
         gradient: RadialGradient(
-          colors: [
-            ZenColors.gold.withValues(alpha: 0.12),
-            Colors.transparent,
-          ],
+          colors: [ZenColors.gold.withValues(alpha: 0.12), Colors.transparent],
           radius: 1.2,
-          center: Alignment(
-            _tiltX.clamp(-0.5, 0.5),
-            _tiltY.clamp(-0.5, 0.5),
-          ),
+          center: Alignment(_tiltX.clamp(-0.5, 0.5), _tiltY.clamp(-0.5, 0.5)),
         ),
         borderRadius: BorderRadius.circular(zen.cardRadius),
       ),
       child: Transform(
         transform: Matrix4.identity()
-          ..translateByDouble(
-            -_tiltX * 8,
-            -_tiltY * 8,
-            0,
-            1,
-          ),
+          ..translateByDouble(-_tiltX * 8, -_tiltY * 8, 0, 1),
         child: content,
       ),
     );
@@ -276,7 +255,11 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
       ..translateByDouble(_tiltX * 15, _tiltY * 15, 0, 1);
   }
 
-  Widget _buildCardContent(BuildContext context, ThemeData theme, ZenStyles zen) {
+  Widget _buildCardContent(
+    BuildContext context,
+    ThemeData theme,
+    ZenStyles zen,
+  ) {
     return Padding(
       padding: EdgeInsets.all(zen.spacingUnit * 3),
       child: Column(
@@ -328,7 +311,9 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      AppLocalizations.of(context)!.rankLevel(widget.progression.level.toString()),
+                      AppLocalizations.of(
+                        context,
+                      )!.rankLevel(widget.progression.level.toString()),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: ZenColors.textSecondary,
                       ),
@@ -349,9 +334,13 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     );
   }
 
-  Widget _buildProfileRow(BuildContext context, ThemeData theme, ZenStyles zen) {
+  Widget _buildProfileRow(
+    BuildContext context,
+    ThemeData theme,
+    ZenStyles zen,
+  ) {
     if (widget.isAuthenticated) {
-      // Авторизован: показываем аватар и имя
+      // Авторизован: показываем аватар, имя и кнопку выхода
       return Padding(
         padding: EdgeInsets.only(bottom: zen.spacingUnit * 2),
         child: Row(
@@ -366,20 +355,35 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
               CircleAvatar(
                 radius: 16,
                 backgroundColor: ZenColors.gold.withValues(alpha: 0.2),
-                child: Icon(
-                  Icons.person,
-                  size: 18,
-                  color: ZenColors.gold,
-                ),
+                child: Icon(Icons.person, size: 18, color: ZenColors.gold),
               ),
             SizedBox(width: zen.spacingUnit),
             Text(
-              widget.displayName ?? AppLocalizations.of(context)!.userPlaceholder,
+              widget.displayName ??
+                  AppLocalizations.of(context)!.userPlaceholder,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: ZenColors.textSecondary,
                 fontSize: 13,
               ),
             ),
+            const Spacer(),
+            // Кнопка выхода
+            if (widget.onSignOutTap != null)
+              SizedBox(
+                height: 30,
+                child: TextButton.icon(
+                  onPressed: widget.onSignOutTap,
+                  icon: Icon(
+                    Icons.logout,
+                    size: 14,
+                    color: ZenColors.textMuted,
+                  ),
+                  label: const Text(
+                    'Выйти',
+                    style: TextStyle(fontSize: 11, color: ZenColors.textMuted),
+                  ),
+                ),
+              ),
           ],
         ),
       );
@@ -402,9 +406,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
           ),
           style: OutlinedButton.styleFrom(
             foregroundColor: ZenColors.gold,
-            side: BorderSide(
-              color: ZenColors.gold.withValues(alpha: 0.5),
-            ),
+            side: BorderSide(color: ZenColors.gold.withValues(alpha: 0.5)),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
@@ -425,10 +427,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(
-              begin: 0,
-              end: widget.xpProgress.progress,
-            ),
+            tween: Tween<double>(begin: 0, end: widget.xpProgress.progress),
             duration: const Duration(milliseconds: 1000),
             curve: Curves.easeOutCubic,
             builder: (context, value, _) {
@@ -445,7 +444,9 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
         ),
         SizedBox(height: zen.spacingUnit),
         Text(
-          AppLocalizations.of(context)!.rankRemainingToNext(widget.xpProgress.remainingMinutes.toString()),
+          AppLocalizations.of(
+            context,
+          )!.rankRemainingToNext(widget.xpProgress.remainingMinutes.toString()),
           style: theme.textTheme.bodySmall?.copyWith(
             color: ZenColors.textSecondary,
             fontSize: 13,
@@ -459,11 +460,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.local_fire_department,
-          color: Colors.orange[300],
-          size: 24,
-        ),
+        Icon(Icons.local_fire_department, color: Colors.orange[300], size: 24),
         SizedBox(width: zen.spacingUnit),
         Text(
           '${widget.progression.streak} ${widget.progression.streak == 1 ? AppLocalizations.of(context)!.statsStreakUnit : AppLocalizations.of(context)!.statsStreakUnitPlural}',

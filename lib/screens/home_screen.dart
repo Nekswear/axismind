@@ -10,7 +10,9 @@ import '../core/widgets/zen_ui.dart';
 import '../data/analytics_repository.dart';
 import '../data/goals_repository.dart';
 import '../data/meditation_goal.dart';
+import '../data/sync_repository.dart';
 import '../domain/progress_calculator.dart';
+import '../services/auth_service.dart';
 import '../engine/timer_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../services/app_service_locator.dart';
@@ -85,7 +87,9 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       final locator = AppServiceLocator.instance;
       final auth = locator.authService;
-      debugPrint('[DIAG] AuthService available: ${auth != null}, DB available: ${locator.db != null}');
+      debugPrint(
+        '[DIAG] AuthService available: ${auth != null}, DB available: ${locator.db != null}',
+      );
 
       // Устанавливаем начальное состояние аутентификации
       _updateAuthState(auth?.currentUser);
@@ -122,20 +126,26 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _loadProgression() async {
     debugPrint('[DIAG] _loadProgression() started');
 
-    // Пробуем получить сервисы, но не падаем, если их нет
     try {
       final locator = AppServiceLocator.instance;
       final db = locator.db;
-      final auth = locator.authService;
-      final syncRepo = locator.syncRepo;
 
-      if (db == null || auth == null || syncRepo == null) {
-        debugPrint('[DIAG] _loadProgression: services not ready, db=$db, auth=$auth, syncRepo=$syncRepo');
+      if (db == null) {
+        debugPrint('[DIAG] _loadProgression: db is null, skipping');
         if (mounted) setState(() => _loading = false);
         return;
       }
 
-      _repository ??= AnalyticsRepository(syncRepo);
+      // Создаём репозиторий через SyncRepository (с локальной БД)
+      if (_repository == null) {
+        final syncRepo =
+            locator.syncRepo ??
+            SyncRepository(
+              localDb: db,
+              auth: locator.authService ?? AuthService(),
+            );
+        _repository = AnalyticsRepository(syncRepo);
+      }
       _repository!.goalsRepo = locator.goalsRepo;
       debugPrint('[DIAG] _loadProgression: fetching data...');
 
@@ -165,7 +175,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// Загружает прогресс целей.
   Future<List<GoalWithProgress>> _loadGoalsProgress(
-      GoalsRepository? goalsRepo) async {
+    GoalsRepository? goalsRepo,
+  ) async {
     if (goalsRepo == null) return [];
 
     try {
@@ -194,16 +205,16 @@ class _HomeScreenState extends State<HomeScreen>
   Future<int> _getTodayMinutes() async {
     try {
       final now = DateTime.now();
-      final dateStr =
-          '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
+      final dateStr = '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
       // end должен быть следующим днём, т.к. SQL запрос использует timestamp < end
       final tomorrow = now.add(const Duration(days: 1));
       final tomorrowStr =
           '${tomorrow.year}-${_pad(tomorrow.month)}-${_pad(tomorrow.day)}';
-      final sessions =
-          await _repository!.syncRepo.getSessionsInRange(dateStr, tomorrowStr);
-      final totalSeconds =
-          sessions.fold<int>(0, (sum, s) => sum + s.seconds);
+      final sessions = await _repository!.syncRepo.getSessionsInRange(
+        dateStr,
+        tomorrowStr,
+      );
+      final totalSeconds = sessions.fold<int>(0, (sum, s) => sum + s.seconds);
       return (totalSeconds / 60).floor();
     } catch (_) {
       return 0;
@@ -221,11 +232,12 @@ class _HomeScreenState extends State<HomeScreen>
       final tomorrow = now.add(const Duration(days: 1));
       final endStr =
           '${tomorrow.year}-${_pad(tomorrow.month)}-${_pad(tomorrow.day)}';
-      final sessions =
-          await _repository!.syncRepo.getSessionsInRange(startStr, endStr);
+      final sessions = await _repository!.syncRepo.getSessionsInRange(
+        startStr,
+        endStr,
+      );
       final sessionCount = sessions.length;
-      final totalSeconds =
-          sessions.fold<int>(0, (sum, s) => sum + s.seconds);
+      final totalSeconds = sessions.fold<int>(0, (sum, s) => sum + s.seconds);
       return (sessionCount, (totalSeconds / 60).floor());
     } catch (_) {
       return (0, 0);
@@ -240,17 +252,19 @@ class _HomeScreenState extends State<HomeScreen>
 
     final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => AuthScreen(authService: auth),
-      ),
+      MaterialPageRoute(builder: (_) => AuthScreen(authService: auth)),
     );
 
     if (result == true && mounted) {
-      // После успешного входа — мигрируем локальные данные в облако
+      // После успешного входа — сначала подтягиваем данные из облака,
+      // затем мигрируем локальные данные в облако
       final user = auth.currentUser;
       if (user != null) {
         final syncRepo = AppServiceLocator.instance.syncRepo;
         if (syncRepo != null) {
+          // 1. Сначала скачиваем все облачные сессии в локальную БД
+          await syncRepo.syncFromCloud();
+          // 2. Затем загружаем локальные данные в облако
           await syncRepo.migrateLocalToCloud(user.uid);
         }
       }
@@ -258,13 +272,29 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
+  Future<void> _signOut() async {
+    try {
+      final auth = AppServiceLocator.instance.authService;
+      if (auth == null) return;
+
+      await auth.signOut();
+      if (mounted) {
+        _updateAuthState(null);
+        _loadProgression();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Вы вышли из аккаунта')));
+      }
+    } catch (e) {
+      debugPrint('Ошибка выхода: $e');
+    }
+  }
+
   Future<void> _navigateToTimer() async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => TimerPage(
-          durationInMinutes: _durationMinutes.toInt(),
-        ),
+        builder: (_) => TimerPage(durationInMinutes: _durationMinutes.toInt()),
       ),
     );
     _loadProgression();
@@ -295,9 +325,7 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _navigateToNotificationSettings() async {
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const NotificationSettingsScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()),
     );
     if (changed == true && mounted) {
       _loadProgression();
@@ -316,9 +344,13 @@ class _HomeScreenState extends State<HomeScreen>
         builder: (context, constraints) {
           // Desktop/Web: ширина > 800 И высота > 600 (чтобы ландшафт на телефоне
           // не триггерил десктопный макет, где нет мобильной кнопки "Начать практику")
-          final isDesktop = kIsWeb || (constraints.maxWidth > 800 && constraints.maxHeight > 600);
+          final isDesktop =
+              kIsWeb ||
+              (constraints.maxWidth > 800 && constraints.maxHeight > 600);
           final isCompact = constraints.maxHeight < 600;
-          debugPrint('[DIAG] LayoutBuilder: w=${constraints.maxWidth}, h=${constraints.maxHeight}, isDesktop=$isDesktop, isCompact=$isCompact');
+          debugPrint(
+            '[DIAG] LayoutBuilder: w=${constraints.maxWidth}, h=${constraints.maxHeight}, isDesktop=$isDesktop, isCompact=$isCompact',
+          );
 
           if (isDesktop) {
             return _buildDesktopLayout(theme, zen);
@@ -356,7 +388,9 @@ class _HomeScreenState extends State<HomeScreen>
   // ===========================================================================
 
   Widget _buildMobileLayout(ThemeData theme, ZenStyles zen, bool isCompact) {
-    final horizontalPadding = isCompact ? zen.spacingUnit * 2 : zen.spacingUnit * 4;
+    final horizontalPadding = isCompact
+        ? zen.spacingUnit * 2
+        : zen.spacingUnit * 4;
     final gapScale = isCompact ? 0.5 : 1.0;
 
     return SingleChildScrollView(
@@ -377,6 +411,7 @@ class _HomeScreenState extends State<HomeScreen>
                   isDesktop: false,
                   isAuthenticated: _isAuthenticated,
                   onAuthTap: _openAuthScreen,
+                  onSignOutTap: _signOut,
                   displayName: _displayName,
                   photoUrl: _photoUrl,
                 ),
@@ -569,7 +604,11 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildDurationPresets(ThemeData theme, ZenStyles zen, [bool isCompact = false]) {
+  Widget _buildDurationPresets(
+    ThemeData theme,
+    ZenStyles zen, [
+    bool isCompact = false,
+  ]) {
     return Column(
       children: [
         Text(

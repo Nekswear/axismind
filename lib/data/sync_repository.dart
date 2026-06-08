@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
-import '../services/auth_service.dart';
+import '../services/auth_service_interface.dart';
 import 'database_provider.dart';
 import 'session.dart';
 
@@ -20,8 +20,8 @@ import 'session.dart';
 /// - SQLite быстрее для локальных запросов (агрегации, фильтрация)
 class SyncRepository {
   final DatabaseProvider _localDb;
-  final FirebaseFirestore _firestore;
-  final AuthService _auth;
+  final FirebaseFirestore? _firestore;
+  final AuthServiceInterface _auth;
 
   /// Флаг, предотвращающий race condition при параллельных вызовах
   /// [_syncSessionsFromCloud]. Если синхронизация уже выполняется,
@@ -37,15 +37,18 @@ class SyncRepository {
 
   SyncRepository({
     required DatabaseProvider localDb,
-    required AuthService auth,
+    required AuthServiceInterface auth,
     FirebaseFirestore? firestore,
-  })  : _localDb = localDb,
-        _auth = auth,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  }) : _localDb = localDb,
+       _auth = auth,
+       _firestore = firestore;
 
   /// Коллекция сессий пользователя в Firestore.
-  CollectionReference<Map<String, dynamic>> _sessionsCollection(String userId) {
-    return _firestore.collection('users').doc(userId).collection('sessions');
+  /// Возвращает null, если Firestore не настроен (например, в тестах).
+  CollectionReference<Map<String, dynamic>>? _sessionsCollection(
+    String userId,
+  ) {
+    return _firestore?.collection('users').doc(userId).collection('sessions');
   }
 
   // =========================================================================
@@ -100,9 +103,7 @@ class SyncRepository {
         updates['updated_at'] = now;
 
         if (updates.isNotEmpty) {
-          await _sessionsCollection(user.uid)
-              .doc(sessionId)
-              .update(updates);
+          await _sessionsCollection(user.uid)?.doc(sessionId).update(updates);
         }
       } catch (e) {
         debugPrint('Firestore update failed (offline): $e');
@@ -119,7 +120,7 @@ class SyncRepository {
     final user = _auth.currentUser;
     if (user != null && deleted) {
       try {
-        await _sessionsCollection(user.uid).doc(sessionId).delete();
+        await _sessionsCollection(user.uid)?.doc(sessionId).delete();
       } catch (e) {
         debugPrint('Firestore delete failed (offline): $e');
       }
@@ -192,8 +193,7 @@ class SyncRepository {
   // =========================================================================
 
   /// Суммарная длительность в секундах.
-  Future<int> getTotalDurationSeconds() =>
-      _localDb.getTotalDurationSeconds();
+  Future<int> getTotalDurationSeconds() => _localDb.getTotalDurationSeconds();
 
   /// Количество сессий.
   Future<int> getSessionCount() => _localDb.getSessionCount();
@@ -217,6 +217,15 @@ class SyncRepository {
   // Синхронизация
   // =========================================================================
 
+  /// Публичный метод синхронизации данных из Firestore в локальную БД.
+  ///
+  /// Вызывается после входа в аккаунт, чтобы подтянуть облачные данные.
+  Future<void> syncFromCloud() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    await _syncSessionsFromCloud(user.uid);
+  }
+
   /// Миграция всех локальных данных в облако.
   ///
   /// Вызывается один раз после первого входа пользователя.
@@ -237,15 +246,17 @@ class SyncRepository {
         return;
       }
 
-      final batch = _firestore.batch();
+      final batch = _firestore?.batch();
       final sessionsRef = _sessionsCollection(userId);
 
-      for (final session in localSessions) {
-        final docRef = sessionsRef.doc(session.id);
-        batch.set(docRef, session.toMap(), SetOptions(merge: true));
-      }
+      if (batch != null && sessionsRef != null) {
+        for (final session in localSessions) {
+          final docRef = sessionsRef.doc(session.id);
+          batch.set(docRef, session.toMap(), SetOptions(merge: true));
+        }
 
-      await batch.commit();
+        await batch.commit();
+      }
       _migrationComplete = true;
       debugPrint(
         'Migrated ${localSessions.length} sessions to cloud for user $userId',
@@ -272,7 +283,9 @@ class SyncRepository {
 
     _syncInProgress = true;
     try {
-      final cloudSnapshots = await _sessionsCollection(userId).get();
+      final cloudSnapshots = await _sessionsCollection(userId)?.get();
+
+      if (cloudSnapshots == null) return;
 
       for (final doc in cloudSnapshots.docs) {
         try {
@@ -297,9 +310,9 @@ class SyncRepository {
   /// Отправить одну сессию в облако.
   Future<void> _syncSessionToCloud(String userId, Session session) async {
     try {
-      await _sessionsCollection(userId)
-          .doc(session.id)
-          .set(session.toMap(), SetOptions(merge: true));
+      await _sessionsCollection(
+        userId,
+      )?.doc(session.id).set(session.toMap(), SetOptions(merge: true));
     } catch (e) {
       debugPrint('Firestore write failed (offline): $e');
     }
