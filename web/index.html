@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="ZenBalance — осознанная медитация, таймер и трекер сессий, статистика.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="ZenBalance">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>ZenBalance</title>
+  <link rel="manifest" href="manifest.json">
+
+  <script>
+    // =============================================================================
+    // ⚠️ ВАЖНО: Все API-ключи Firebase передаются через --dart-define при сборке.
+    //    Этот файл НЕ должен содержать реальных ключей.
+    //    Для локальной разработки: flutter run --dart-define=FIREBASE_...=
+    // =============================================================================
+  </script>
+</head>
+<body>
+  <!-- This script installs service_worker.js to provide PWA functionality for
+       application offline or when the user can't connect. -->
+  <script>
+    var serviceWorkerVersion = null;
+    var scriptLoaded = false;
+
+    function loadMainDartJs() {
+      if (scriptLoaded) { return; }
+      scriptLoaded = true;
+      var scriptTag = document.createElement('script');
+      scriptTag.src = 'main.dart.js';
+      scriptTag.type = 'application/javascript';
+      document.body.appendChild(scriptTag);
+    }
+
+    if ('serviceWorker' in navigator) {
+      // Service workers are supported. Use them.
+      window.addEventListener('load', function () {
+        // Wait for registration to finish before dropping the <script> tag.
+        // Otherwise, the browser will load the script multiple times,
+        // potentially for different SW versions.
+        var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
+        navigator.serviceWorker.register(serviceWorkerUrl)
+        .then(function (reg) {
+          if (!reg.active && !reg.installing && !reg.waiting) {
+            return;
+          }
+          if (!reg.active) {
+            // SW is installing/activating, wait for it to become active.
+            reg.addEventListener('statechange', function (e) {
+              if (e.target.state == 'activated') {
+                loadMainDartJs();
+              }
+            });
+          } else {
+            // SW is already active, load main.dart.js.
+            loadMainDartJs();
+          }
+        }).catch(function () {
+          // Service worker registration failed, load main.dart.js directly.
+          loadMainDartJs();
+        });
+
+        // If service worker doesn't activate within 20 seconds, load main.dart.js anyway.
+        window.setTimeout(function () {
+          loadMainDartJs();
+        }, 20000);
+      });
+    } else {
+      // Service workers are not supported. Just load main.dart.js.
+      loadMainDartJs();
+    }
+  </script>
+</body>
+</html>
