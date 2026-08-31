@@ -9,7 +9,7 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appTitle => 'ZenBalance';
+  String get appTitle => 'AxisMind';
 
   @override
   String get startPractice => 'НАЧАТЬ ПРАКТИКУ';
@@ -170,7 +170,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get userPlaceholder => 'Пользователь';
 
   @override
-  String get paywallTitle => 'Откройте полный\nпотенциал ZenBalance';
+  String get paywallTitle => 'Откройте полный\nпотенциал AxisMind';
 
   @override
   String get try7DaysFree => 'Попробуйте 7 дней бесплатно';
@@ -646,7 +646,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guideHeroLabel => 'Alex Merch Foundation';
 
   @override
-  String get guideTitle => 'ZenBalance';
+  String get guideTitle => 'AxisMind';
 
   @override
   String get guideSubtitle => 'Рациональный путь к ясности ума';
@@ -780,7 +780,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get guideQuote => 'Ваш ум — ваш главный актив.';
 
   @override
-  String get guideFooter => 'ALEX MERCH • ZENBALANCE SYSTEM • 2026';
+  String get guideFooter => 'ALEX MERCH • AXISMIND SYSTEM • 2026';
 
   @override
   String levelUpTitle(Object level) {
@@ -927,7 +927,51 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get subscriptionGuardLoading => 'ZenBalance';
+  String get rankStatusCompleted => 'Пройден';
+
+  @override
+  String get rankStatusCurrent => 'Текущий ранг';
+
+  @override
+  String get rankStatusLocked => 'Ещё не доступен';
+
+  @override
+  String rankLevelRangeOpen(Object min) {
+    return '$min+ ур.';
+  }
+
+  @override
+  String rankLevelRangeSingle(Object min) {
+    return '$min ур.';
+  }
+
+  @override
+  String rankLevelRangeMulti(Object min, Object max) {
+    return '$min–$max ур.';
+  }
+
+  @override
+  String rankMinutesRequired(Object minutes) {
+    return '$minutes мин';
+  }
+
+  @override
+  String rankMinutesRequiredThousands(Object value) {
+    return '$value тыс. мин';
+  }
+
+  @override
+  String rankMinutesTotal(Object minutes) {
+    return '$minutes мин всего';
+  }
+
+  @override
+  String rankMinutesTotalThousands(Object value) {
+    return '$value тыс. мин всего';
+  }
+
+  @override
+  String get subscriptionGuardLoading => 'AxisMind';
 
   @override
   String get samadhiExitHint => 'Нажмите Пробел или кликните для выхода';

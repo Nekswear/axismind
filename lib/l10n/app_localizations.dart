@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'ZenBalance'**
+  /// **'AxisMind'**
   String get appTitle;
 
   /// No description provided for @startPractice.
@@ -407,7 +407,7 @@ abstract class AppLocalizations {
   /// No description provided for @paywallTitle.
   ///
   /// In en, this message translates to:
-  /// **'Unlock the full\npotential of ZenBalance'**
+  /// **'Unlock the full\npotential of AxisMind'**
   String get paywallTitle;
 
   /// No description provided for @try7DaysFree.
@@ -1295,7 +1295,7 @@ abstract class AppLocalizations {
   /// No description provided for @guideTitle.
   ///
   /// In en, this message translates to:
-  /// **'ZenBalance'**
+  /// **'AxisMind'**
   String get guideTitle;
 
   /// No description provided for @guideSubtitle.
@@ -1535,7 +1535,7 @@ abstract class AppLocalizations {
   /// No description provided for @guideFooter.
   ///
   /// In en, this message translates to:
-  /// **'ALEX MERCH • ZENBALANCE SYSTEM • 2026'**
+  /// **'ALEX MERCH • AXISMIND SYSTEM • 2026'**
   String get guideFooter;
 
   /// No description provided for @levelUpTitle.
@@ -1796,10 +1796,70 @@ abstract class AppLocalizations {
   /// **'{minutes} min remaining to next level'**
   String rankRemainingToNext(Object minutes);
 
+  /// No description provided for @rankStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get rankStatusCompleted;
+
+  /// No description provided for @rankStatusCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current rank'**
+  String get rankStatusCurrent;
+
+  /// No description provided for @rankStatusLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available yet'**
+  String get rankStatusLocked;
+
+  /// No description provided for @rankLevelRangeOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'{min}+ lvl'**
+  String rankLevelRangeOpen(Object min);
+
+  /// No description provided for @rankLevelRangeSingle.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} lvl'**
+  String rankLevelRangeSingle(Object min);
+
+  /// No description provided for @rankLevelRangeMulti.
+  ///
+  /// In en, this message translates to:
+  /// **'{min}–{max} lvl'**
+  String rankLevelRangeMulti(Object min, Object max);
+
+  /// No description provided for @rankMinutesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String rankMinutesRequired(Object minutes);
+
+  /// No description provided for @rankMinutesRequiredThousands.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}K min'**
+  String rankMinutesRequiredThousands(Object value);
+
+  /// No description provided for @rankMinutesTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min total'**
+  String rankMinutesTotal(Object minutes);
+
+  /// No description provided for @rankMinutesTotalThousands.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}K min total'**
+  String rankMinutesTotalThousands(Object value);
+
   /// No description provided for @subscriptionGuardLoading.
   ///
   /// In en, this message translates to:
-  /// **'ZenBalance'**
+  /// **'AxisMind'**
   String get subscriptionGuardLoading;
 
   /// No description provided for @samadhiExitHint.

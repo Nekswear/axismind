@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/zen_theme.dart';
 import '../../domain/progress_calculator.dart';
 import '../../l10n/app_localizations.dart';
+import '../../l10n/rank_localization.dart';
 
 // =============================================================================
 // RankRoadmap — визуальная дорожная карта всех рангов
@@ -223,7 +224,10 @@ class _RankRoadmapState extends State<RankRoadmap>
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  _formatMinutes(widget.totalMinutes),
+                  _formatMinutes(
+                    widget.totalMinutes,
+                    AppLocalizations.of(context)!,
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: ZenColors.textSecondary,
                   ),
@@ -290,12 +294,12 @@ class _RankRoadmapState extends State<RankRoadmap>
     );
   }
 
-  String _formatMinutes(int minutes) {
+  String _formatMinutes(int minutes, AppLocalizations l10n) {
     if (minutes >= 1000) {
       final thousands = (minutes / 1000).toStringAsFixed(1);
-      return '$thousands k min total';
+      return l10n.rankMinutesTotalThousands(thousands);
     }
-    return '$minutes min total';
+    return l10n.rankMinutesTotal(minutes.toString());
   }
 }
 
@@ -438,7 +442,7 @@ class _TierRow extends StatelessWidget {
                           // Название
                           Expanded(
                             child: Text(
-                              tier.title,
+                              tier.rank.title(AppLocalizations.of(context)!),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 color: isCurrent
                                     ? ZenColors.gold
@@ -461,7 +465,7 @@ class _TierRow extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                'Вы здесь',
+                                AppLocalizations.of(context)!.rankYouAreHere,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: ZenColors.gold,
                                   fontSize: 10,
@@ -474,7 +478,7 @@ class _TierRow extends StatelessWidget {
                       const SizedBox(height: 4),
                       // Описание
                       Text(
-                        tier.description,
+                        tier.rank.description(AppLocalizations.of(context)!),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: isCurrent
                               ? ZenColors.textSecondary
@@ -495,7 +499,7 @@ class _TierRow extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            tier.levelRange,
+                            tier.levelRange(AppLocalizations.of(context)!),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: isCurrent
                                   ? ZenColors.gold.withValues(alpha: 0.7)
@@ -513,7 +517,7 @@ class _TierRow extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            tier.minutesFormatted,
+                            tier.minutesFormatted(AppLocalizations.of(context)!),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: isCurrent
                                   ? ZenColors.gold.withValues(alpha: 0.7)
@@ -595,7 +599,7 @@ class _TierRow extends StatelessWidget {
 
             // Название
             Text(
-              tier.title,
+              tier.rank.title(AppLocalizations.of(context)!),
               style: theme.textTheme.headlineMedium?.copyWith(
                 color: isCurrent ? ZenColors.gold : ZenColors.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -617,10 +621,10 @@ class _TierRow extends StatelessWidget {
               ),
               child: Text(
                 isCompleted
-                    ? '✅ Пройден'
+                    ? '✅ ${AppLocalizations.of(context)!.rankStatusCompleted}'
                     : isCurrent
-                        ? '⭐ Текущий ранг'
-                        : '🔒 Ещё не доступен',
+                        ? '⭐ ${AppLocalizations.of(context)!.rankStatusCurrent}'
+                        : '🔒 ${AppLocalizations.of(context)!.rankStatusLocked}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: isCompleted
                       ? Colors.green[300]
@@ -635,7 +639,7 @@ class _TierRow extends StatelessWidget {
 
             // Описание
             Text(
-              tier.description,
+              tier.rank.description(AppLocalizations.of(context)!),
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: ZenColors.textSecondary,
               ),
@@ -646,14 +650,14 @@ class _TierRow extends StatelessWidget {
             // Детали
             _DetailRow(
               icon: Icons.stairs_rounded,
-              label: 'Уровни',
-              value: tier.levelRange,
+              label: AppLocalizations.of(context)!.rankTiers,
+              value: tier.levelRange(AppLocalizations.of(context)!),
             ),
             const SizedBox(height: 8),
             _DetailRow(
               icon: Icons.timer_outlined,
-              label: 'Требуется практики',
-              value: tier.minutesFormatted,
+              label: AppLocalizations.of(context)!.rankRequiredPractice,
+              value: tier.minutesFormatted(AppLocalizations.of(context)!),
             ),
 
             if (isCurrent && progressPercent != null) ...[
@@ -662,7 +666,7 @@ class _TierRow extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Прогресс до следующего ранга',
+                    AppLocalizations.of(context)!.rankProgressToNext,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: ZenColors.textSecondary,
                       fontSize: 12,
@@ -685,7 +689,8 @@ class _TierRow extends StatelessWidget {
               if (remainingMinutes != null) ...[
                 const SizedBox(height: 6),
                 Text(
-                  'Осталось ~$remainingMinutes мин до следующего ранга',
+                  AppLocalizations.of(context)!
+                      .rankRemainingMinutes(remainingMinutes.toString()),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: ZenColors.textMuted,
                     fontSize: 11,

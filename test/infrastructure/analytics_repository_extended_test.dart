@@ -1,5 +1,5 @@
 // =============================================================================
-// ZenBalance — Расширенные Unit-тесты для AnalyticsRepository
+// AxisMind — Расширенные Unit-тесты для AnalyticsRepository
 // =============================================================================
 //
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -34,13 +34,13 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:zenbalance/data/analytics_repository.dart';
-import 'package:zenbalance/data/database_provider.dart';
-import 'package:zenbalance/data/goals_repository.dart';
-import 'package:zenbalance/data/meditation_goal.dart';
-import 'package:zenbalance/data/session.dart';
-import 'package:zenbalance/data/sync_repository.dart';
-import 'package:zenbalance/domain/analytics_result.dart';
+import 'package:axismind/data/analytics_repository.dart';
+import 'package:axismind/data/database_provider.dart';
+import 'package:axismind/data/goals_repository.dart';
+import 'package:axismind/data/meditation_goal.dart';
+import 'package:axismind/data/sync_repository.dart';
+import 'package:axismind/domain/analytics_result.dart';
+import 'package:axismind/domain/progress_calculator.dart';
 import '../mocks/mock_auth_service.dart';
 
 // =============================================================================
@@ -672,7 +672,7 @@ void main() {
       expect(progression, isA<UserProgression>());
       expect(progression.minutes, equals(0));
       expect(progression.level, equals(0));
-      expect(progression.rank, equals('Новичок осознанности'));
+      expect(progression.rank, equals(Rank.novice));
       expect(progression.streak, equals(0));
     });
 
@@ -803,9 +803,9 @@ void main() {
     });
 
     test('getRankTitle() возвращает правильный ранг', () {
-      expect(analyticsRepo.getRankTitle(0), equals('Новичок осознанности'));
-      expect(analyticsRepo.getRankTitle(10), contains('Искатель'));
-      expect(analyticsRepo.getRankTitle(100), contains('Хранитель'));
+      expect(analyticsRepo.getRankTitle(0), equals(Rank.novice));
+      expect(analyticsRepo.getRankTitle(10), equals(Rank.seeker));
+      expect(analyticsRepo.getRankTitle(100), equals(Rank.guardian));
     });
 
     // -------------------------------------------------------------------------

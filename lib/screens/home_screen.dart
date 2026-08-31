@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen>
   UserProgression _progression = const UserProgression(
     minutes: 0,
     level: 0,
-    rank: 'Новичок осознанности',
+    rank: Rank.novice,
   );
   XpProgress _xpProgress = const XpProgress(
     currentXp: 0,

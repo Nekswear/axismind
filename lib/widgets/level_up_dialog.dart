@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/level_up_event.dart';
 import '../l10n/app_localizations.dart';
+import '../l10n/rank_localization.dart';
 
 /// Диалог повышения уровня с высококонтрастным текстом.
 ///
@@ -37,7 +38,7 @@ class LevelUpDialog extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            event.rank,
+            event.rank.title(AppLocalizations.of(context)!),
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               color: Colors.black87,

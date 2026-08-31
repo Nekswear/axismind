@@ -1,5 +1,23 @@
 import 'dart:math';
 
+/// Все возможные ранги пользователя (геймификация).
+///
+/// Enum вместо строк — чтобы названия и описания рангов
+/// локализовались в UI-слое через [Rank.title]/[Rank.description].
+enum Rank {
+  novice,
+  seeker,
+  guardian,
+  master,
+  wanderer,
+  awakened,
+  sage,
+  enlightened,
+  legend,
+  immortal,
+  divine,
+}
+
 /// Статический калькулятор прогресса пользователя.
 ///
 /// Содержит чистую доменную логику расчёта уровня, ранга,
@@ -11,93 +29,83 @@ class ProgressCalculator {
   /// Все доступные тиры рангов в порядке возрастания.
   ///
   /// Используется для отображения Roadmap рангов в UI.
+  /// Название и описание берутся из локализации по [Rank].
   static List<RankTier> get allTiers => [
         RankTier(
           minLevel: 0,
           maxLevel: 0,
-          title: 'Новичок осознанности',
+          rank: Rank.novice,
           emoji: '🌱',
-          description: 'Первый шаг на пути к осознанности',
           minutesRequired: 0,
         ),
         RankTier(
           minLevel: 1,
           maxLevel: 2,
-          title: 'Искатель спокойствия',
+          rank: Rank.seeker,
           emoji: '🌿',
-          description: 'Поиск внутренней гармонии',
           minutesRequired: 10,
         ),
         RankTier(
           minLevel: 3,
           maxLevel: 5,
-          title: 'Хранитель тишины',
+          rank: Rank.guardian,
           emoji: '🪷',
-          description: 'Умение находить тишину внутри',
           minutesRequired: 90,
         ),
         RankTier(
           minLevel: 6,
           maxLevel: 8,
-          title: 'Мастер баланса',
+          rank: Rank.master,
           emoji: '🌸',
-          description: 'Баланс между усилием и покоем',
           minutesRequired: 360,
         ),
         RankTier(
           minLevel: 9,
           maxLevel: 11,
-          title: 'Странник глубин',
+          rank: Rank.wanderer,
           emoji: '🕊️',
-          description: 'Исследование глубин сознания',
           minutesRequired: 810,
         ),
         RankTier(
           minLevel: 12,
           maxLevel: 14,
-          title: 'Пробуждённый',
+          rank: Rank.awakened,
           emoji: '☀️',
-          description: 'Пробуждение внутреннего света',
           minutesRequired: 1440,
         ),
         RankTier(
           minLevel: 15,
           maxLevel: 18,
-          title: 'Мудрец',
+          rank: Rank.sage,
           emoji: '🏔️',
-          description: 'Мудрость, рождённая практикой',
           minutesRequired: 2250,
         ),
         RankTier(
           minLevel: 19,
           maxLevel: 23,
-          title: 'Просветлённый',
+          rank: Rank.enlightened,
           emoji: '✨',
-          description: 'Свет осознанности ведёт вас',
           minutesRequired: 3610,
         ),
         RankTier(
           minLevel: 24,
           maxLevel: 29,
-          title: 'Легенда',
+          rank: Rank.legend,
           emoji: '🔥',
-          description: 'Ваш путь вдохновляет других',
           minutesRequired: 5760,
         ),
         RankTier(
           minLevel: 30,
           maxLevel: 37,
-          title: 'Бессмертный',
+          rank: Rank.immortal,
           emoji: '⚡',
-          description: 'Вневременная практика',
           minutesRequired: 9000,
         ),
         RankTier(
           minLevel: 38,
           maxLevel: null,
-          title: 'Божественный',
+          rank: Rank.divine,
           emoji: '👑',
-          description: 'Вы достигли просветления',
           minutesRequired: 14440,
         ),
       ];
@@ -110,33 +118,33 @@ class ProgressCalculator {
     return sqrt((minutes * 10) / 100).floor();
   }
 
-  /// Возвращает название ранга по уровню.
+  /// Возвращает ранг по уровню.
   ///
   /// Маппинг привязан к уровню (не к минутам), что обеспечивает
   /// единообразие с системой уровней:
-  ///   0       → "Новичок осознанности"
-  ///   1–2     → "Искатель спокойствия"
-  ///   3–5     → "Хранитель тишины"
-  ///   6–8     → "Мастер баланса"
-  ///   9–11    → "Странник глубин"
-  ///   12–14   → "Пробуждённый"
-  ///   15–18   → "Мудрец"
-  ///   19–23   → "Просветлённый"
-  ///   24–29   → "Легенда"
-  ///   30–37   → "Бессмертный"
-  ///   38+     → "Божественный"
-  static String getRank(int level) {
-    if (level >= 38) return 'Божественный';
-    if (level >= 30) return 'Бессмертный';
-    if (level >= 24) return 'Легенда';
-    if (level >= 19) return 'Просветлённый';
-    if (level >= 15) return 'Мудрец';
-    if (level >= 12) return 'Пробуждённый';
-    if (level >= 9) return 'Странник глубин';
-    if (level >= 6) return 'Мастер баланса';
-    if (level >= 3) return 'Хранитель тишины';
-    if (level >= 1) return 'Искатель спокойствия';
-    return 'Новичок осознанности';
+  ///   0       → [Rank.novice]
+  ///   1–2     → [Rank.seeker]
+  ///   3–5     → [Rank.guardian]
+  ///   6–8     → [Rank.master]
+  ///   9–11    → [Rank.wanderer]
+  ///   12–14   → [Rank.awakened]
+  ///   15–18   → [Rank.sage]
+  ///   19–23   → [Rank.enlightened]
+  ///   24–29   → [Rank.legend]
+  ///   30–37   → [Rank.immortal]
+  ///   38+     → [Rank.divine]
+  static Rank getRank(int level) {
+    if (level >= 38) return Rank.divine;
+    if (level >= 30) return Rank.immortal;
+    if (level >= 24) return Rank.legend;
+    if (level >= 19) return Rank.enlightened;
+    if (level >= 15) return Rank.sage;
+    if (level >= 12) return Rank.awakened;
+    if (level >= 9) return Rank.wanderer;
+    if (level >= 6) return Rank.master;
+    if (level >= 3) return Rank.guardian;
+    if (level >= 1) return Rank.seeker;
+    return Rank.novice;
   }
 
   /// Рассчитывает текущую серию (streak) — количество дней подряд
@@ -221,8 +229,8 @@ class ProgressCalculator {
 
 /// Модель одного тира (уровня/ранга) в Roadmap прогресса.
 ///
-/// Содержит информацию о диапазоне уровней, названии, эмодзи,
-/// описании и количестве минут, необходимых для достижения.
+/// Содержит информацию о диапазоне уровней, ранге (для локализации),
+/// эмодзи и количестве минут, необходимых для достижения.
 class RankTier {
   /// Минимальный уровень для этого тира (включительно).
   final int minLevel;
@@ -231,14 +239,12 @@ class RankTier {
   /// `null` означает, что верхней границы нет (например, "Божественный").
   final int? maxLevel;
 
-  /// Название ранга (например, "Новичок осознанности").
-  final String title;
+  /// Ранг тира — используется для получения локализованного названия
+  /// и описания через [Rank.title]/[Rank.description].
+  final Rank rank;
 
   /// Эмодзи-иконка ранга.
   final String emoji;
-
-  /// Короткое описание тира.
-  final String description;
 
   /// Примерное количество минут медитации для достижения этого тира.
   final int minutesRequired;
@@ -246,26 +252,8 @@ class RankTier {
   const RankTier({
     required this.minLevel,
     this.maxLevel,
-    required this.title,
+    required this.rank,
     required this.emoji,
-    required this.description,
     required this.minutesRequired,
   });
-
-  /// Возвращает строку с диапазоном уровней (например, "1–2 ур." или "38+ ур.").
-  String get levelRange {
-    if (maxLevel == null) return '$minLevel+ ур.';
-    if (minLevel == maxLevel) return '$minLevel ур.';
-    return '$minLevel–$maxLevel ур.';
-  }
-
-  /// Форматирует минуты в читаемый вид (например, "1 440+ мин").
-  String get minutesFormatted {
-    final n = minutesRequired;
-    if (n >= 1000) {
-      final thousands = (n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1);
-      return '$thousands тыс. мин';
-    }
-    return '$n мин';
-  }
 }

@@ -1,8 +1,8 @@
 {
   "@@locale": "ru",
-  "@@info": "Русские переводы для приложения медитации ZenBalance",
+  "@@info": "Русские переводы для приложения медитации AxisMind",
 
-  "appTitle": "ZenBalance",
+  "appTitle": "AxisMind",
 
   "startPractice": "НАЧАТЬ ПРАКТИКУ",
   "openPathToClarity": "ОТКРЫТЬ ПУТЬ К ЯСНОСТИ",
@@ -78,7 +78,7 @@
 
   "userPlaceholder": "Пользователь",
 
-  "paywallTitle": "Откройте полный\nпотенциал ZenBalance",
+  "paywallTitle": "Откройте полный\nпотенциал AxisMind",
   "try7DaysFree": "Попробуйте 7 дней бесплатно",
   "thenPrice": "Попробовать 7 дней бесплатно\nзатем {price}",
   "@thenPrice": {
@@ -293,7 +293,7 @@
   "timerRetry": "Повторить",
 
   "guideHeroLabel": "Alex Merch Foundation",
-  "guideTitle": "ZenBalance",
+  "guideTitle": "AxisMind",
   "guideSubtitle": "Рациональный путь к ясности ума",
   "guideFinalEdition": "FINAL EDITION 2026",
   "guideTechnique": "Техника: Сусокукан (Счёт дыхания)",
@@ -333,7 +333,7 @@
   "guideActionSleep": "Энергия. Выпрями спину. Приоткрой глаза. Дыши чуть глубже.",
   "guideWitness": "Будьте Свидетелем.",
   "guideQuote": "Ваш ум — ваш главный актив.",
-  "guideFooter": "ALEX MERCH • ZENBALANCE SYSTEM • 2026",
+  "guideFooter": "ALEX MERCH • AXISMIND SYSTEM • 2026",
 
   "levelUpTitle": "Уровень {level}",
   "@levelUpTitle": {
@@ -405,7 +405,55 @@
     }
   },
 
-  "subscriptionGuardLoading": "ZenBalance",
+  "rankStatusCompleted": "Пройден",
+  "rankStatusCurrent": "Текущий ранг",
+  "rankStatusLocked": "Ещё не доступен",
+
+  "rankLevelRangeOpen": "{min}+ ур.",
+  "@rankLevelRangeOpen": {
+    "placeholders": {
+      "min": {}
+    }
+  },
+  "rankLevelRangeSingle": "{min} ур.",
+  "@rankLevelRangeSingle": {
+    "placeholders": {
+      "min": {}
+    }
+  },
+  "rankLevelRangeMulti": "{min}–{max} ур.",
+  "@rankLevelRangeMulti": {
+    "placeholders": {
+      "min": {},
+      "max": {}
+    }
+  },
+  "rankMinutesRequired": "{minutes} мин",
+  "@rankMinutesRequired": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "rankMinutesRequiredThousands": "{value} тыс. мин",
+  "@rankMinutesRequiredThousands": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "rankMinutesTotal": "{minutes} мин всего",
+  "@rankMinutesTotal": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "rankMinutesTotalThousands": "{value} тыс. мин всего",
+  "@rankMinutesTotalThousands": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+
+  "subscriptionGuardLoading": "AxisMind",
 
   "samadhiExitHint": "Нажмите Пробел или кликните для выхода",
 

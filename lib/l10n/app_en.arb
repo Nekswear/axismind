@@ -1,8 +1,8 @@
 {
   "@@locale": "en",
-  "@@info": "English translations for ZenBalance meditation app",
+  "@@info": "English translations for AxisMind meditation app",
 
-  "appTitle": "ZenBalance",
+  "appTitle": "AxisMind",
 
   "startPractice": "START PRACTICE",
   "openPathToClarity": "OPEN PATH TO CLARITY",
@@ -78,7 +78,7 @@
 
   "userPlaceholder": "User",
 
-  "paywallTitle": "Unlock the full\npotential of ZenBalance",
+  "paywallTitle": "Unlock the full\npotential of AxisMind",
   "try7DaysFree": "Try 7 days free",
   "thenPrice": "then {price}",
   "@thenPrice": {
@@ -293,7 +293,7 @@
   "timerRetry": "Retry",
 
   "guideHeroLabel": "Alex Merch Foundation",
-  "guideTitle": "ZenBalance",
+  "guideTitle": "AxisMind",
   "guideSubtitle": "The rational path to mental clarity",
   "guideFinalEdition": "FINAL EDITION 2026",
   "guideTechnique": "Technique: Susokukan (Breath Counting)",
@@ -333,7 +333,7 @@
   "guideActionSleep": "Energy. Straighten your back. Open your eyes slightly. Breathe a little deeper.",
   "guideWitness": "Be the Witness.",
   "guideQuote": "Your mind — your greatest asset.",
-  "guideFooter": "ALEX MERCH • ZENBALANCE SYSTEM • 2026",
+  "guideFooter": "ALEX MERCH • AXISMIND SYSTEM • 2026",
 
   "levelUpTitle": "Level {level}",
   "@levelUpTitle": {
@@ -405,7 +405,55 @@
     }
   },
 
-  "subscriptionGuardLoading": "ZenBalance",
+  "rankStatusCompleted": "Completed",
+  "rankStatusCurrent": "Current rank",
+  "rankStatusLocked": "Not available yet",
+
+  "rankLevelRangeOpen": "{min}+ lvl",
+  "@rankLevelRangeOpen": {
+    "placeholders": {
+      "min": {}
+    }
+  },
+  "rankLevelRangeSingle": "{min} lvl",
+  "@rankLevelRangeSingle": {
+    "placeholders": {
+      "min": {}
+    }
+  },
+  "rankLevelRangeMulti": "{min}–{max} lvl",
+  "@rankLevelRangeMulti": {
+    "placeholders": {
+      "min": {},
+      "max": {}
+    }
+  },
+  "rankMinutesRequired": "{minutes} min",
+  "@rankMinutesRequired": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "rankMinutesRequiredThousands": "{value}K min",
+  "@rankMinutesRequiredThousands": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "rankMinutesTotal": "{minutes} min total",
+  "@rankMinutesTotal": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "rankMinutesTotalThousands": "{value}K min total",
+  "@rankMinutesTotalThousands": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+
+  "subscriptionGuardLoading": "AxisMind",
 
   "samadhiExitHint": "Press Space or click to exit",
 

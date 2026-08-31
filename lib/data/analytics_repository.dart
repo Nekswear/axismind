@@ -196,11 +196,11 @@ class AnalyticsRepository {
     return ProgressCalculator.calculateLevel(minutes);
   }
 
-  /// Возвращает название ранга по количеству минут.
+  /// Возвращает ранг по количеству минут.
   ///
   /// Делегирует вычисление уровня в [ProgressCalculator.calculateLevel],
   /// затем маппинг ранга — в [ProgressCalculator.getRank].
-  String getRankTitle(int minutes) {
+  Rank getRankTitle(int minutes) {
     final level = ProgressCalculator.calculateLevel(minutes);
     return ProgressCalculator.getRank(level);
   }
@@ -557,8 +557,8 @@ class UserProgression {
   /// Текущий уровень (рассчитывается по формуле).
   final int level;
 
-  /// Название ранга.
-  final String rank;
+  /// Название ранга (enum — локализуется в UI-слое).
+  final Rank rank;
 
   /// Количество дней подряд с медитацией (streak).
   final int streak;

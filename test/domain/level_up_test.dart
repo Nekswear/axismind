@@ -1,5 +1,5 @@
 // =============================================================================
-// ZenBalance — Юнит-тест повышения уровня (Level-Up Event)
+// AxisMind — Юнит-тест повышения уровня (Level-Up Event)
 // =============================================================================
 //
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -19,11 +19,11 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:zenbalance/data/session.dart';
-import 'package:zenbalance/data/database_provider.dart';
-import 'package:zenbalance/data/analytics_repository.dart';
-import 'package:zenbalance/data/sync_repository.dart';
-import 'package:zenbalance/domain/progress_calculator.dart';
+import 'package:axismind/data/session.dart';
+import 'package:axismind/data/database_provider.dart';
+import 'package:axismind/data/analytics_repository.dart';
+import 'package:axismind/data/sync_repository.dart';
+import 'package:axismind/domain/progress_calculator.dart';
 import '../mocks/mock_auth_service.dart';
 
 // =============================================================================
@@ -112,8 +112,8 @@ void main() {
             reason: 'Должно вернуться событие повышения уровня');
         expect(result.levelUp!.level, equals(1),
             reason: 'Новый уровень должен быть 1');
-        expect(result.levelUp!.rank, equals('Искатель спокойствия'),
-            reason: 'Ранг для уровня 1 — "Искатель спокойствия"');
+        expect(result.levelUp!.rank, equals(Rank.seeker),
+            reason: 'Ранг для уровня 1 — Искатель спокойствия');
       },
     );
 
@@ -134,8 +134,8 @@ void main() {
             reason: 'Должно вернуться событие повышения уровня');
         expect(result.levelUp!.level, equals(2),
             reason: 'Новый уровень должен быть 2');
-        expect(result.levelUp!.rank, equals('Искатель спокойствия'),
-            reason: 'Ранг для уровня 2 — "Искатель спокойствия"');
+        expect(result.levelUp!.rank, equals(Rank.seeker),
+            reason: 'Ранг для уровня 2 — Искатель спокойствия');
       },
     );
 
@@ -160,8 +160,8 @@ void main() {
             reason: 'Должно вернуться событие повышения уровня');
         expect(result.levelUp!.level, equals(4),
             reason: 'Новый уровень должен быть 4');
-        expect(result.levelUp!.rank, equals('Хранитель тишины'),
-            reason: 'Ранг для уровня 4 — "Хранитель тишины"');
+        expect(result.levelUp!.rank, equals(Rank.guardian),
+            reason: 'Ранг для уровня 4 — Хранитель тишины');
       },
     );
 
@@ -181,8 +181,8 @@ void main() {
             reason: 'Должно вернуться событие повышения уровня');
         expect(result.levelUp!.level, equals(6),
             reason: 'Новый уровень должен быть 6');
-        expect(result.levelUp!.rank, equals('Мастер баланса'),
-            reason: 'Ранг для уровня 6 — "Мастер баланса"');
+        expect(result.levelUp!.rank, equals(Rank.master),
+            reason: 'Ранг для уровня 6 — Мастер баланса');
       },
     );
   });
@@ -301,32 +301,32 @@ void main() {
   // 4. Проверка рангов
   // ---------------------------------------------------------------------------
   group('🏷 Проверка рангов', () {
-    test('Уровень 0 → "Новичок осознанности"', () {
-      expect(ProgressCalculator.getRank(0), equals('Новичок осознанности'));
+    test('Уровень 0 → Rank.novice', () {
+      expect(ProgressCalculator.getRank(0), equals(Rank.novice));
     });
 
-    test('Уровень 1 → "Искатель спокойствия"', () {
-      expect(ProgressCalculator.getRank(1), equals('Искатель спокойствия'));
+    test('Уровень 1 → Rank.seeker', () {
+      expect(ProgressCalculator.getRank(1), equals(Rank.seeker));
     });
 
-    test('Уровень 2 → "Искатель спокойствия"', () {
-      expect(ProgressCalculator.getRank(2), equals('Искатель спокойствия'));
+    test('Уровень 2 → Rank.seeker', () {
+      expect(ProgressCalculator.getRank(2), equals(Rank.seeker));
     });
 
-    test('Уровень 3 → "Хранитель тишины"', () {
-      expect(ProgressCalculator.getRank(3), equals('Хранитель тишины'));
+    test('Уровень 3 → Rank.guardian', () {
+      expect(ProgressCalculator.getRank(3), equals(Rank.guardian));
     });
 
-    test('Уровень 5 → "Хранитель тишины"', () {
-      expect(ProgressCalculator.getRank(5), equals('Хранитель тишины'));
+    test('Уровень 5 → Rank.guardian', () {
+      expect(ProgressCalculator.getRank(5), equals(Rank.guardian));
     });
 
-    test('Уровень 6 → "Мастер баланса"', () {
-      expect(ProgressCalculator.getRank(6), equals('Мастер баланса'));
+    test('Уровень 6 → Rank.master', () {
+      expect(ProgressCalculator.getRank(6), equals(Rank.master));
     });
 
-    test('Уровень 10 → "Странник глубин"', () {
-      expect(ProgressCalculator.getRank(10), equals('Странник глубин'));
+    test('Уровень 10 → Rank.wanderer', () {
+      expect(ProgressCalculator.getRank(10), equals(Rank.wanderer));
     });
   });
 }

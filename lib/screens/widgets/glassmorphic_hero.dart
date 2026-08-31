@@ -7,6 +7,7 @@ import '../../core/theme/zen_theme.dart';
 import '../../core/widgets/zen_ui.dart';
 import '../../data/analytics_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../l10n/rank_localization.dart';
 import 'gyro_controller.dart';
 import 'mouse_tilt_controller.dart';
 import 'rank_roadmap.dart';
@@ -303,7 +304,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.progression.rank,
+                      widget.progression.rank.title(AppLocalizations.of(context)!),
                       style: theme.textTheme.headlineMedium?.copyWith(
                         color: ZenColors.textPrimary,
                         fontSize: widget.isCompact ? 18 : 22,

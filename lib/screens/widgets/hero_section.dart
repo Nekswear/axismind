@@ -4,6 +4,7 @@ import '../../core/theme/zen_theme.dart';
 import '../../core/widgets/zen_ui.dart';
 import '../../data/analytics_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../l10n/rank_localization.dart';
 
 /// Hero section with gradient card, rank icon, XP bar, and streak.
 class HeroSection extends StatelessWidget {
@@ -43,7 +44,7 @@ class HeroSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      progression.rank,
+                      progression.rank.title(AppLocalizations.of(context)!),
                       style: theme.textTheme.headlineMedium?.copyWith(
                         color: Colors.white,
                       ),
