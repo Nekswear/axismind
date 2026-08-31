@@ -1,5 +1,5 @@
 // =============================================================================
-// ZenBalance — Unit-тесты для NotificationSettings модели
+// AxisMind — Unit-тесты для NotificationSettings модели
 // =============================================================================
 //
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -17,7 +17,7 @@
 // =============================================================================
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zenbalance/data/notification_settings.dart';
+import 'package:axismind/data/notification_settings.dart';
 
 void main() {
   group('📋 NotificationSettings — конструктор и значения по умолчанию', () {

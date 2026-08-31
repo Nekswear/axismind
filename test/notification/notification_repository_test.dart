@@ -1,5 +1,5 @@
 // =============================================================================
-// ZenBalance — Unit-тесты для NotificationRepository
+// AxisMind — Unit-тесты для NotificationRepository
 // =============================================================================
 //
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -17,9 +17,9 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:zenbalance/data/database_provider.dart';
-import 'package:zenbalance/data/notification_repository.dart';
-import 'package:zenbalance/data/notification_settings.dart';
+import 'package:axismind/data/database_provider.dart';
+import 'package:axismind/data/notification_repository.dart';
+import 'package:axismind/data/notification_settings.dart';
 
 /// Создаёт in-memory DatabaseProvider для тестов.
 Future<DatabaseProvider> createTestDbProvider() async {

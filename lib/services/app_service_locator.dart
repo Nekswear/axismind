@@ -7,7 +7,7 @@ import '../data/notification_repository.dart';
 import '../data/sync_repository.dart';
 import 'auth_service.dart';
 
-/// Единый сервис-локатор для ZenBalance.
+/// Единый сервис-локатор для AxisMind.
 ///
 /// Предоставляет синглтоны всех сервисов приложения.
 /// Инициализируется один раз в [AppServiceLocator.initialize].

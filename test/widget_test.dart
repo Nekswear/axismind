@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:zenbalance/main.dart';
+import 'package:axismind/main.dart';
 
 void main() {
-  testWidgets('ZenBalance app displays welcome screen', (
+  testWidgets('AxisMind app displays welcome screen', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const ZenBalanceApp());
+    await tester.pumpWidget(const AxisMindApp());
 
     // В состоянии загрузки отображается скелетон (ранг ещё не загружен)
     // Проверяем, что кнопка "Начать практику" присутствует

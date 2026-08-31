@@ -52,16 +52,16 @@ void main() async {
     );
   }
 
-  runApp(const ZenBalanceApp());
+  runApp(const AxisMindApp());
 }
 
-class ZenBalanceApp extends StatelessWidget {
-  const ZenBalanceApp({super.key});
+class AxisMindApp extends StatelessWidget {
+  const AxisMindApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ZenBalance',
+      title: 'AxisMind',
       debugShowCheckedModeBanner: false,
       theme: ZenTheme.build(),
       localizationsDelegates: const [

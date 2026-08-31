@@ -8,7 +8,7 @@ import '../domain/level_up_event.dart';
 const int minDuration = 1;
 const int maxDuration = 60;
 
-/// Контроллер таймера для ZenBalance.
+/// Контроллер таймера для AxisMind.
 ///
 /// Использует [ValueNotifier<int>] для отслеживания оставшихся секунд,
 /// что позволяет обновлять только виджеты, подписанные на этот notifier,

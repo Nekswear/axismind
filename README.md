@@ -1,4 +1,4 @@
-# zenbalance
+# axismind
 
 A new Flutter project.
 

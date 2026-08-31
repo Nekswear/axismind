@@ -37,7 +37,7 @@ class DatabaseProvider {
   static const int _dbVersion = 8;
 
   /// Database name.
-  static const String _dbName = 'zenbalance.db';
+  static const String _dbName = 'axismind.db';
 
   /// Table name for meditation sessions.
   static const String tableSessions = 'sessions';

@@ -1,5 +1,5 @@
 // =============================================================================
-// ZenBalance — Комплексный аудит слоя персистентности (Data Layer)
+// AxisMind — Комплексный аудит слоя персистентности (Data Layer)
 // =============================================================================
 //
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -30,8 +30,8 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:zenbalance/data/session.dart';
-import 'package:zenbalance/data/database_provider.dart' as provider;
+import 'package:axismind/data/session.dart';
+import 'package:axismind/data/database_provider.dart' as provider;
 
 // =============================================================================
 // 1. АРХИТЕКТУРА ТЕСТОВОГО ОКРУЖЕНИЯ (In-Memory Setup)

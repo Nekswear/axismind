@@ -1,5 +1,5 @@
 // =============================================================================
-// ZenBalance — Widget-тесты для NotificationSettingsScreen
+// AxisMind — Widget-тесты для NotificationSettingsScreen
 // =============================================================================
 //
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -21,7 +21,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zenbalance/screens/notification_settings_screen.dart';
+import 'package:axismind/screens/notification_settings_screen.dart';
 
 void main() {
   testWidgets('NotificationSettingsScreen отображает заголовок', (

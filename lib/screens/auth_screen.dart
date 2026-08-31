@@ -68,7 +68,7 @@ class AuthScreen extends StatelessWidget {
 
                 // Название
                 Text(
-                  'ZenBalance',
+                  'AxisMind',
                   style: theme.textTheme.headlineLarge?.copyWith(
                     fontFamily: 'PlayfairDisplay',
                     fontWeight: FontWeight.w700,

@@ -1,11 +1,11 @@
 {
-    "name": "zenbalance",
-    "short_name": "zenbalance",
+    "name": "AxisMind",
+    "short_name": "AxisMind",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "AxisMind — осознанная медитация, таймер и трекер сессий, статистика.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

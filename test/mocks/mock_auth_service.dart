@@ -1,5 +1,5 @@
 // =============================================================================
-// ZenBalance — Mock-заглушка для AuthServiceInterface
+// AxisMind — Mock-заглушка для AuthServiceInterface
 // =============================================================================
 //
 // Используется в unit-тестах для изоляции от Firebase.
@@ -7,13 +7,13 @@
 //
 // ╔══════════════════════════════════════════════════════════════════════════╗
 // ║  ИСПОЛЬЗОВАНИЕ:                                                        ║
-// ║    import 'package:zenbalance/mocks/mock_auth_service.dart';            ║
+// ║    import 'package:axismind/mocks/mock_auth_service.dart';            ║
 // ║    final auth = MockAuthService();                                      ║
 // ║    final syncRepo = SyncRepository(localDb: db, auth: auth);            ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:zenbalance/services/auth_service_interface.dart';
+import 'package:axismind/services/auth_service_interface.dart';
 
 /// Простая заглушка сервиса аутентификации для тестов.
 ///

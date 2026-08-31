@@ -8,14 +8,14 @@ class VersionInfo {
 
   /// Версия приложения (должна совпадать с pubspec.yaml).
   /// Формат: major.minor.patch
-  static const String version = '2.1.0';
+  static const String version = '1.0.0';
 
   /// Номер сборки.
-  static const int buildNumber = 7;
+  static const int buildNumber = 1;
 
   /// Полная строка версии для отображения.
   static String get displayVersion => 'v$version+$buildNumber';
 
   /// Название приложения с версией.
-  static String get appNameWithVersion => 'ZenBalance $displayVersion';
+  static String get appNameWithVersion => 'AxisMind $displayVersion';
 }

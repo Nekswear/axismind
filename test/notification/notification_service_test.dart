@@ -1,5 +1,5 @@
 // =============================================================================
-// ZenBalance — Unit-тесты для NotificationService
+// AxisMind — Unit-тесты для NotificationService
 // =============================================================================
 //
 // ╔══════════════════════════════════════════════════════════════════════════╗
@@ -22,8 +22,8 @@
 // =============================================================================
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zenbalance/data/notification_settings.dart';
-import 'package:zenbalance/services/notification_service.dart';
+import 'package:axismind/data/notification_settings.dart';
+import 'package:axismind/services/notification_service.dart';
 
 void main() {
   group('🔇 isTimeInQuietHours — чистая функция', () {

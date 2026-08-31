@@ -3,7 +3,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 
 // =============================================================================
-// ZenBalance Design System — Premium Dark Theme
+// AxisMind Design System — Premium Dark Theme
 // =============================================================================
 //
 // Palette:
@@ -21,7 +21,7 @@ import 'package:flutter/material.dart';
 // 1. TOKENS
 // ---------------------------------------------------------------------------
 
-/// Единый реестр дизайн-токенов ZenBalance.
+/// Единый реестр дизайн-токенов AxisMind.
 class ZenStyles extends ThemeExtension<ZenStyles> {
   // -- Скругления -----------------------------------------------------------
   final double cardRadius;
@@ -148,7 +148,7 @@ class ZenColors {
 // 3. ТЕМА
 // ---------------------------------------------------------------------------
 
-/// Фабрика полной тёмной темы ZenBalance (Material 3 + ZenStyles).
+/// Фабрика полной тёмной темы AxisMind (Material 3 + ZenStyles).
 class ZenTheme {
   ZenTheme._();
 

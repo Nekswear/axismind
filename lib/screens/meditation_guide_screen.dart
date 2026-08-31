@@ -3,7 +3,7 @@
 // =============================================================================
 //
 // Содержит 5 секций:
-//   1. Hero (тёмная) — ZenBalance, подзаголовок, плашка FINAL EDITION 2026
+//   1. Hero (тёмная) — AxisMind, подзаголовок, плашка FINAL EDITION 2026
 //   2. Сусокукан (светлая) — интерактивный счётчик дыхания
 //   3. Геометрия Дзадзен (светлая) — три карточки
 //   4. Преодоление сопротивления (светлая) — таблица 3×3
@@ -134,9 +134,9 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
             const _Label(text: 'Alex Merch Foundation'),
             SizedBox(height: isLandscape ? 12 : 20),
 
-            // Заголовок ZenBalance
+            // Заголовок AxisMind
             Text(
-              'ZenBalance',
+              'AxisMind',
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
@@ -780,7 +780,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
 
             // Футер
             Text(
-              'ALEX MERCH • ZENBALANCE SYSTEM • 2026',
+              'ALEX MERCH • AXISMIND SYSTEM • 2026',
               style: TextStyle(
                 fontFamily: 'Manrope',
                 fontSize: 11,

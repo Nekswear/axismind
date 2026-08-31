@@ -20,7 +20,7 @@ $pubspecPath = "pubspec.yaml"
 $versionInfoPath = "lib/core/version_info.dart"
 $projectRoot = Get-Location
 
-Write-Host "=== ZenBalance Release Builder ===" -ForegroundColor Cyan
+Write-Host "=== AxisMind Release Builder ===" -ForegroundColor Cyan
 Write-Host "Project root: $projectRoot" -ForegroundColor Gray
 
 # --- 0. Интерактивный выбор уровня версии ---
@@ -157,7 +157,7 @@ if ($missingVars.Count -gt 0) {
     }
     Write-Host "  Build will FAIL if these are required at compile time." -ForegroundColor Yellow
     Write-Host "  Set them before running this script, e.g.:" -ForegroundColor Gray
-    Write-Host "    `$env:FIREBASE_PROJECT_ID = 'zenbalance-app-295e3'" -ForegroundColor Gray
+    Write-Host "    `$env:FIREBASE_PROJECT_ID = 'axismind-app-295e3'" -ForegroundColor Gray
 }
 
 $dartDefineString = if ($dartDefineArgs.Count -gt 0) { "--release $($dartDefineArgs -join ' ')" } else { "--release" }
@@ -199,16 +199,16 @@ if (-not (Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 }
 
-$exeName = "ZenBalance_v$newVersionDisplay.exe"
-$zipName = "ZenBalance_v$newVersionDisplay.zip"
+$exeName = "AxisMind_v$newVersionDisplay.exe"
+$zipName = "AxisMind_v$newVersionDisplay.zip"
 
 Write-Host "`n=== Build Summary ===" -ForegroundColor Cyan
 Write-Host "  Version:        $newVersion" -ForegroundColor White
-Write-Host "  Executable:     $sourceDir\zenbalance.exe" -ForegroundColor White
+Write-Host "  Executable:     $sourceDir\axismind.exe" -ForegroundColor White
 Write-Host "  Output folder:  $outputDir" -ForegroundColor White
 
 # Копируем .exe с версией в имени
-Copy-Item "$sourceDir\zenbalance.exe" "$outputDir\$exeName" -Force
+Copy-Item "$sourceDir\axismind.exe" "$outputDir\$exeName" -Force
 Write-Host "  Copied:         $outputDir\$exeName" -ForegroundColor Green
 
 # Создаём ZIP-архив со всеми файлами для portable-версии

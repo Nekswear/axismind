@@ -2,7 +2,7 @@
 import os
 from PIL import Image
 
-SRC = "assets/zenbalance_icon.png"
+SRC = "assets/axismind_icon.png"
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def resize(src_path, size):

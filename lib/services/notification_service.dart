@@ -141,7 +141,7 @@ class NotificationService {
 
     final channels = [
       AndroidNotificationChannel(
-        'zenbalance_reminders',
+        'axismind_reminders',
         'Напоминания',
         description: 'Ежедневные напоминания о медитации',
         importance: Importance.high,
@@ -149,14 +149,14 @@ class NotificationService {
         enableVibration: true,
       ),
       AndroidNotificationChannel(
-        'zenbalance_motivation',
+        'axismind_motivation',
         'Мотивация',
         description: 'Мотивационные сообщения и цитаты',
         importance: Importance.defaultImportance,
         playSound: true,
       ),
       AndroidNotificationChannel(
-        'zenbalance_goals',
+        'axismind_goals',
         'Цели',
         description: 'Уведомления о прогрессе целей',
         importance: Importance.high,
@@ -164,7 +164,7 @@ class NotificationService {
         enableVibration: true,
       ),
       AndroidNotificationChannel(
-        'zenbalance_streak',
+        'axismind_streak',
         'Серия',
         description: 'Поздравления с рекордами дней подряд',
         importance: Importance.high,
@@ -324,7 +324,7 @@ class NotificationService {
     }
 
     final androidDetails = AndroidNotificationDetails(
-      'zenbalance_reminders',
+      'axismind_reminders',
       'Напоминания',
       channelDescription: 'Ежедневные напоминания о медитации',
       importance: Importance.high,
@@ -402,7 +402,7 @@ class NotificationService {
     }
 
     final androidDetails = AndroidNotificationDetails(
-      'zenbalance_goals',
+      'axismind_goals',
       'Цели',
       channelDescription: 'Уведомления о прогрессе целей',
       importance: Importance.high,
@@ -454,7 +454,7 @@ class NotificationService {
   /// Показывает мгновенное уведомление о новом streak-рекорде.
   Future<void> showStreakNotification(int streak) async {
     final androidDetails = AndroidNotificationDetails(
-      'zenbalance_streak',
+      'axismind_streak',
       'Серия',
       channelDescription: 'Поздравления с рекордами дней подряд',
       importance: Importance.high,
@@ -510,7 +510,7 @@ class NotificationService {
         _motivationalQuotes[random.nextInt(_motivationalQuotes.length)];
 
     final androidDetails = AndroidNotificationDetails(
-      'zenbalance_motivation',
+      'axismind_motivation',
       'Мотивация',
       channelDescription: 'Мотивационные сообщения и цитаты',
       importance: Importance.defaultImportance,
@@ -643,7 +643,7 @@ class NotificationService {
         _motivationalQuotes[random.nextInt(_motivationalQuotes.length)];
 
     final androidDetails = AndroidNotificationDetails(
-      'zenbalance_motivation',
+      'axismind_motivation',
       'Мотивация',
       channelDescription: 'Мотивационные сообщения и цитаты',
       importance: Importance.defaultImportance,
@@ -763,13 +763,13 @@ class NotificationService {
   String _channelIdForType(settings.NotificationType type) {
     switch (type) {
       case settings.NotificationType.dailyReminder:
-        return 'zenbalance_reminders';
+        return 'axismind_reminders';
       case settings.NotificationType.motivational:
-        return 'zenbalance_motivation';
+        return 'axismind_motivation';
       case settings.NotificationType.goalReminder:
-        return 'zenbalance_goals';
+        return 'axismind_goals';
       case settings.NotificationType.streakCelebration:
-        return 'zenbalance_streak';
+        return 'axismind_streak';
     }
   }
 

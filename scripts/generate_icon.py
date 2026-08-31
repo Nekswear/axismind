@@ -1,9 +1,9 @@
-"""Generate ZenBalance app icon (512x512 PNG) using Pillow."""
+"""Generate AxisMind app icon (512x512 PNG) using Pillow."""
 from PIL import Image, ImageDraw
 import math
 
 SIZE = 512
-OUTPUT = "assets/zenbalance_icon.png"
+OUTPUT = "assets/axismind_icon.png"
 
 # Colors
 BG_DARK = (26, 26, 46)
