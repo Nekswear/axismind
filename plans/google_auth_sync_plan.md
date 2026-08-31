@@ -71,15 +71,15 @@ users/{userId}/
 
 **Что сделать:**
 1. Перейти на [Firebase Console](https://console.firebase.google.com)
-2. Создать проект (например, `zenbalance`)
+2. Создать проект (например, `axismind`)
 3. Добавить **Android** приложение:
-   - Пакет: `com.example.zenbalance` (из [`android/app/build.gradle.kts`](android/app/build.gradle.kts))
+   - Пакет: `com.axismind.app` (из [`android/app/build.gradle.kts`](android/app/build.gradle.kts))
    - Скачать `google-services.json` → положить в `android/app/`
 4. Добавить **iOS** приложение:
-   - Bundle ID: `com.example.zenbalance` (из [`ios/Runner/Info.plist`](ios/Runner/Info.plist))
+   - Bundle ID: `com.axismind.app` (из [`ios/Runner/Info.plist`](ios/Runner/Info.plist))
    - Скачать `GoogleService-Info.plist` → положить в `ios/Runner/`
 5. Добавить **Web** приложение:
-   - Название: `zenbalance-web`
+   - Название: `axismind-web`
    - Скопировать конфигурацию Firebase в `web/index.html`
 6. Включить **Google** как провайдер в Firebase Auth
 7. Включить **Cloud Firestore** (тестовый режим, потом — правила безопасности)
@@ -325,7 +325,7 @@ class AuthScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('ZenBalance', style: ...),
+            Text('AxisMind', style: ...),
             SizedBox(height: 32),
             ElevatedButton.icon(
               icon: Icon(Icons.login),
@@ -366,7 +366,7 @@ class AuthScreen extends StatelessWidget {
 1. Установить Firebase CLI: `npm install -g firebase-tools`
 2. Войти: `firebase login`
 3. Инициализировать: `firebase init hosting`
-   - Выбрать проект `zenbalance`
+   - Выбрать проект `axismind`
    - Public directory: `build/web`
    - Single-page app: yes
 4. Собрать Web: `flutter build web`
@@ -417,7 +417,7 @@ flowchart TD
 
 ## 5. Бесплатные лимиты Firebase Spark Plan
 
-| Ресурс | Лимит | Для ZenBalance |
+| Ресурс | Лимит | Для AxisMind |
 |---|---|---|
 | Firebase Auth (MAU) | 50 000 | ✅ Более чем достаточно |
 | Firestore reads/day | 50 000 | ✅ ~100 reads/день при 50 сессиях |

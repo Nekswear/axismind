@@ -1,10 +1,10 @@
-# Настройка Firebase проекта для ZenBalance
+# Настройка Firebase проекта для AxisMind
 
 ## 1. Создать Firebase проект
 
 1. Перейдите на [Firebase Console](https://console.firebase.google.com/)
 2. Нажмите **"Создать проект"**
-3. Введите название проекта (например, `zenbalance`)
+3. Введите название проекта (например, `axismind`)
 4. Отключите **Google Analytics** (не нужен для Spark плана)
 5. Нажмите **"Создать проект"**
 
@@ -13,8 +13,8 @@
 ### Android
 
 1. В консоли Firebase нажмите **Android** иконку
-2. Введите `com.example.zenbalance` (пакет приложения)
-3. App nickname: `ZenBalance Android`
+2. Введите `com.axismind.app` (пакет приложения)
+3. App nickname: `AxisMind Android`
 4. Нажмите **"Зарегистрировать приложение"**
 5. **Скачайте** `google-services.json`
 6. Поместите файл в: `android/app/google-services.json`
@@ -23,8 +23,8 @@
 ### iOS
 
 1. В консоли Firebase нажмите **iOS** иконку
-2. Введите `com.example.zenbalance` (Bundle ID)
-3. App nickname: `ZenBalance iOS`
+2. Введите `com.axismind.app` (Bundle ID)
+3. App nickname: `AxisMind iOS`
 4. Нажмите **"Зарегистрировать приложение"**
 5. **Скачайте** `GoogleService-Info.plist`
 6. Откройте `ios/Runner.xcworkspace` в Xcode
@@ -34,7 +34,7 @@
 ### Web
 
 1. В консоли Firebase нажмите **Web** иконку (`</>`)
-2. App nickname: `ZenBalance Web`
+2. App nickname: `AxisMind Web`
 3. Нажмите **"Зарегистрировать приложение"**
 4. Скопируйте объект `firebaseConfig` из появившегося кода
 5. Откройте `web/index.html`
@@ -66,7 +66,7 @@
 1. В консоли Firebase перейдите в **Authentication** → **Sign-in method**
 2. Нажмите **"Добавить новый провайдер"** → **Google**
 3. Включите тумблер **"Включено"**
-4. В поле **"Название проекта для общего доступа"** введите `ZenBalance`
+4. В поле **"Название проекта для общего доступа"** введите `AxisMind`
 5. В поле **"Email для поддержки проекта"** введите ваш email
 6. Нажмите **"Сохранить"**
 
@@ -108,7 +108,7 @@ service cloud.firestore {
 2. Выберите ваш проект
 3. Перейдите в **APIs & Services** → **OAuth consent screen**
 4. Выберите **External** → **Create**
-5. App name: `ZenBalance`
+5. App name: `AxisMind`
 6. User support email: ваш email
 7. Developer contact email: ваш email
 8. Нажмите **Save and Continue**

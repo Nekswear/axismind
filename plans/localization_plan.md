@@ -1,4 +1,4 @@
-# План локализации ZenBalance (RU/EN)
+# План локализации AxisMind (RU/EN)
 
 ## Обзор
 

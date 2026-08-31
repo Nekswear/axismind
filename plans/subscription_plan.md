@@ -1,4 +1,4 @@
-# План внедрения подписки в ZenBalance
+# План внедрения подписки в AxisMind
 
 ## 1. Обзор
 
@@ -164,7 +164,7 @@ class SubscriptionService {
 ### 5.2 [`PaywallScreen`](lib/screens/paywall_screen.dart)
 
 Экран подписки с:
-- Заголовок: "Откройте полный потенциал ZenBalance"
+- Заголовок: "Откройте полный потенциал AxisMind"
 - Список премиум-функций (с иконками)
 - Крупная кнопка "Попробовать 7 дней бесплатно, затем $7/месяц"
 - Текст: "Отмена в любое время"
@@ -172,7 +172,7 @@ class SubscriptionService {
 - Кнопка "Продолжить бесплатно" (закрывает экран)
 - Ссылка на Privacy Policy и Terms of Use
 
-**Дизайн:** в стиле ZenBalance — тёмная тема, золотой акцент, PlayfairDisplay для заголовков.
+**Дизайн:** в стиле AxisMind — тёмная тема, золотой акцент, PlayfairDisplay для заголовков.
 
 ### 5.3 [`SubscriptionRepository`](lib/data/subscription_repository.dart)
 
@@ -203,7 +203,7 @@ class SubscriptionGate extends StatelessWidget {
 
 ### Где применяется:
 
-1. **`NotificationSettingsScreen`** — переключатели "Мотивационные сообщения" и "Напоминания о целях" заблокированы. При попытке включить — показывается paywall или сообщение "Доступно в ZenBalance Premium".
+1. **`NotificationSettingsScreen`** — переключатели "Мотивационные сообщения" и "Напоминания о целях" заблокированы. При попытке включить — показывается paywall или сообщение "Доступно в AxisMind Premium".
 
 2. **`GoalsPanel` / `GoalSettingsScreen`** — кнопка "Добавить цель" ведёт на paywall. Существующие цели продолжают работать (чтобы не злить пользователя).
 
@@ -267,18 +267,18 @@ class SubscriptionGate extends StatelessWidget {
 
 ### 8.1 Google Play Console
 
-1. Создать продукт подписки: `zenbalance_premium_monthly`
+1. Создать продукт подписки: `axismind_premium_monthly`
 2. Цена: $7/месяц
 3. Пробный период: 7 дней
 4. Grace period: 3 дня (чтобы пользователь не потерял доступ сразу при ошибке оплаты)
 
 ### 8.2 RevenueCat Dashboard
 
-1. Создать проект ZenBalance
+1. Создать проект AxisMind
 2. Подключить Google Play (ввести ключ из Play Console)
 3. Подключить App Store (для iOS)
 4. Создать entitlement: `premium`
-5. Привязать продукт `zenbalance_premium_monthly` к entitlement `premium`
+5. Привязать продукт `axismind_premium_monthly` к entitlement `premium`
 6. Получить API ключ для Android и iOS
 
 ### 8.3 Конфигурация в приложении
@@ -382,6 +382,6 @@ graph TD
 
 1. **RevenueCat vs `in_app_purchase`?** — Рекомендую RevenueCat, но если хотите минимум зависимостей — можем использовать нативный плагин.
 2. **API ключи RevenueCat** — нужно будет создать аккаунт в RevenueCat и получить API ключи для Android и iOS.
-3. **Google Play Console** — нужно создать продукт подписки `zenbalance_premium_monthly` с ценой $7/мес и 7-дневным пробным периодом.
+3. **Google Play Console** — нужно создать продукт подписки `axismind_premium_monthly` с ценой $7/мес и 7-дневным пробным периодом.
 4. **iOS** — планируется ли публикация в App Store? Если да, нужно будет настроить подписку и там.
 5. **Grace period** — добавить 3 дня grace period после неудачного платежа?
