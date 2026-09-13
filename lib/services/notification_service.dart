@@ -85,9 +85,6 @@ class NotificationService {
       // 2. Инициализируем локальные уведомления
       await _initLocalNotifications();
 
-      // 3. Запрашиваем разрешения
-      await _requestPermissions();
-
       // 4. Получаем FCM токен
       await _getFcmToken();
 
@@ -101,6 +98,18 @@ class NotificationService {
       }
     } catch (e) {
       debugPrint('[NotificationService] Initialization failed: $e');
+    }
+  }
+
+  /// Requests notification permissions (Android 13+, iOS).
+  ///
+  /// Called from the onboarding at an appropriate moment,
+  /// not during service initialization.
+  Future<void> requestPermission() async {
+    try {
+      await _requestPermissions();
+    } catch (e) {
+      debugPrint('[NotificationService] Failed to request permission: $e');
     }
   }
 

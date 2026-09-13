@@ -142,6 +142,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get authGoogle => 'Войти через Google';
 
   @override
+  String get authSignOut => 'Выйти';
+
+  @override
   String get authContinueWithout => 'Продолжить без входа';
 
   @override

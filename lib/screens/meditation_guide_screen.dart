@@ -21,6 +21,7 @@
 import 'package:flutter/material.dart';
 
 import '../engine/breath_counter.dart';
+import '../l10n/app_localizations.dart';
 import 'statistics_page.dart';
 
 // =============================================================================
@@ -345,12 +346,12 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _CounterButton(
-                label: 'ВЫДОХ',
+                label: AppLocalizations.of(context)!.exhale,
                 onPressed: () => _breathCounter.exhale(),
               ),
               const SizedBox(width: 16),
               _CounterButton(
-                label: 'СБРОС',
+                label: AppLocalizations.of(context)!.reset,
                 onPressed: () => _breathCounter.reset(),
                 isOutlined: true,
               ),

@@ -142,6 +142,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authGoogle => 'Sign in with Google';
 
   @override
+  String get authSignOut => 'Sign out';
+
+  @override
   String get authContinueWithout => 'Continue without sign in';
 
   @override

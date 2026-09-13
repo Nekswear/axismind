@@ -158,32 +158,27 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
   /// Android-устройствах это вызывает сбой рендеринга (синий экран с жёлтым овалом).
   /// Вместо этого используем один `Container` с `BoxDecoration` для фона и градиента,
   /// а контент размещаем поверх через `ClipRRect`.
+  /// Строит содержимое стеклянной карточки без сдвига всего контейнера целиком,
+  /// чтобы дочерние элементы (кнопки) не теряли точность попадания кликов.
   Widget _buildGlassCardContent(ZenStyles zen, Widget content) {
-    return Transform(
-      transform: _buildTransform(),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(zen.cardRadius),
-          border: Border.all(color: ZenColors.border, width: 1),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(zen.cardRadius),
-          child: _buildGlassLayer(zen, content),
-        ),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(zen.cardRadius),
+        border: Border.all(color: ZenColors.border, width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(zen.cardRadius),
+        child: _buildGlassLayer(zen, content),
       ),
     );
   }
 
   /// Строит слой стекла: [BackdropFilter] на desktop/web,
   /// простой полупрозрачный фон на Android.
-  ///
-  /// На Android также добавляет золотой градиент и контр-параллакс контента
-  /// через `BoxDecoration` и `padding` соответственно.
+  /// Параллакс применяется только к фону/градиенту, а сам content остается на месте.
   Widget _buildGlassLayer(ZenStyles zen, Widget content) {
     if (widget.isDesktop) {
-      // Desktop/Web: полноценный эффект матового стекла через Stack
-      // (на desktop проблем с рендерингом нет)
       return Stack(
         children: [
           // BackdropFilter
@@ -193,7 +188,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
               child: Container(color: ZenColors.surface.withValues(alpha: 0.4)),
             ),
           ),
-          // Золотой градиент
+          // Золотой градиент с параллаксом
           Positioned.fill(
             child: Transform(
               transform: Matrix4.identity()
@@ -215,19 +210,20 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
               ),
             ),
           ),
-          // Контент
+          // Контент статичен — клики работают идеально в любой точке
           Positioned.fill(
-            child: Transform(
-              transform: Matrix4.identity()
-                ..translateByDouble(-_tiltX * 8, -_tiltY * 8, 0, 1),
-              child: content,
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: content,
+              ),
             ),
           ),
         ],
       );
     }
 
-    // Android: единый Container с BoxDecoration (без Stack)
+    // Android: единый Container с BoxDecoration (без трансформации контента)
     return Container(
       decoration: BoxDecoration(
         color: ZenColors.surface.withValues(alpha: 0.5),
@@ -238,22 +234,8 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
         ),
         borderRadius: BorderRadius.circular(zen.cardRadius),
       ),
-      child: Transform(
-        transform: Matrix4.identity()
-          ..translateByDouble(-_tiltX * 8, -_tiltY * 8, 0, 1),
-        child: content,
-      ),
+      child: content,
     );
-  }
-
-  Matrix4 _buildTransform() {
-    if (_mouseTilt != null) {
-      return _mouseTilt!.transform;
-    }
-    // Мобильная версия: параллакс через Matrix4
-    return Matrix4.identity()
-      ..setEntry(3, 2, 0.001)
-      ..translateByDouble(_tiltX * 15, _tiltY * 15, 0, 1);
   }
 
   Widget _buildCardContent(
@@ -304,7 +286,9 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.progression.rank.title(AppLocalizations.of(context)!),
+                      widget.progression.rank.title(
+                        AppLocalizations.of(context)!,
+                      ),
                       style: theme.textTheme.headlineMedium?.copyWith(
                         color: ZenColors.textPrimary,
                         fontSize: widget.isCompact ? 18 : 22,
@@ -379,9 +363,12 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
                     size: 14,
                     color: ZenColors.textMuted,
                   ),
-                  label: const Text(
-                    'Выйти',
-                    style: TextStyle(fontSize: 11, color: ZenColors.textMuted),
+                  label: Text(
+                    AppLocalizations.of(context)!.authSignOut,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: ZenColors.textMuted,
+                    ),
                   ),
                 ),
               ),

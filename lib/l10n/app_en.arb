@@ -63,6 +63,7 @@
   "premiumActive": "Premium active",
 
   "authGoogle": "Sign in with Google",
+  "authSignOut": "Sign out",
   "authContinueWithout": "Continue without sign in",
   "authTitle": "Your path to mindfulness",
   "authSubtitle": "Sign in is only used to sync\nyour data between devices",

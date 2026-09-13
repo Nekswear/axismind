@@ -86,6 +86,9 @@ class _TimerPageState extends State<TimerPage> {
   }
 
   Future<void> _saveSession() async {
+    final l10n = AppLocalizations.of(context)!;
+    final errorColor = Theme.of(context).colorScheme.error;
+
     try {
       final locator = AppServiceLocator.instance;
       final syncRepo = locator.syncRepo;
@@ -169,11 +172,10 @@ class _TimerPageState extends State<TimerPage> {
         // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.timerSaveFailed),
-            // ignore: use_build_context_synchronously
-            backgroundColor: Theme.of(context).colorScheme.error,
+            content: Text(l10n.timerSaveFailed),
+            backgroundColor: errorColor,
             action: SnackBarAction(
-              label: AppLocalizations.of(context)!.timerRetry,
+              label: l10n.timerRetry,
               textColor: Colors.white,
               onPressed: () {
                 _sessionSaved = true;

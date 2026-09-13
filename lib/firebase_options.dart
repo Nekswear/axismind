@@ -45,7 +45,6 @@ class DefaultFirebaseOptions {
     'FIREBASE_WEB_API_KEY',
   );
   static const String _webAppId = String.fromEnvironment('FIREBASE_WEB_APP_ID');
-  static const String _vapid = String.fromEnvironment('FIREBASE_VAPID_KEY');
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: _apiKey,

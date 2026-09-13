@@ -114,7 +114,7 @@ class DatabaseProvider {
     if (kIsWeb) {
       // Используем databaseFactoryFfiWebNoWebWorker (без shared worker)
       // для простоты — всё работает в основном потоке
-      final dbPath = '$_dbName';
+      final dbPath = _dbName;
       _db = await databaseFactoryFfiWebNoWebWorker.openDatabase(
         dbPath,
         options: OpenDatabaseOptions(

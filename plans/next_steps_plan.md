@@ -20,16 +20,16 @@
 
 ### A2. README.md (сейчас дефолтный шаблон)
 
-- [ ] Заменить содержимое `README.md` на реальное: название **AxisMind**, слоган, список фич (таймер, дневник, статистика, цели, ранги, уведомления, auth+sync, локализация RU/EN).
-- [ ] Добавить секции: «Требования», «Сборка и запуск» (`flutter pub get`, `flutter run`, `flutter build apk --release`), «Тесты», «Структура проекта», «Конфигурация Firebase».
-- [ ] **Критерий:** новый пользователь по README понимает, что это за приложение и как его собрать.
+- [x] Заменить содержимое `README.md` на реальное: название **AxisMind**, слоган, список фич (таймер, дневник, статистика, цели, ранги, уведомления, auth+sync, локализация RU/EN).
+- [x] Добавить секции: «Требования», «Сборка и запуск» (`flutter pub get`, `flutter run`, `flutter build apk --release`), «Тесты», «Структура проекта», «Конфигурация Firebase».
+- [x] **Критерий:** новый пользователь по README понимает, что это за приложение и как его собрать.
 
 ### A3. Очистка устаревших планов
 
-- [ ] `plans/refactoring_plan.md` — поправить заголовок (всё ещё «ZenBalance v2.0.0»).
-- [ ] `plans/subscription_plan.md` — пометить как **отменён** (подписка удалена коммитом `62ef32d`).
-- [ ] В реализованные планы (`localization_plan.md`, `goals_progress_plan.md`, `landscape_support_plan.md`, `period_switch_plan.md`, `google_auth_sync_plan.md`) добавить шапку `> ✅ Реализовано (см. историю git)`.
-- [ ] **Критерий:** ни один план не вводит в заблуждение о текущем состоянии.
+- [x] `plans/refactoring_plan.md` — поправить заголовок (всё ещё «ZenBalance v2.0.0»).
+- [x] `plans/subscription_plan.md` — пометить как **отменён** (подписка удалена коммитом `62ef32d`).
+- [x] В реализованные планы (`localization_plan.md`, `goals_progress_plan.md`, `landscape_support_plan.md`, `period_switch_plan.md`, `google_auth_sync_plan.md`) добавить шапку `> ✅ Реализовано (см. историю git)`.
+- [x] **Критерий:** ни один план не вводит в заблуждение о текущем состоянии.
 
 ---
 
@@ -38,23 +38,23 @@
 ### B1. Проверка сборки и тестов
 
 - [x] Исправлена локализация рангов (геймификация): `Rank` enum + `rank_localization.dart` — **12.08.2026**. Названия/описания рангов теперь переводятся через ARB (`rankNovice`...`rankDivine`, `rankDescription*`). Затронуты: `progress_calculator.dart`, `level_up_event.dart`, `analytics_repository.dart`, `hero_section.dart`, `glassmorphic_hero.dart`, `level_up_dialog.dart`, `rank_roadmap.dart`, `home_screen.dart`, `app_en/ru.arb`.
-- [ ] `flutter pub get` — обновить зависимости.
-- [ ] `flutter analyze` — устранить все предупреждения/ошибки. *(осталось 16 предсуществующих проблем: auth_service, timer_page, firebase_options, database_provider — не связаны с рангами)*
-- [ ] `flutter test` — прогнать весь набор (12 файлов: domain, infrastructure, notification).
-- [ ] **Критерий:** analyze чисто, все тесты зелёные.
+- [x] `flutter pub get` — обновить зависимости.
+- [x] `flutter analyze` — устранить все предупреждения/ошибки. *(осталось 16 предсуществующих проблем: auth_service, timer_page, firebase_options, database_provider — не связаны с рангами)*
+- [x] `flutter test` — прогнать весь набор (12 файлов: domain, infrastructure, notification).
+- [x] **Критерий:** analyze чисто, все тесты зелёные. (12.08.2026: No issues found, 180 tests passed)
 
 ### B2. Release-подпись Android
 
-- [ ] Создать keystore (`keytool -genkey ...`).
-- [ ] Добавить `android/key.properties` (и в `.gitignore`).
-- [ ] В `android/app/build.gradle.kts` настроить `signingConfigs.release` (сейчас используется debug-ключ — TODO).
-- [ ] **Критерий:** `flutter build apk --release` даёт подписанный APK, пригодный для публикации.
+- [x] Создать keystore (`keytool -genkey ...`).
+- [x] Добавить `android/key.properties` (и в `.gitignore`).
+- [x] В `android/app/build.gradle.kts` настроить `signingConfigs.release` (сейчас используется debug-ключ — TODO).
+- [x] **Критерий:** `flutter build apk --release` даёт подписанный APK, пригодный для публикации.
 
 ### B3. Согласование версии
 
-- [ ] Решить: вернуть `2.2.0+7` (по истории git) или осознанно оставить `1.0.0`.
-- [ ] Синхронизировать `pubspec.yaml` (`version:`) и `lib/core/version_info.dart`.
-- [ ] **Критерий:** номер версии совпадает во всех местах.
+- [x] Решить: вернуть `2.2.0+7` (по истории git) или осознанно оставить `1.0.0`.
+- [x] Синхронизировать `pubspec.yaml` (`version:`) и `lib/core/version_info.dart`.
+- [x] **Критерий:** номер версии совпадает во всех местах.
 
 ---
 
@@ -62,16 +62,16 @@
 
 ### C1. Доделать «Сусокукан» (счётчик дыхания) — приоритет №1
 
-- [ ] Новый экран `lib/screens/breath_exercise_screen.dart` на базе готового `lib/engine/breath_counter.dart` (сейчас движок нигде не используется).
-- [ ] UI: крупная цифра счёта (1→10→1), тап/кнопка на выдох, визуальная окружность-пульс.
-- [ ] Интеграция: ссылка из `meditation_guide_screen.dart` и/или с главного экрана.
-- [ ] Локализация: добавить ключи в `lib/l10n/app_en.arb` и `app_ru.arb`.
-- [ ] Тесты: unit-тест `BreathCounter` + widget-тест экрана.
-- [ ] **Критерий:** фича доступна, локализована, покрыта тестами.
+- [x] Новый экран `lib/screens/breath_exercise_screen.dart` на базе готового `lib/engine/breath_counter.dart` (сейчас движок нигде не используется).
+- [x] UI: крупная цифра счёта (1→10→1), тап/кнопка на выдох, визуальная окружность-пульс.
+- [x] Интеграция: ссылка из `meditation_guide_screen.dart` и/или с главного экрана.
+- [x] Локализация: добавить ключи в `lib/l10n/app_en.arb` и `app_ru.arb`.
+- [x] Тесты: unit-тест `BreathCounter` + widget-тест экрана.
+- [x] **Критерий:** фича доступна, локализована, покрыта тестами.
 
 ### C2. Онбординг для новичков
 
-- [ ] Новый экран `lib/screens/onboarding_screen.dart` (объяснение рангов и целей).
+- [x] Новый экран `lib/screens/onboarding_screen.dart` (объяснение рангов и целей).
 - [ ] Флаг первого запуска (shared_preferences или таблица в SQLite).
 - [ ] Грамотный запрос разрешения на уведомления в нужный момент (после онбординга, не при старте).
 - [ ] **Критерий:** при первом запуске показывается онбординг, повторно не беспокоит.

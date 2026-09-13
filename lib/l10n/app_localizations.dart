@@ -356,6 +356,12 @@ abstract class AppLocalizations {
   /// **'Sign in with Google'**
   String get authGoogle;
 
+  /// No description provided for @authSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get authSignOut;
+
   /// No description provided for @authContinueWithout.
   ///
   /// In en, this message translates to:

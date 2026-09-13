@@ -61,7 +61,8 @@ Future<Database> createDatabase({String inMemoryPath = ':memory:'}) async {
             seconds INTEGER NOT NULL,
             note TEXT,
             mood_rating INTEGER,
-            tag TEXT
+            tag TEXT,
+            updated_at TEXT
           )
         ''');
         await db.execute('''

@@ -10,17 +10,17 @@ void main() {
 
     // В состоянии загрузки отображается скелетон (ранг ещё не загружен)
     // Проверяем, что кнопка "Начать практику" присутствует
-    expect(find.text('Начать практику'), findsOneWidget);
+    expect(find.text('START PRACTICE'), findsOneWidget);
 
     // Проверяем, что пресеты длительности отображаются
-    expect(find.text('Выбери длительность:'), findsOneWidget);
-    expect(find.text('5 мин'), findsOneWidget);
-    expect(find.text('10 мин'), findsOneWidget);
-    expect(find.text('15 мин'), findsOneWidget);
-    expect(find.text('20 мин'), findsOneWidget);
+    expect(find.text('Choose duration'), findsOneWidget);
+    expect(find.text('5 min'), findsOneWidget);
+    expect(find.text('10 min'), findsOneWidget);
+    expect(find.text('15 min'), findsOneWidget);
+    expect(find.text('20 min'), findsOneWidget);
 
     // Проверяем вторичные кнопки
-    expect(find.text('Статистика'), findsOneWidget);
-    expect(find.text('ОТКРЫТЬ ПУТЬ К ЯСНОСТИ'), findsOneWidget);
+    expect(find.text('Statistics'), findsOneWidget);
+    expect(find.text('OPEN PATH TO CLARITY'), findsOneWidget);
   });
 }

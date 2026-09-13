@@ -63,6 +63,7 @@
   "premiumActive": "Premium активно",
 
   "authGoogle": "Войти через Google",
+  "authSignOut": "Выйти",
   "authContinueWithout": "Продолжить без входа",
   "authTitle": "Ваш путь к осознанности",
   "authSubtitle": "Вход используется только для синхронизации\nваших данных между устройствами",

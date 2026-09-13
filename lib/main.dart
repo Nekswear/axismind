@@ -6,8 +6,10 @@ import 'core/theme/zen_theme.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/home_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/app_service_locator.dart';
 import 'services/notification_service.dart';
+import 'services/onboarding_service.dart';
 
 /// Главная точка входа.
 ///
@@ -52,11 +54,14 @@ void main() async {
     );
   }
 
-  runApp(const AxisMindApp());
+  final showOnboarding = await OnboardingService().shouldShow();
+  runApp(AxisMindApp(showOnboarding: showOnboarding));
 }
 
 class AxisMindApp extends StatelessWidget {
-  const AxisMindApp({super.key});
+  final bool showOnboarding;
+
+  const AxisMindApp({super.key, this.showOnboarding = false});
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +86,7 @@ class AxisMindApp extends StatelessWidget {
         }
         return const Locale('en');
       },
-      home: const HomeScreen(),
+      home: showOnboarding ? const OnboardingScreen() : const HomeScreen(),
     );
   }
 }

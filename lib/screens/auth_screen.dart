@@ -16,14 +16,13 @@ class AuthScreen extends StatelessWidget {
   final AuthService _authService;
 
   AuthScreen({super.key, AuthService? authService})
-      : _authService = authService ?? AuthService();
+    : _authService = authService ?? AuthService();
 
   /// Google Sign-In поддерживается только на Android, iOS и Web.
   bool _isGoogleSignInSupported(BuildContext context) {
     if (kIsWeb) return true;
     final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.android ||
-        platform == TargetPlatform.iOS;
+    return platform == TargetPlatform.android || platform == TargetPlatform.iOS;
   }
 
   @override
@@ -65,7 +64,6 @@ class AuthScreen extends StatelessWidget {
                 ),
 
                 SizedBox(height: zen.gap(4)), // 32px
-
                 // Название
                 Text(
                   'AxisMind',
@@ -98,7 +96,11 @@ class AuthScreen extends StatelessWidget {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(AppLocalizations.of(context)!.authError(e.toString())),
+                              content: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.authError(e.toString()),
+                              ),
                               backgroundColor: theme.colorScheme.error,
                             ),
                           );
@@ -111,7 +113,6 @@ class AuthScreen extends StatelessWidget {
                   _UnsupportedPlatformInfo(theme: theme, zen: zen),
 
                 SizedBox(height: zen.gap(3)), // 24px
-
                 // Текст о приватности
                 Text(
                   AppLocalizations.of(context)!.authSubtitle,
@@ -122,7 +123,6 @@ class AuthScreen extends StatelessWidget {
                 ),
 
                 SizedBox(height: zen.gap(4)), // 32px
-
                 // Кнопка "Продолжить без входа" — доступна на всех платформах
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -148,10 +148,7 @@ class _UnsupportedPlatformInfo extends StatelessWidget {
   final ThemeData theme;
   final ZenStyles zen;
 
-  const _UnsupportedPlatformInfo({
-    required this.theme,
-    required this.zen,
-  });
+  const _UnsupportedPlatformInfo({required this.theme, required this.zen});
 
   @override
   Widget build(BuildContext context) {
@@ -166,11 +163,7 @@ class _UnsupportedPlatformInfo extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 32,
-            color: theme.colorScheme.primary,
-          ),
+          Icon(Icons.info_outline, size: 32, color: theme.colorScheme.primary),
           SizedBox(height: zen.spacingUnit * 2),
           Text(
             AppLocalizations.of(context)!.authGoogleTitle,
@@ -193,6 +186,7 @@ class _UnsupportedPlatformInfo extends StatelessWidget {
 }
 
 /// Кнопка входа через Google в стиле Material Design.
+/// Кнопка входа через Google в стиле Material Design.
 class _GoogleSignInButton extends StatelessWidget {
   final VoidCallback onPressed;
 
@@ -205,46 +199,52 @@ class _GoogleSignInButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 52,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Google "G" logo
-            Container(
-              width: 24,
-              height: 24,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'G',
-                style: TextStyle(
-                  color: Colors.blue.shade600,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IgnorePointer(
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'G',
+                      style: TextStyle(
+                        color: Colors.blue.shade600,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Text(
+                  AppLocalizations.of(context)!.authGoogle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Text(
-              AppLocalizations.of(context)!.authGoogle,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

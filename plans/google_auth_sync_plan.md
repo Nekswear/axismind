@@ -1,5 +1,7 @@
 # План: Google Auth + Синхронизация данных (Firebase)
 
+STATUS: ✅ Реализовано (AuthService, SyncRepository, firebase_options).
+
 ## Цель
 Добавить регистрацию через Google аккаунт и синхронизацию данных между устройствами (Android, iOS, Web) **без аренды сервера**, используя Firebase (бесплатный Spark Plan).
 

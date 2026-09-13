@@ -53,15 +53,18 @@ class AuthService implements AuthServiceInterface {
 
   /// Поток состояния аутентификации.
   /// Если Firebase недоступен — возвращает пустой стрим.
+  @override
   Stream<User?> get authStateChanges {
     if (_auth == null) return const Stream.empty();
-    return _auth!.authStateChanges();
+    return _auth.authStateChanges();
   }
 
   /// Текущий пользователь (null если не авторизован или Firebase недоступен).
+  @override
   User? get currentUser => _auth?.currentUser;
 
   /// Пользователь авторизован?
+  @override
   bool get isAuthenticated => _auth?.currentUser != null;
 
   /// Войти через Google.
@@ -72,6 +75,7 @@ class AuthService implements AuthServiceInterface {
   /// 4. Возвращает [User] или null (если пользователь отменил вход).
   ///
   /// Если GoogleSignIn или FirebaseAuth недоступны — выбрасывает [AuthException].
+  @override
   Future<User?> signInWithGoogle() async {
     if (_googleSignIn == null || _auth == null) {
       throw AuthException(
@@ -82,7 +86,7 @@ class AuthService implements AuthServiceInterface {
 
     try {
       // Шаг 1: выбираем аккаунт Google
-      final GoogleSignInAccount? googleUser = await _googleSignIn!.signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         // Пользователь отменил вход
         return null;
@@ -99,7 +103,7 @@ class AuthService implements AuthServiceInterface {
       );
 
       // Шаг 4: входим в Firebase
-      final UserCredential userCredential = await _auth!.signInWithCredential(
+      final UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
 
@@ -123,6 +127,7 @@ class AuthService implements AuthServiceInterface {
   /// Выйти из аккаунта.
   ///
   /// Отзывает Google токен и выходит из Firebase.
+  @override
   Future<void> signOut() async {
     try {
       await _googleSignIn?.signOut();
@@ -134,15 +139,19 @@ class AuthService implements AuthServiceInterface {
   }
 
   /// Отображаемое имя пользователя.
+  @override
   String? get displayName => _auth?.currentUser?.displayName;
 
   /// URL аватара пользователя.
+  @override
   String? get photoUrl => _auth?.currentUser?.photoURL;
 
   /// Email пользователя.
+  @override
   String? get email => _auth?.currentUser?.email;
 
   /// UID пользователя в Firebase.
+  @override
   String? get userId => _auth?.currentUser?.uid;
 }
 
