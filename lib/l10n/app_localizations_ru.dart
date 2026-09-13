@@ -1141,4 +1141,127 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get quote15 =>
       'Прогресс — это не прямая линия. Каждая минута практики имеет значение.';
+
+  @override
+  String get guideHeroSubtitle => 'Рациональный путь к ясности ума';
+
+  @override
+  String get guideSusokukanLabel => 'Техника: Сусокукан (Счёт дыхания)';
+
+  @override
+  String get guideSusokukanTitle => 'Арифметика осознанности';
+
+  @override
+  String get guideStepPostureTitle => 'ПОСАДКА';
+
+  @override
+  String get guideStepPostureDesc =>
+      'Сядьте на край стула или в дзадзен. Спина прямая, но без напряжения. Плечи расслаблены, руки в мудре (овальный замок).';
+
+  @override
+  String get guideStepGazeTitle => 'ВЗГЛЯД';
+
+  @override
+  String get guideStepGazeDesc =>
+      'Глаза приоткрыты, взгляд направлен вниз под углом ~45° на пол перед собой (1–1.5 метра). Не закрывайте глаза — это уводит в сонливость и грёзы.';
+
+  @override
+  String get guideStepFocusTitle => 'ФОКУС';
+
+  @override
+  String get guideStepFocusDesc =>
+      'Размойте зрение — не всматривайтесь в текстуру пола, не фиксируйтесь на точках. Используйте периферическое зрение. Вы смотрите, но не видите деталей.';
+
+  @override
+  String get guideSusokukanInstruction =>
+      'Считайте каждый выдох. Дойдя до 10, начните обратный отсчёт до 1. Если мысль прервала счёт — вернитесь к единице.';
+
+  @override
+  String get guideBioEffectTitle => 'Биологический эффект';
+
+  @override
+  String get guideZenRuleTitle => 'Правило Дзен';
+
+  @override
+  String get guideZenRuleDesc =>
+      '«Если вы потеряли счёт на цифре 9 — вы проиграли битву за внимание. Смиренно вернитесь к 1. Это и есть практика.»';
+
+  @override
+  String get guideZazenLabel => 'Форма и Содержание';
+
+  @override
+  String get guideZazenTitle => 'Геометрия Дзадзен';
+
+  @override
+  String get guideZazenVerticalTitle => 'Вертикаль';
+
+  @override
+  String get guideZazenVerticalDesc =>
+      'Спина прямая, как струна. Это физиологическая база для бодрствующего сознания.';
+
+  @override
+  String get guideZazenGazeTitle => 'Взгляд';
+
+  @override
+  String get guideZazenGazeDesc =>
+      'Глаза приоткрыты, взгляд под 45° вниз, фокус размыт. Вы не уходите в мир грёз, вы остаётесь здесь и сейчас.';
+
+  @override
+  String get guideZazenMudraTitle => 'Мудра';
+
+  @override
+  String get guideZazenMudraDesc =>
+      'Руки в овальном замке. Это ваш физический датчик глубины концентрации.';
+
+  @override
+  String get guideResistanceLabel => 'Практическое руководство';
+
+  @override
+  String get guideResistanceTitle => 'Преодоление сопротивления';
+
+  @override
+  String get guideHeaderProblem => 'Проблема';
+
+  @override
+  String get guideHeaderLogic => 'Механизм ума';
+
+  @override
+  String get guideHeaderAction => 'Дзен-решение';
+
+  @override
+  String get guideProblem1 => 'Зуд и беспокойство';
+
+  @override
+  String get guideLogic1 => 'Защитная реакция эго на непривычную тишину.';
+
+  @override
+  String get guideAction1 =>
+      'Мусётоку. Наблюдай зуд как посторонний объект. Он уйдет сам.';
+
+  @override
+  String get guideProblem2 => 'Ментальный шум';
+
+  @override
+  String get guideLogic2 =>
+      'Попытка мозга заполнить вакуум привычными планами.';
+
+  @override
+  String get guideAction2 =>
+      'Сусокукан. Мягко верни внимание к счёту «Один». Без агрессии.';
+
+  @override
+  String get guideProblem3 => 'Сонливость';
+
+  @override
+  String get guideLogic3 => 'Признак потери тонуса и соскальзывания в транс.';
+
+  @override
+  String get guideAction3 =>
+      'Энергия. Выпрями спину. Приоткрой глаза. Дыши чуть глубже.';
+
+  @override
+  String get guideFinalTitle => 'Будьте Свидетелем.';
+
+  @override
+  String get guideFinalQuote => 'Ваш ум — ваш главный актив.';
 }

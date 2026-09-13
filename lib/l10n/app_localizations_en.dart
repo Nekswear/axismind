@@ -692,7 +692,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guideBioEffectDesc =>
-      'Counting engages the prefrontal cortex, blocking the brain\'s \"default mode network\" responsible for mind-wandering and anxiety.';
+      'Counting engages the prefrontal cortex, quieting the Default Mode Network (DMN) responsible for mind-wandering and anxiety.';
 
   @override
   String get guideZenRule => 'Zen Rule';
@@ -1138,4 +1138,129 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get quote15 =>
       'Progress is not a straight line. Every minute of practice matters.';
+
+  @override
+  String get guideHeroSubtitle => 'A rational path to mental clarity';
+
+  @override
+  String get guideSusokukanLabel => 'Technique: Susokukan (Breath Counting)';
+
+  @override
+  String get guideSusokukanTitle => 'The Arithmetic of Mindfulness';
+
+  @override
+  String get guideStepPostureTitle => 'POSTURE';
+
+  @override
+  String get guideStepPostureDesc =>
+      'Sit on the edge of a chair or in zazen. Spine straight, but without tension. Shoulders relaxed, hands in mudra (cosmic oval).';
+
+  @override
+  String get guideStepGazeTitle => 'GAZE';
+
+  @override
+  String get guideStepGazeDesc =>
+      'Eyes slightly open, cast downward at a ~45° angle to the floor in front of you (1–1.5 meters). Do not close your eyes — that leads to drowsiness and daydreaming.';
+
+  @override
+  String get guideStepFocusTitle => 'FOCUS';
+
+  @override
+  String get guideStepFocusDesc =>
+      'Soften your gaze — do not stare at the floor texture or fixate on spots. Use peripheral vision. You look, but do not cling to details.';
+
+  @override
+  String get guideSusokukanInstruction =>
+      'Count each exhalation. Reaching 10, start counting back down to 1. If a thought interrupts the count — return to 1.';
+
+  @override
+  String get guideBioEffectTitle => 'Biological Effect';
+
+  @override
+  String get guideZenRuleTitle => 'Zen Rule';
+
+  @override
+  String get guideZenRuleDesc =>
+      '“If you lose count at 9, you have lost the battle for attention. Humbly return to 1. That is the practice.”';
+
+  @override
+  String get guideZazenLabel => 'Form and Essence';
+
+  @override
+  String get guideZazenTitle => 'Geometry of Zazen';
+
+  @override
+  String get guideZazenVerticalTitle => 'Vertical';
+
+  @override
+  String get guideZazenVerticalDesc =>
+      'Spine straight as a string. This is the physiological foundation for an awake consciousness.';
+
+  @override
+  String get guideZazenGazeTitle => 'Gaze';
+
+  @override
+  String get guideZazenGazeDesc =>
+      'Eyes slightly open, cast down at 45°, soft focus. You do not drift into daydreaming; you remain here and now.';
+
+  @override
+  String get guideZazenMudraTitle => 'Mudra';
+
+  @override
+  String get guideZazenMudraDesc =>
+      'Hands in a cosmic oval clasp. This is your physical sensor of concentration depth.';
+
+  @override
+  String get guideResistanceLabel => 'Practical Guide';
+
+  @override
+  String get guideResistanceTitle => 'Overcoming Resistance';
+
+  @override
+  String get guideHeaderProblem => 'Problem';
+
+  @override
+  String get guideHeaderLogic => 'Mind Mechanism';
+
+  @override
+  String get guideHeaderAction => 'Zen Solution';
+
+  @override
+  String get guideProblem1 => 'Itch and Restlessness';
+
+  @override
+  String get guideLogic1 =>
+      'The ego\'s defensive reaction to unusual stillness.';
+
+  @override
+  String get guideAction1 =>
+      'Mushotoku. Observe the itch as an external object. It will pass on its own.';
+
+  @override
+  String get guideProblem2 => 'Mental Noise';
+
+  @override
+  String get guideLogic2 =>
+      'The brain attempting to fill the vacuum with familiar plans.';
+
+  @override
+  String get guideAction2 =>
+      'Susokukan. Gently return attention to the count of \'One\'. Without aggression.';
+
+  @override
+  String get guideProblem3 => 'Drowsiness';
+
+  @override
+  String get guideLogic3 =>
+      'A sign of decreasing tone and drifting into a trance.';
+
+  @override
+  String get guideAction3 =>
+      'Energy. Straighten your spine. Open your eyes slightly. Breathe a little deeper.';
+
+  @override
+  String get guideFinalTitle => 'Be the Witness.';
+
+  @override
+  String get guideFinalQuote => 'Your mind is your greatest asset.';
 }

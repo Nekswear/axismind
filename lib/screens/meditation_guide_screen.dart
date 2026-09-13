@@ -122,6 +122,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // ===========================================================================
 
   Widget _buildHeroSection(BuildContext context, [bool isLandscape = false]) {
+    final l10n = AppLocalizations.of(context)!;
     return _DarkSection(
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -152,7 +153,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
 
             // Подзаголовок
             Text(
-              'Рациональный путь к ясности ума',
+              l10n.guideHeroSubtitle,
               style: TextStyle(
                 fontFamily: 'Manrope',
                 fontWeight: FontWeight.w300,
@@ -191,6 +192,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // ===========================================================================
 
   Widget _buildSusokukanSection(BuildContext context, [bool isLandscape = false]) {
+    final l10n = AppLocalizations.of(context)!;
     return _LightSection(
       child: Padding(
         padding: EdgeInsets.all(isLandscape ? 20 : 40),
@@ -198,12 +200,12 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Лейбл
-            const _Label(text: 'Техника: Сусокукан (Счёт дыхания)', color: _GuideColors.gold),
+            _Label(text: l10n.guideSusokukanLabel, color: _GuideColors.gold),
             const SizedBox(height: 20),
 
             // Заголовок
             Text(
-              'Арифметика осознанности',
+              l10n.guideSusokukanTitle,
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
@@ -220,32 +222,24 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
             // Шаг 1: Посадка
             _buildInstructionStep(
               icon: Icons.airline_seat_legroom_normal,
-              title: 'ПОСАДКА',
-              description:
-                  'Сядьте на край стула или в дзадзен. Спина прямая, но без напряжения. '
-                  'Плечи расслаблены, руки в мудре (овальный замок).',
+              title: l10n.guideStepPostureTitle,
+              description: l10n.guideStepPostureDesc,
             ),
             const SizedBox(height: 20),
 
             // Шаг 2: Взгляд
             _buildInstructionStep(
               icon: Icons.remove_red_eye_outlined,
-              title: 'ВЗГЛЯД',
-              description:
-                  'Глаза приоткрыты, взгляд направлен вниз под углом ~45° '
-                  'на пол перед собой (1–1.5 метра). Не закрывайте глаза — '
-                  'это уводит в сонливость и грёзы.',
+              title: l10n.guideStepGazeTitle,
+              description: l10n.guideStepGazeDesc,
             ),
             const SizedBox(height: 20),
 
             // Шаг 3: Фокус
             _buildInstructionStep(
               icon: Icons.blur_on_outlined,
-              title: 'ФОКУС',
-              description:
-                  'Размойте зрение — не всматривайтесь в текстуру пола, '
-                  'не фиксируйтесь на точках. Используйте периферическое зрение. '
-                  'Вы смотрите, но не видите деталей.',
+              title: l10n.guideStepFocusTitle,
+              description: l10n.guideStepFocusDesc,
             ),
             const SizedBox(height: 24),
 
@@ -262,8 +256,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
-                      'Считайте каждый выдох. Дойдя до 10, начните обратный отсчёт до 1. '
-                      'Если мысль прервала счёт — вернитесь к единице.',
+                      l10n.guideSusokukanInstruction,
                       style: TextStyle(
                         fontFamily: 'Manrope',
                         fontSize: 16,
@@ -286,8 +279,8 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               spacing: 20,
               runSpacing: 20,
               children: [
-                _buildBioEffectCard(),
-                _buildZenRuleCard(),
+                _buildBioEffectCard(context),
+                _buildZenRuleCard(context),
               ],
             ),
           ],
@@ -412,7 +405,8 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   }
 
   /// Карточка "Биологический эффект"
-  Widget _buildBioEffectCard() {
+  Widget _buildBioEffectCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -423,8 +417,8 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Биологический эффект',
-            style: TextStyle(
+            l10n.guideBioEffectTitle,
+            style: const TextStyle(
               fontFamily: 'PlayfairDisplay',
               fontWeight: FontWeight.w700,
               fontSize: 22,
@@ -433,7 +427,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Счёт задействует префронтальную кору, блокируя «дефолт-систему» мозга, отвечающую за блуждание мыслей и тревогу.',
+            l10n.guideBioEffectDesc,
             style: TextStyle(
               fontFamily: 'Manrope',
               fontSize: 16,
@@ -447,7 +441,8 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   }
 
   /// Карточка "Правило Дзен"
-  Widget _buildZenRuleCard() {
+  Widget _buildZenRuleCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -462,8 +457,8 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Правило Дзен',
-                style: TextStyle(
+                l10n.guideZenRuleTitle,
+                style: const TextStyle(
                   fontFamily: 'PlayfairDisplay',
                   fontWeight: FontWeight.w700,
                   fontSize: 22,
@@ -479,8 +474,8 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            '«Если вы потеряли счёт на цифре 9 — вы проиграли битву за внимание. Смиренно вернитесь к 1. Это и есть практика.»',
-            style: TextStyle(
+            l10n.guideZenRuleDesc,
+            style: const TextStyle(
               fontFamily: 'Manrope',
               fontSize: 16,
               fontStyle: FontStyle.italic,
@@ -498,17 +493,18 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // ===========================================================================
 
   Widget _buildZazenGeometrySection(BuildContext context, [bool isLandscape = false]) {
+    final l10n = AppLocalizations.of(context)!;
     return _LightSection(
       child: Padding(
         padding: EdgeInsets.all(isLandscape ? 20 : 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _Label(text: 'Форма и Содержание', color: _GuideColors.gold),
+            _Label(text: l10n.guideZazenLabel, color: _GuideColors.gold),
             const SizedBox(height: 20),
 
             Text(
-              'Геометрия Дзадзен',
+              l10n.guideZazenTitle,
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
@@ -524,18 +520,18 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               runSpacing: 16,
               children: [
                 _buildZazenCard(
-                  title: 'Вертикаль',
-                  description: 'Спина прямая, как струна. Это физиологическая база для бодрствующего сознания.',
+                  title: l10n.guideZazenVerticalTitle,
+                  description: l10n.guideZazenVerticalDesc,
                   borderColor: _GuideColors.gold,
                 ),
                 _buildZazenCard(
-                  title: 'Взгляд',
-                  description: 'Глаза приоткрыты, взгляд под 45° вниз, фокус размыт. Вы не уходите в мир грёз, вы остаётесь здесь и сейчас.',
+                  title: l10n.guideZazenGazeTitle,
+                  description: l10n.guideZazenGazeDesc,
                   borderColor: _GuideColors.navy,
                 ),
                 _buildZazenCard(
-                  title: 'Мудра',
-                  description: 'Руки в овальном замке. Это ваш физический датчик глубины концентрации.',
+                  title: l10n.guideZazenMudraTitle,
+                  description: l10n.guideZazenMudraDesc,
                   borderColor: _GuideColors.gold,
                 ),
               ],
@@ -597,17 +593,18 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // ===========================================================================
 
   Widget _buildResistanceTableSection(BuildContext context, [bool isLandscape = false]) {
+    final l10n = AppLocalizations.of(context)!;
     return _LightSection(
       child: Padding(
         padding: EdgeInsets.all(isLandscape ? 20 : 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _Label(text: 'Практическое руководство', color: _GuideColors.gold),
+            _Label(text: l10n.guideResistanceLabel, color: _GuideColors.gold),
             const SizedBox(height: 20),
 
             Text(
-              'Преодоление сопротивления',
+              l10n.guideResistanceTitle,
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
@@ -626,22 +623,23 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   }
 
   Widget _buildDiagnosticTable(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Данные таблицы
-    const rows = <_TableRowData>[
+    final rows = <_TableRowData>[
       _TableRowData(
-        problem: 'Зуд и беспокойство',
-        logic: 'Защитная реакция эго на непривычную тишину.',
-        action: 'Мусётоку. Наблюдай зуд как посторонний объект. Он уйдет сам.',
+        problem: l10n.guideProblem1,
+        logic: l10n.guideLogic1,
+        action: l10n.guideAction1,
       ),
       _TableRowData(
-        problem: 'Ментальный шум',
-        logic: 'Попытка мозга заполнить вакуум привычными планами.',
-        action: 'Сусокукан. Мягко верни внимание к счёту «Один». Без агрессии.',
+        problem: l10n.guideProblem2,
+        logic: l10n.guideLogic2,
+        action: l10n.guideAction2,
       ),
       _TableRowData(
-        problem: 'Сонливость',
-        logic: 'Признак потери тонуса и соскальзывания в транс.',
-        action: 'Энергия. Выпрями спину. Приоткрой глаза. Дыши чуть глубже.',
+        problem: l10n.guideProblem3,
+        logic: l10n.guideLogic3,
+        action: l10n.guideAction3,
       ),
     ];
 
@@ -659,15 +657,15 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _tableHeaderSmall('Проблема'),
+              _tableHeaderSmall(l10n.guideHeaderProblem),
               const SizedBox(height: 4),
               _tableCellSmall(row.problem, _GuideColors.problemBg, _GuideColors.problemText),
               const SizedBox(height: 12),
-              _tableHeaderSmall('Механизм ума'),
+              _tableHeaderSmall(l10n.guideHeaderLogic),
               const SizedBox(height: 4),
               _tableCellSmall(row.logic, _GuideColors.logicBg, _GuideColors.logicText),
               const SizedBox(height: 12),
-              _tableHeaderSmall('Дзен-решение'),
+              _tableHeaderSmall(l10n.guideHeaderAction),
               const SizedBox(height: 4),
               _tableCellSmall(row.action, _GuideColors.actionBg, _GuideColors.actionText),
             ],
@@ -716,6 +714,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
   // ===========================================================================
 
   Widget _buildFinalSection(BuildContext context, [bool isLandscape = false]) {
+    final l10n = AppLocalizations.of(context)!;
     return _DarkSection(
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -727,7 +726,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
           children: [
             // Заголовок
             Text(
-              'Будьте Свидетелем.',
+              l10n.guideFinalTitle,
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontWeight: FontWeight.w900,
@@ -740,7 +739,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
 
             // Цитата
             Text(
-              'Ваш ум — ваш главный актив.',
+              l10n.guideFinalQuote,
               style: TextStyle(
                 fontFamily: 'PlayfairDisplay',
                 fontStyle: FontStyle.italic,
@@ -758,7 +757,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
               alignment: WrapAlignment.center,
               children: [
                 _buildFinalButton(
-                  label: 'УЗНАТЬ БОЛЬШЕ',
+                  label: l10n.learnMore,
                   isOutlined: true,
                   onPressed: () {
                     Navigator.of(context).push(
@@ -769,7 +768,7 @@ class _MeditationGuideScreenState extends State<MeditationGuideScreen> {
                   },
                 ),
                 _buildFinalButton(
-                  label: 'НАЧАТЬ ПРАКТИКУ',
+                  label: l10n.startPracticeBtn,
                   isOutlined: false,
                   onPressed: () {
                     Navigator.of(context).pop();

@@ -1379,7 +1379,7 @@ abstract class AppLocalizations {
   /// No description provided for @guideBioEffectDesc.
   ///
   /// In en, this message translates to:
-  /// **'Counting engages the prefrontal cortex, blocking the brain\'s \"default mode network\" responsible for mind-wandering and anxiety.'**
+  /// **'Counting engages the prefrontal cortex, quieting the Default Mode Network (DMN) responsible for mind-wandering and anxiety.'**
   String get guideBioEffectDesc;
 
   /// No description provided for @guideZenRule.
@@ -2179,6 +2179,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Progress is not a straight line. Every minute of practice matters.'**
   String get quote15;
+
+  /// No description provided for @guideHeroSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A rational path to mental clarity'**
+  String get guideHeroSubtitle;
+
+  /// No description provided for @guideSusokukanLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Technique: Susokukan (Breath Counting)'**
+  String get guideSusokukanLabel;
+
+  /// No description provided for @guideSusokukanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Arithmetic of Mindfulness'**
+  String get guideSusokukanTitle;
+
+  /// No description provided for @guideStepPostureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'POSTURE'**
+  String get guideStepPostureTitle;
+
+  /// No description provided for @guideStepPostureDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sit on the edge of a chair or in zazen. Spine straight, but without tension. Shoulders relaxed, hands in mudra (cosmic oval).'**
+  String get guideStepPostureDesc;
+
+  /// No description provided for @guideStepGazeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'GAZE'**
+  String get guideStepGazeTitle;
+
+  /// No description provided for @guideStepGazeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Eyes slightly open, cast downward at a ~45° angle to the floor in front of you (1–1.5 meters). Do not close your eyes — that leads to drowsiness and daydreaming.'**
+  String get guideStepGazeDesc;
+
+  /// No description provided for @guideStepFocusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FOCUS'**
+  String get guideStepFocusTitle;
+
+  /// No description provided for @guideStepFocusDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Soften your gaze — do not stare at the floor texture or fixate on spots. Use peripheral vision. You look, but do not cling to details.'**
+  String get guideStepFocusDesc;
+
+  /// No description provided for @guideSusokukanInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Count each exhalation. Reaching 10, start counting back down to 1. If a thought interrupts the count — return to 1.'**
+  String get guideSusokukanInstruction;
+
+  /// No description provided for @guideBioEffectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Biological Effect'**
+  String get guideBioEffectTitle;
+
+  /// No description provided for @guideZenRuleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zen Rule'**
+  String get guideZenRuleTitle;
+
+  /// No description provided for @guideZenRuleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'“If you lose count at 9, you have lost the battle for attention. Humbly return to 1. That is the practice.”'**
+  String get guideZenRuleDesc;
+
+  /// No description provided for @guideZazenLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Form and Essence'**
+  String get guideZazenLabel;
+
+  /// No description provided for @guideZazenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Geometry of Zazen'**
+  String get guideZazenTitle;
+
+  /// No description provided for @guideZazenVerticalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical'**
+  String get guideZazenVerticalTitle;
+
+  /// No description provided for @guideZazenVerticalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Spine straight as a string. This is the physiological foundation for an awake consciousness.'**
+  String get guideZazenVerticalDesc;
+
+  /// No description provided for @guideZazenGazeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gaze'**
+  String get guideZazenGazeTitle;
+
+  /// No description provided for @guideZazenGazeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Eyes slightly open, cast down at 45°, soft focus. You do not drift into daydreaming; you remain here and now.'**
+  String get guideZazenGazeDesc;
+
+  /// No description provided for @guideZazenMudraTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mudra'**
+  String get guideZazenMudraTitle;
+
+  /// No description provided for @guideZazenMudraDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Hands in a cosmic oval clasp. This is your physical sensor of concentration depth.'**
+  String get guideZazenMudraDesc;
+
+  /// No description provided for @guideResistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Practical Guide'**
+  String get guideResistanceLabel;
+
+  /// No description provided for @guideResistanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overcoming Resistance'**
+  String get guideResistanceTitle;
+
+  /// No description provided for @guideHeaderProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem'**
+  String get guideHeaderProblem;
+
+  /// No description provided for @guideHeaderLogic.
+  ///
+  /// In en, this message translates to:
+  /// **'Mind Mechanism'**
+  String get guideHeaderLogic;
+
+  /// No description provided for @guideHeaderAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Zen Solution'**
+  String get guideHeaderAction;
+
+  /// No description provided for @guideProblem1.
+  ///
+  /// In en, this message translates to:
+  /// **'Itch and Restlessness'**
+  String get guideProblem1;
+
+  /// No description provided for @guideLogic1.
+  ///
+  /// In en, this message translates to:
+  /// **'The ego\'s defensive reaction to unusual stillness.'**
+  String get guideLogic1;
+
+  /// No description provided for @guideAction1.
+  ///
+  /// In en, this message translates to:
+  /// **'Mushotoku. Observe the itch as an external object. It will pass on its own.'**
+  String get guideAction1;
+
+  /// No description provided for @guideProblem2.
+  ///
+  /// In en, this message translates to:
+  /// **'Mental Noise'**
+  String get guideProblem2;
+
+  /// No description provided for @guideLogic2.
+  ///
+  /// In en, this message translates to:
+  /// **'The brain attempting to fill the vacuum with familiar plans.'**
+  String get guideLogic2;
+
+  /// No description provided for @guideAction2.
+  ///
+  /// In en, this message translates to:
+  /// **'Susokukan. Gently return attention to the count of \'One\'. Without aggression.'**
+  String get guideAction2;
+
+  /// No description provided for @guideProblem3.
+  ///
+  /// In en, this message translates to:
+  /// **'Drowsiness'**
+  String get guideProblem3;
+
+  /// No description provided for @guideLogic3.
+  ///
+  /// In en, this message translates to:
+  /// **'A sign of decreasing tone and drifting into a trance.'**
+  String get guideLogic3;
+
+  /// No description provided for @guideAction3.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy. Straighten your spine. Open your eyes slightly. Breathe a little deeper.'**
+  String get guideAction3;
+
+  /// No description provided for @guideFinalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the Witness.'**
+  String get guideFinalTitle;
+
+  /// No description provided for @guideFinalQuote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your mind is your greatest asset.'**
+  String get guideFinalQuote;
 }
 
 class _AppLocalizationsDelegate
