@@ -1264,4 +1264,34 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get guideFinalQuote => 'Ваш ум — ваш главный актив.';
+
+  @override
+  String get onboardingSkip => 'Пропустить';
+
+  @override
+  String get onboardingNext => 'Далее';
+
+  @override
+  String get onboardingStart => 'Начать практику';
+
+  @override
+  String get onboardingTitle1 => 'Осознанность и покой';
+
+  @override
+  String get onboardingDesc1 =>
+      'Добро пожаловать в AxisMind. Найдите свой внутренний баланс через регулярные практики медитации и фокуса.';
+
+  @override
+  String get onboardingTitle2 => 'Дыхательные практики';
+
+  @override
+  String get onboardingDesc2 =>
+      'Используйте проверенные техники, такие как Сусокукан, для глубокой концентрации и расслабления.';
+
+  @override
+  String get onboardingTitle3 => 'Синхронизация и прогресс';
+
+  @override
+  String get onboardingDesc3 =>
+      'Отслеживайте статистику сессий, настраивайте таймеры и сохраняйте свой прогресс в облаке.';
 }

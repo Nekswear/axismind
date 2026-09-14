@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/zen_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Контекстная подсказка с нейробиологическим обоснованием выбранного пресета.
 ///
@@ -11,26 +12,31 @@ class NeuroPresetInfo extends StatelessWidget {
 
   const NeuroPresetInfo({super.key, required this.minutes});
 
-  static const _descriptions = {
-    5: 'Остановка «мысленного шума».\n'
-        'Быстрый возврат контроля над вниманием.',
-    10: 'Снижение физического напряжения.\n'
-        'Глубокое упорядочивание ментальной активности.',
-    15: 'Глубокая стабилизация восприятия.\n'
-        'Переход к ментальной тишине и покою.',
-    20: 'Классическая Дзен-тренировка.\n'
-        'Снижение симпатического тонуса и абсолютная ясность ума.',
-  };
-
-  String get _description => _descriptions[minutes] ?? '';
+  String _getDescription(AppLocalizations l10n) {
+    switch (minutes) {
+      case 5:
+        return l10n.neuroPreset5;
+      case 10:
+        return l10n.neuroPreset10;
+      case 15:
+        return l10n.neuroPreset15;
+      case 20:
+        return l10n.neuroPreset20;
+      default:
+        return '';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final description = l10n != null ? _getDescription(l10n) : '';
+
     return AnimatedSize(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
       alignment: Alignment.topCenter,
-      child: _description.isEmpty
+      child: description.isEmpty
           ? const SizedBox.shrink()
           : Padding(
               padding: const EdgeInsets.only(top: 16),
@@ -49,7 +55,7 @@ class NeuroPresetInfo extends StatelessWidget {
                   );
                 },
                 child: Text(
-                  _description,
+                  description,
                   key: ValueKey('neuro_$minutes'),
                   style: TextStyle(
                     fontFamily: 'PlayfairDisplay',

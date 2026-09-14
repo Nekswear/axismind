@@ -553,5 +553,15 @@
   "guideLogic3": "A sign of decreasing tone and drifting into a trance.",
   "guideAction3": "Energy. Straighten your spine. Open your eyes slightly. Breathe a little deeper.",
   "guideFinalTitle": "Be the Witness.",
-  "guideFinalQuote": "Your mind is your greatest asset."
+  "guideFinalQuote": "Your mind is your greatest asset.",
+
+  "onboardingSkip": "Skip",
+  "onboardingNext": "Next",
+  "onboardingStart": "Start Practice",
+  "onboardingTitle1": "Mindfulness and Peace",
+  "onboardingDesc1": "Welcome to AxisMind. Discover your inner balance through regular meditation and focus practices.",
+  "onboardingTitle2": "Breathing Practices",
+  "onboardingDesc2": "Use proven techniques such as Susokukan for deep concentration and relaxation.",
+  "onboardingTitle3": "Sync and Progress",
+  "onboardingDesc3": "Track session statistics, configure timers, and safely store your progress in the cloud."
 }

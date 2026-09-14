@@ -1263,4 +1263,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guideFinalQuote => 'Your mind is your greatest asset.';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingStart => 'Start Practice';
+
+  @override
+  String get onboardingTitle1 => 'Mindfulness and Peace';
+
+  @override
+  String get onboardingDesc1 =>
+      'Welcome to AxisMind. Discover your inner balance through regular meditation and focus practices.';
+
+  @override
+  String get onboardingTitle2 => 'Breathing Practices';
+
+  @override
+  String get onboardingDesc2 =>
+      'Use proven techniques such as Susokukan for deep concentration and relaxation.';
+
+  @override
+  String get onboardingTitle3 => 'Sync and Progress';
+
+  @override
+  String get onboardingDesc3 =>
+      'Track session statistics, configure timers, and safely store your progress in the cloud.';
 }

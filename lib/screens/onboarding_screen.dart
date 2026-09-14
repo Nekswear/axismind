@@ -1,46 +1,41 @@
-import '../services/onboarding_service.dart';
-import 'package:flutter/material.dart'; // Импортируем стандартную библиотеку Flutter Material для создания интерфейса
-import 'package:shared_preferences/shared_preferences.dart'; // Импортируем пакет для работы с локальной памятью устройства
-import 'home_screen.dart'; // Импортируем главный экран, на который перейдем после онбординга
+import 'package:flutter/material.dart';
 
-// Объявляем Stateful виджет, так как онбординг меняет состояние (перелистывание страниц)
+import '../core/theme/zen_theme.dart';
+import '../l10n/app_localizations.dart';
+import '../services/onboarding_service.dart';
+import 'home_screen.dart';
+
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key}); // Конструктор виджета с ключом
+  const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState(); // Создаем состояние для этого виджета
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-// Класс состояния, в котором хранится логика и переменные онбординга
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _pageController =
-      PageController(); // Контроллер для программного управления PageView (перелистывания слайдов)
-  int _currentIndex =
-      0; // Переменная для хранения индекса текущего активного слайда (начинается с 0)
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
 
-  // Список данных для каждого слайда (название, описание, иконка)
-  final List<OnboardingItem> _items = [
-    const OnboardingItem(
-      title: 'Осознанность и покой',
-      description:
-          'Добро пожаловать в AxisMind. Найдите свой внутренний баланс через регулярные практики медитации и фокуса.',
-      icon: Icons.self_improvement,
-    ),
-    const OnboardingItem(
-      title: 'Дыхательные практики',
-      description:
-          'Используйте проверенные техники, такие как Сусокукан, для глубокой концентрации и расслабления.',
-      icon: Icons.air,
-    ),
-    const OnboardingItem(
-      title: 'Синхронизация и прогресс',
-      description:
-          'Отслеживайте статистику сессий, настраивайте таймеры и сохраняйте свой прогресс в облаке.',
-      icon: Icons.cloud_done,
-    ),
-  ];
+  List<OnboardingItem> _getItems(AppLocalizations l10n) {
+    return [
+      OnboardingItem(
+        title: l10n.onboardingTitle1,
+        description: l10n.onboardingDesc1,
+        icon: Icons.self_improvement,
+      ),
+      OnboardingItem(
+        title: l10n.onboardingTitle2,
+        description: l10n.onboardingDesc2,
+        icon: Icons.air,
+      ),
+      OnboardingItem(
+        title: l10n.onboardingTitle3,
+        description: l10n.onboardingDesc3,
+        icon: Icons.cloud_done_outlined,
+      ),
+    ];
+  }
 
-  // Асинхронная функция завершения онбординга и сохранения флага
   Future<void> _finishOnboarding() async {
     await OnboardingService().markCompleted();
 
@@ -51,82 +46,96 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = _getItems(l10n);
+
     return Scaffold(
-      // Базовая структура визуального интерфейса экрана
+      backgroundColor: ZenColors.background,
       body: SafeArea(
-        // Обертка, чтобы контент не залезал на системные вырезы экрана (например, камеру)
         child: Column(
-          // Верстаем элементы вертикально друг под другом
           children: [
             Align(
-              // Выравниваем кнопку «Пропустить» в правый верхний угол
               alignment: Alignment.topRight,
               child: Padding(
-                padding: const EdgeInsets.all(16.0), // Отступы вокруг кнопки
+                padding: const EdgeInsets.all(16.0),
                 child: TextButton(
-                  onPressed:
-                      _finishOnboarding, // При нажатии сразу завершаем онбординг
-                  child: const Text('Пропустить'), // Текст кнопки
+                  onPressed: _finishOnboarding,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ZenColors.gold.withValues(alpha: 0.8),
+                  ),
+                  child: Text(
+                    l10n.onboardingSkip,
+                    style: const TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ),
             Expanded(
-              // Занимает всё доступное свободное пространство по вертикали
               child: PageView.builder(
-                // Виджет для создания пролистываемых вбок страниц
-                controller:
-                    _pageController, // Подключаем наш контроллер страниц
-                itemCount: _items.length, // Общее количество слайдов
+                controller: _pageController,
+                itemCount: items.length,
                 onPageChanged: (index) {
-                  // Функция, вызываемая при смене страницы пользователем
                   setState(() {
-                    _currentIndex =
-                        index; // Обновляем номер текущего слайда в состоянии
+                    _currentIndex = index;
                   });
                 },
                 itemBuilder: (context, index) {
-                  // Создаем содержимое для каждого отдельного слайда
-                  final item =
-                      _items[index]; // Получаем данные текущего слайда по индексу
+                  final item = items[index];
                   return Padding(
-                    padding: const EdgeInsets.all(
-                      24.0,
-                    ), // Внутренние отступы для содержимого слайда
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment
-                          .center, // Выравнивание по центру по вертикали
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          item.icon, // Иконка слайда
-                          size: 100, // Размер иконки
-                          color: Theme.of(
-                            context,
-                          ).primaryColor, // Цвет из общей темы приложения
-                        ),
-                        const SizedBox(
-                          height: 32,
-                        ), // Отступ между иконкой и заглавием
-                        Text(
-                          item.title, // Заголовок слайда
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold, // Жирный шрифт
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: ZenColors.gold.withValues(alpha: 0.08),
+                            border: Border.all(
+                              color: ZenColors.gold.withValues(alpha: 0.2),
+                              width: 1.5,
+                            ),
                           ),
-                          textAlign:
-                              TextAlign.center, // Выравнивание текста по центру
+                          child: Icon(
+                            item.icon,
+                            size: 64,
+                            color: ZenColors.gold,
+                          ),
                         ),
-                        const SizedBox(
-                          height: 16,
-                        ), // Отступ между заголовком и описанием
+                        const SizedBox(height: 40),
                         Text(
-                          item.description, // Текст описания слайда
+                          item.title,
                           style: const TextStyle(
+                            fontFamily: 'PlayfairDisplay',
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            color: ZenColors.textPrimary,
+                            letterSpacing: 0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          item.description,
+                          style: TextStyle(
+                            fontFamily: 'Manrope',
                             fontSize: 16,
-                            color: Colors.grey, // Серый цвет текста
+                            height: 1.6,
+                            color: ZenColors.textSecondary.withValues(alpha: 0.85),
                           ),
-                          textAlign:
-                              TextAlign.center, // Выравнивание текста по центру
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -135,61 +144,61 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Row(
-              // Строка для отображения точек-индикаторов прогресса внизу
-              mainAxisAlignment:
-                  MainAxisAlignment.center, // Выравнивание точек по центру
+              mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                _items.length,
-                (index) => Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                  ), // Отступы между точками
-                  width: _currentIndex == index
-                      ? 12
-                      : 8, // Активная точка шире остальных
-                  height: 8, // Высота точки
+                items.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentIndex == index ? 24 : 8,
+                  height: 8,
                   decoration: BoxDecoration(
                     color: _currentIndex == index
-                        ? Theme.of(context)
-                              .primaryColor // Цвет активной точки
-                        : Colors.grey.shade300, // Цвет неактивных точек
-                    borderRadius: BorderRadius.circular(
-                      4,
-                    ), // Скругление краев точки в капсулу
+                        ? ZenColors.gold
+                        : ZenColors.border.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
               ),
             ),
-            const SizedBox(
-              height: 32,
-            ), // Отступ перед нижней кнопкой управления
+            const SizedBox(height: 32),
             Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 16.0,
+                horizontal: 28.0,
+                vertical: 20.0,
               ),
               child: SizedBox(
-                width: double.infinity, // Кнопка на всю ширину экрана
-                height: 50, // Фиксированная высота кнопки
+                width: double.infinity,
+                height: 54,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Если это последний слайд — завершаем онбординг, иначе листаем дальше
-                    if (_currentIndex == _items.length - 1) {
+                    if (_currentIndex == items.length - 1) {
                       _finishOnboarding();
                     } else {
                       _pageController.nextPage(
-                        duration: const Duration(
-                          milliseconds: 300,
-                        ), // Длительность анимации листинга
-                        curve: Curves.easeInOut, // Плавность анимации
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
                       );
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ZenColors.gold,
+                    foregroundColor: ZenColors.background,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                    elevation: 0,
+                    textStyle: const TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
                   child: Text(
-                    // Меняем текст на кнопке в зависимости от того, последний ли это слайд
-                    _currentIndex == _items.length - 1
-                        ? 'Начать практику'
-                        : 'Далее',
+                    _currentIndex == items.length - 1
+                        ? l10n.onboardingStart
+                        : l10n.onboardingNext,
                   ),
                 ),
               ),
@@ -201,11 +210,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-// Вспомогательный класс-модель для хранения данных одного слайда онбординга
 class OnboardingItem {
-  final String title; // Текст заголовка
-  final String description; // Текст описания
-  final IconData icon; // Иконка
+  final String title;
+  final String description;
+  final IconData icon;
 
   const OnboardingItem({
     required this.title,
