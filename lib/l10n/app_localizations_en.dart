@@ -274,13 +274,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get journalEmptySubtitle =>
-      'Complete a meditation\nto see your first entry';
+      'Complete a meditation\nto create your first entry';
 
   @override
   String get journalUpdateFailed => 'Failed to update entry';
 
   @override
-  String get journalDeleteConfirm => 'Delete entry?';
+  String get journalDeleteConfirm => 'Delete';
 
   @override
   String get journalDeleteConfirmSub => 'This action cannot be undone.';
@@ -752,7 +752,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guideActionItch =>
-      'Musōtoku. Observe the itch as an external object. It will pass on its own.';
+      'Mushotoku. Observe the itch as an external object. It will pass on its own.';
 
   @override
   String get guideProblemNoise => 'Mental noise';
@@ -1293,4 +1293,185 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onboardingDesc3 =>
       'Track session statistics, configure timers, and safely store your progress in the cloud.';
+
+  @override
+  String get goalSettingsTitle => 'Goal Settings';
+
+  @override
+  String get goalSettingsSubtitle =>
+      'Goals help track practice regularity and give bonus XP for completion.';
+
+  @override
+  String get goalsCurrentListTitle => 'Current Goals';
+
+  @override
+  String get goalsMaxLimit => 'Maximum 4 goals';
+
+  @override
+  String get goalsAddBtn => 'Add goal';
+
+  @override
+  String get goalsEditTooltip => 'Edit';
+
+  @override
+  String get goalsDeleteTooltip => 'Delete';
+
+  @override
+  String get goalsDeleteDialogTitle => 'Delete goal?';
+
+  @override
+  String goalsDeleteDialogContent(Object name) {
+    return 'Are you sure you want to delete the goal \"$name\"?';
+  }
+
+  @override
+  String get goalsDialogCancel => 'Cancel';
+
+  @override
+  String get goalsDialogDelete => 'Delete';
+
+  @override
+  String get goalsFormEditTitle => 'Edit goal';
+
+  @override
+  String get goalsFormNewTitle => 'New goal';
+
+  @override
+  String get goalsFormTypeLabel => 'Goal type';
+
+  @override
+  String get goalsFormTargetLabel => 'Target value';
+
+  @override
+  String get goalsFormSave => 'Save';
+
+  @override
+  String get goalsHelperDaily => 'For example: 10 minutes per day';
+
+  @override
+  String get goalsHelperWeeklySessions => 'For example: 5 sessions per week';
+
+  @override
+  String get goalsHelperWeeklyMinutes => 'For example: 60 minutes per week';
+
+  @override
+  String get goalsHelperStreak => 'For example: 7 days in a row';
+
+  @override
+  String get statsScreenTitle => 'Statistics';
+
+  @override
+  String get statsSyncError => 'SyncRepository is not initialized';
+
+  @override
+  String get statsLoadError => 'Failed to load statistics. Please try again.';
+
+  @override
+  String get statsDbError => 'Database error. Please restart the app.';
+
+  @override
+  String get goalTypeDailyMinutes => 'Daily practice';
+
+  @override
+  String get goalTypeWeeklySessions => 'Sessions per week';
+
+  @override
+  String get goalTypeWeeklyMinutes => 'Minutes per week';
+
+  @override
+  String get goalTypeStreakDays => 'Days in a row';
+
+  @override
+  String get goalDialogTitleNew => 'New goal';
+
+  @override
+  String get goalDialogTitleEdit => 'Edit goal';
+
+  @override
+  String get goalDialogSelectType => 'Goal type';
+
+  @override
+  String get goalDialogTargetValue => 'Target value';
+
+  @override
+  String get goalDialogSave => 'Save';
+
+  @override
+  String get goalDialogCancel => 'Cancel';
+
+  @override
+  String get journalSearchHint => 'Search notes...';
+
+  @override
+  String get journalTagAll => 'All';
+
+  @override
+  String get journalEmptyTitle => 'Nothing here yet';
+
+  @override
+  String get journalUpdateError => 'Failed to update entry';
+
+  @override
+  String get journalDeleteTitle => 'Delete entry?';
+
+  @override
+  String get journalDeleteContent => 'This action cannot be undone.';
+
+  @override
+  String get journalDeleteCancel => 'Cancel';
+
+  @override
+  String get journalDeleteSuccess => 'Entry deleted';
+
+  @override
+  String get journalDeleteError => 'Failed to delete entry';
+
+  @override
+  String get journalEditBtn => 'Edit';
+
+  @override
+  String journalDurationMinSec(Object min, Object sec) {
+    return '$min min $sec sec';
+  }
+
+  @override
+  String journalDurationSec(Object sec) {
+    return '$sec sec';
+  }
+
+  @override
+  String get journalMonthJan => 'Jan';
+
+  @override
+  String get journalMonthFeb => 'Feb';
+
+  @override
+  String get journalMonthMar => 'Mar';
+
+  @override
+  String get journalMonthApr => 'Apr';
+
+  @override
+  String get journalMonthMay => 'May';
+
+  @override
+  String get journalMonthJun => 'Jun';
+
+  @override
+  String get journalMonthJul => 'Jul';
+
+  @override
+  String get journalMonthAug => 'Aug';
+
+  @override
+  String get journalMonthSep => 'Sep';
+
+  @override
+  String get journalMonthOct => 'Oct';
+
+  @override
+  String get journalMonthNov => 'Nov';
+
+  @override
+  String get journalMonthDec => 'Dec';
 }

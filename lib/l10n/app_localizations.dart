@@ -599,7 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @journalEmptySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Complete a meditation\nto see your first entry'**
+  /// **'Complete a meditation\nto create your first entry'**
   String get journalEmptySubtitle;
 
   /// No description provided for @journalUpdateFailed.
@@ -611,7 +611,7 @@ abstract class AppLocalizations {
   /// No description provided for @journalDeleteConfirm.
   ///
   /// In en, this message translates to:
-  /// **'Delete entry?'**
+  /// **'Delete'**
   String get journalDeleteConfirm;
 
   /// No description provided for @journalDeleteConfirmSub.
@@ -1487,7 +1487,7 @@ abstract class AppLocalizations {
   /// No description provided for @guideActionItch.
   ///
   /// In en, this message translates to:
-  /// **'Musōtoku. Observe the itch as an external object. It will pass on its own.'**
+  /// **'Mushotoku. Observe the itch as an external object. It will pass on its own.'**
   String get guideActionItch;
 
   /// No description provided for @guideProblemNoise.
@@ -2455,6 +2455,354 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Track session statistics, configure timers, and safely store your progress in the cloud.'**
   String get onboardingDesc3;
+
+  /// No description provided for @goalSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal Settings'**
+  String get goalSettingsTitle;
+
+  /// No description provided for @goalSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals help track practice regularity and give bonus XP for completion.'**
+  String get goalSettingsSubtitle;
+
+  /// No description provided for @goalsCurrentListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Goals'**
+  String get goalsCurrentListTitle;
+
+  /// No description provided for @goalsMaxLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum 4 goals'**
+  String get goalsMaxLimit;
+
+  /// No description provided for @goalsAddBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add goal'**
+  String get goalsAddBtn;
+
+  /// No description provided for @goalsEditTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get goalsEditTooltip;
+
+  /// No description provided for @goalsDeleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get goalsDeleteTooltip;
+
+  /// No description provided for @goalsDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete goal?'**
+  String get goalsDeleteDialogTitle;
+
+  /// No description provided for @goalsDeleteDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete the goal \"{name}\"?'**
+  String goalsDeleteDialogContent(Object name);
+
+  /// No description provided for @goalsDialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get goalsDialogCancel;
+
+  /// No description provided for @goalsDialogDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get goalsDialogDelete;
+
+  /// No description provided for @goalsFormEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit goal'**
+  String get goalsFormEditTitle;
+
+  /// No description provided for @goalsFormNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get goalsFormNewTitle;
+
+  /// No description provided for @goalsFormTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal type'**
+  String get goalsFormTypeLabel;
+
+  /// No description provided for @goalsFormTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target value'**
+  String get goalsFormTargetLabel;
+
+  /// No description provided for @goalsFormSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get goalsFormSave;
+
+  /// No description provided for @goalsHelperDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: 10 minutes per day'**
+  String get goalsHelperDaily;
+
+  /// No description provided for @goalsHelperWeeklySessions.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: 5 sessions per week'**
+  String get goalsHelperWeeklySessions;
+
+  /// No description provided for @goalsHelperWeeklyMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: 60 minutes per week'**
+  String get goalsHelperWeeklyMinutes;
+
+  /// No description provided for @goalsHelperStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'For example: 7 days in a row'**
+  String get goalsHelperStreak;
+
+  /// No description provided for @statsScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get statsScreenTitle;
+
+  /// No description provided for @statsSyncError.
+  ///
+  /// In en, this message translates to:
+  /// **'SyncRepository is not initialized'**
+  String get statsSyncError;
+
+  /// No description provided for @statsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load statistics. Please try again.'**
+  String get statsLoadError;
+
+  /// No description provided for @statsDbError.
+  ///
+  /// In en, this message translates to:
+  /// **'Database error. Please restart the app.'**
+  String get statsDbError;
+
+  /// No description provided for @goalTypeDailyMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily practice'**
+  String get goalTypeDailyMinutes;
+
+  /// No description provided for @goalTypeWeeklySessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Sessions per week'**
+  String get goalTypeWeeklySessions;
+
+  /// No description provided for @goalTypeWeeklyMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes per week'**
+  String get goalTypeWeeklyMinutes;
+
+  /// No description provided for @goalTypeStreakDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days in a row'**
+  String get goalTypeStreakDays;
+
+  /// No description provided for @goalDialogTitleNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New goal'**
+  String get goalDialogTitleNew;
+
+  /// No description provided for @goalDialogTitleEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit goal'**
+  String get goalDialogTitleEdit;
+
+  /// No description provided for @goalDialogSelectType.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal type'**
+  String get goalDialogSelectType;
+
+  /// No description provided for @goalDialogTargetValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Target value'**
+  String get goalDialogTargetValue;
+
+  /// No description provided for @goalDialogSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get goalDialogSave;
+
+  /// No description provided for @goalDialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get goalDialogCancel;
+
+  /// No description provided for @journalSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search notes...'**
+  String get journalSearchHint;
+
+  /// No description provided for @journalTagAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get journalTagAll;
+
+  /// No description provided for @journalEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get journalEmptyTitle;
+
+  /// No description provided for @journalUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update entry'**
+  String get journalUpdateError;
+
+  /// No description provided for @journalDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete entry?'**
+  String get journalDeleteTitle;
+
+  /// No description provided for @journalDeleteContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get journalDeleteContent;
+
+  /// No description provided for @journalDeleteCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get journalDeleteCancel;
+
+  /// No description provided for @journalDeleteSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry deleted'**
+  String get journalDeleteSuccess;
+
+  /// No description provided for @journalDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete entry'**
+  String get journalDeleteError;
+
+  /// No description provided for @journalEditBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get journalEditBtn;
+
+  /// No description provided for @journalDurationMinSec.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} min {sec} sec'**
+  String journalDurationMinSec(Object min, Object sec);
+
+  /// No description provided for @journalDurationSec.
+  ///
+  /// In en, this message translates to:
+  /// **'{sec} sec'**
+  String journalDurationSec(Object sec);
+
+  /// No description provided for @journalMonthJan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jan'**
+  String get journalMonthJan;
+
+  /// No description provided for @journalMonthFeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Feb'**
+  String get journalMonthFeb;
+
+  /// No description provided for @journalMonthMar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mar'**
+  String get journalMonthMar;
+
+  /// No description provided for @journalMonthApr.
+  ///
+  /// In en, this message translates to:
+  /// **'Apr'**
+  String get journalMonthApr;
+
+  /// No description provided for @journalMonthMay.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get journalMonthMay;
+
+  /// No description provided for @journalMonthJun.
+  ///
+  /// In en, this message translates to:
+  /// **'Jun'**
+  String get journalMonthJun;
+
+  /// No description provided for @journalMonthJul.
+  ///
+  /// In en, this message translates to:
+  /// **'Jul'**
+  String get journalMonthJul;
+
+  /// No description provided for @journalMonthAug.
+  ///
+  /// In en, this message translates to:
+  /// **'Aug'**
+  String get journalMonthAug;
+
+  /// No description provided for @journalMonthSep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sep'**
+  String get journalMonthSep;
+
+  /// No description provided for @journalMonthOct.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct'**
+  String get journalMonthOct;
+
+  /// No description provided for @journalMonthNov.
+  ///
+  /// In en, this message translates to:
+  /// **'Nov'**
+  String get journalMonthNov;
+
+  /// No description provided for @journalMonthDec.
+  ///
+  /// In en, this message translates to:
+  /// **'Dec'**
+  String get journalMonthDec;
 }
 
 class _AppLocalizationsDelegate

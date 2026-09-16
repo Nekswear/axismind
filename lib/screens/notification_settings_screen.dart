@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 import '../core/theme/zen_theme.dart';
 import '../data/notification_repository.dart';
@@ -8,17 +9,6 @@ import '../services/notification_service.dart';
 
 // =============================================================================
 // NotificationSettingsScreen — экран настройки пуш-уведомлений
-// =============================================================================
-//
-// Позволяет пользователю:
-//   - Включить/отключить уведомления глобально
-//   - Настроить время ежедневного напоминания
-//   - Включить/отключить мотивационные сообщения
-//   - Включить/отключить напоминание о целях
-//   - Настроить тихие часы (начало/конец)
-//   - Отправить тестовое уведомление
-//
-// Открывается из HomeScreen по кнопке "Уведомления".
 // =============================================================================
 
 /// Экран настройки уведомлений.
@@ -76,8 +66,6 @@ class _NotificationSettingsScreenState
       final saved = updated.copyWith(updatedAt: DateTime.now());
       await _repo!.saveSettings(saved);
 
-      // Перепланируем уведомления (оборачиваем в отдельный try-catch,
-      // чтобы ошибка планирования не блокировала сохранение настроек)
       try {
         await NotificationService.instance.rescheduleAll(saved);
       } catch (e) {
@@ -98,6 +86,7 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _pickTime() async {
+    final l10n = AppLocalizations.of(context)!;
     final parts = _settings.reminderTime.split(':');
     final initialHour = int.parse(parts[0]);
     final initialMinute = int.parse(parts[1]);
@@ -105,9 +94,9 @@ class _NotificationSettingsScreenState
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
-      helpText: 'Выберите время напоминания',
-      cancelText: 'Отмена',
-      confirmText: 'Готово',
+      helpText: l10n.notifTimePickerHelp,
+      cancelText: l10n.notifTimePickerCancel,
+      confirmText: l10n.notifTimePickerConfirm,
     );
 
     if (picked != null) {
@@ -118,6 +107,7 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _pickMotivationalTime() async {
+    final l10n = AppLocalizations.of(context)!;
     final parts = _settings.motivationalTime.split(':');
     final initialHour = int.parse(parts[0]);
     final initialMinute = int.parse(parts[1]);
@@ -125,9 +115,9 @@ class _NotificationSettingsScreenState
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
-      helpText: 'Время мотивационных сообщений',
-      cancelText: 'Отмена',
-      confirmText: 'Готово',
+      helpText: l10n.notifTimePickerMotivationHelp,
+      cancelText: l10n.notifTimePickerCancel,
+      confirmText: l10n.notifTimePickerConfirm,
     );
 
     if (picked != null) {
@@ -138,6 +128,7 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _pickGoalReminderTime() async {
+    final l10n = AppLocalizations.of(context)!;
     final parts = _settings.goalReminderTime.split(':');
     final initialHour = int.parse(parts[0]);
     final initialMinute = int.parse(parts[1]);
@@ -145,9 +136,9 @@ class _NotificationSettingsScreenState
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
-      helpText: 'Время напоминания о целях',
-      cancelText: 'Отмена',
-      confirmText: 'Готово',
+      helpText: l10n.notifTimePickerGoalHelp,
+      cancelText: l10n.notifTimePickerCancel,
+      confirmText: l10n.notifTimePickerConfirm,
     );
 
     if (picked != null) {
@@ -158,6 +149,7 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _pickQuietHoursStart() async {
+    final l10n = AppLocalizations.of(context)!;
     final initial = _settings.quietHoursStart != null
         ? _parseTime(_settings.quietHoursStart!)
         : const TimeOfDay(hour: 22, minute: 0);
@@ -165,9 +157,9 @@ class _NotificationSettingsScreenState
     final picked = await showTimePicker(
       context: context,
       initialTime: initial,
-      helpText: 'Начало тихих часов',
-      cancelText: 'Отмена',
-      confirmText: 'Готово',
+      helpText: l10n.notifTimePickerQuietStartHelp,
+      cancelText: l10n.notifTimePickerCancel,
+      confirmText: l10n.notifTimePickerConfirm,
     );
 
     if (picked != null) {
@@ -178,6 +170,7 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _pickQuietHoursEnd() async {
+    final l10n = AppLocalizations.of(context)!;
     final initial = _settings.quietHoursEnd != null
         ? _parseTime(_settings.quietHoursEnd!)
         : const TimeOfDay(hour: 7, minute: 0);
@@ -185,9 +178,9 @@ class _NotificationSettingsScreenState
     final picked = await showTimePicker(
       context: context,
       initialTime: initial,
-      helpText: 'Конец тихих часов',
-      cancelText: 'Отмена',
-      confirmText: 'Готово',
+      helpText: l10n.notifTimePickerQuietEndHelp,
+      cancelText: l10n.notifTimePickerCancel,
+      confirmText: l10n.notifTimePickerConfirm,
     );
 
     if (picked != null) {
@@ -203,14 +196,17 @@ class _NotificationSettingsScreenState
   }
 
   Future<void> _sendTestNotification() async {
-    // Проверяем тихие часы
+    final l10n = AppLocalizations.of(context)!;
+
     if (_settings.isInQuietHours(DateTime.now())) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Сейчас тихие часы (${_settings.quietHoursStart}–${_settings.quietHoursEnd}). '
-              'Уведомление не будет показано.',
+              l10n.notifQuietHoursActive(
+                _settings.quietHoursStart ?? '',
+                _settings.quietHoursEnd ?? '',
+              ),
             ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.orange.shade800,
@@ -222,8 +218,8 @@ class _NotificationSettingsScreenState
     await NotificationService.instance.showMotivationalNotification();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Тестовое уведомление отправлено!'),
+        SnackBar(
+          content: Text(l10n.notifTestSent),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -234,10 +230,11 @@ class _NotificationSettingsScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final zen = theme.extension<ZenStyles>() ?? ZenStyles.defaults;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Уведомления'),
+        title: Text(l10n.notifTitle),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -254,8 +251,7 @@ class _NotificationSettingsScreenState
                   children: [
                     // Описание
                     Text(
-                      'Настройте пуш-уведомления, чтобы не пропускать '
-                      'практику и отслеживать прогресс.',
+                      l10n.notifSubtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -265,13 +261,13 @@ class _NotificationSettingsScreenState
                     // =========================================================
                     // Глобальный переключатель
                     // =========================================================
-                    _buildSectionHeader(theme, 'Общие'),
+                    _buildSectionHeader(theme, l10n.notifGeneral),
                     const SizedBox(height: 8),
                     _buildSwitchTile(
                       theme: theme,
                       icon: Icons.notifications_active_rounded,
-                      title: 'Уведомления',
-                      subtitle: 'Включить или отключить все уведомления',
+                      title: l10n.notifEnabled,
+                      subtitle: l10n.notifEnabledSub,
                       value: _settings.enabled,
                       onChanged: (v) =>
                           _saveSettings(_settings.copyWith(enabled: v)),
@@ -283,13 +279,13 @@ class _NotificationSettingsScreenState
                       // =========================================================
                       // Время напоминания
                       // =========================================================
-                      _buildSectionHeader(theme, 'Ежедневное напоминание'),
+                      _buildSectionHeader(theme, l10n.notifDailyReminder),
                       const SizedBox(height: 8),
                       _buildTimeTile(
                         theme: theme,
                         icon: Icons.schedule_rounded,
-                        title: 'Время напоминания',
-                        subtitle: 'Ежедневное уведомление о медитации',
+                        title: l10n.notifReminderTime,
+                        subtitle: l10n.notifReminderTimeSub,
                         time: _settings.reminderTime,
                         onTap: _pickTime,
                       ),
@@ -298,13 +294,13 @@ class _NotificationSettingsScreenState
                       // =========================================================
                       // Мотивационные сообщения
                       // =========================================================
-                      _buildSectionHeader(theme, 'Мотивация'),
+                      _buildSectionHeader(theme, l10n.notifMotivation),
                       const SizedBox(height: 8),
                       _buildSwitchTile(
                         theme: theme,
                         icon: Icons.psychology_rounded,
-                        title: 'Мотивационные сообщения',
-                        subtitle: 'Вдохновляющие цитаты и статистика прогресса',
+                        title: l10n.notifMotivationMessages,
+                        subtitle: l10n.notifMotivationSub,
                         value: _settings.motivationalEnabled,
                         onChanged: (v) => _saveSettings(
                           _settings.copyWith(motivationalEnabled: v),
@@ -315,8 +311,8 @@ class _NotificationSettingsScreenState
                         _buildTimeTile(
                           theme: theme,
                           icon: Icons.schedule_rounded,
-                          title: 'Время мотивации',
-                          subtitle: 'Ежедневное мотивационное уведомление',
+                          title: l10n.notifMotivationTime,
+                          subtitle: l10n.notifMotivationTimeSub,
                           time: _settings.motivationalTime,
                           onTap: _pickMotivationalTime,
                         ),
@@ -326,13 +322,13 @@ class _NotificationSettingsScreenState
                       // =========================================================
                       // Напоминание о целях
                       // =========================================================
-                      _buildSectionHeader(theme, 'Цели'),
+                      _buildSectionHeader(theme, l10n.notifGoals),
                       const SizedBox(height: 8),
                       _buildSwitchTile(
                         theme: theme,
                         icon: Icons.track_changes_rounded,
-                        title: 'Напоминание о целях',
-                        subtitle: 'Напоминание вечером, если цель дня не выполнена',
+                        title: l10n.notifGoalReminder,
+                        subtitle: l10n.notifGoalReminderSub,
                         value: _settings.goalReminderEnabled,
                         onChanged: (v) => _saveSettings(
                           _settings.copyWith(goalReminderEnabled: v),
@@ -343,8 +339,8 @@ class _NotificationSettingsScreenState
                         _buildTimeTile(
                           theme: theme,
                           icon: Icons.schedule_rounded,
-                          title: 'Время напоминания',
-                          subtitle: 'Ежедневное напоминание о целях',
+                          title: l10n.notifGoalReminderTime,
+                          subtitle: l10n.notifGoalReminderTimeSub,
                           time: _settings.goalReminderTime,
                           onTap: _pickGoalReminderTime,
                         ),
@@ -354,21 +350,21 @@ class _NotificationSettingsScreenState
                       // =========================================================
                       // Тихие часы
                       // =========================================================
-                      _buildSectionHeader(theme, 'Тихие часы'),
+                      _buildSectionHeader(theme, l10n.notifQuietHours),
                       const SizedBox(height: 8),
-                      _buildQuietHoursTile(theme, zen),
+                      _buildQuietHoursTile(theme, zen, l10n),
                       const SizedBox(height: 24),
 
                       // =========================================================
                       // Тестовое уведомление
                       // =========================================================
-                      _buildSectionHeader(theme, 'Проверка'),
+                      _buildSectionHeader(theme, l10n.notifTesting),
                       const SizedBox(height: 8),
                       Center(
                         child: OutlinedButton.icon(
                           onPressed: _sendTestNotification,
                           icon: const Icon(Icons.send_rounded, size: 18),
-                          label: const Text('Отправить тестовое'),
+                          label: Text(l10n.sendTest),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: zen.goldGradient.colors.first,
                             side: BorderSide(
@@ -507,7 +503,8 @@ class _NotificationSettingsScreenState
     );
   }
 
-  Widget _buildQuietHoursTile(ThemeData theme, ZenStyles zen) {
+  Widget _buildQuietHoursTile(
+      ThemeData theme, ZenStyles zen, AppLocalizations l10n) {
     final hasStart = _settings.quietHoursStart != null;
     final hasEnd = _settings.quietHoursEnd != null;
     final isActive = hasStart && hasEnd;
@@ -532,15 +529,18 @@ class _NotificationSettingsScreenState
                 size: 22,
               ),
               title: Text(
-                'Тихие часы',
+                l10n.notifQuietHours,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               subtitle: Text(
                 isActive
-                    ? 'Не беспокоить с ${_settings.quietHoursStart} до ${_settings.quietHoursEnd}'
-                    : 'Отключить уведомления на ночь',
+                    ? l10n.notifQuietHoursSubEnabled(
+                        _settings.quietHoursStart!,
+                        _settings.quietHoursEnd!,
+                      )
+                    : l10n.notifQuietHoursSubDisabled,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -575,7 +575,7 @@ class _NotificationSettingsScreenState
                     Expanded(
                       child: _buildQuietHourButton(
                         theme: theme,
-                        label: 'Начало',
+                        label: l10n.notifQuietHoursStart,
                         time: _settings.quietHoursStart!,
                         onTap: _pickQuietHoursStart,
                       ),
@@ -591,7 +591,7 @@ class _NotificationSettingsScreenState
                     Expanded(
                       child: _buildQuietHourButton(
                         theme: theme,
-                        label: 'Конец',
+                        label: l10n.notifQuietHoursEnd,
                         time: _settings.quietHoursEnd!,
                         onTap: _pickQuietHoursEnd,
                       ),
@@ -617,7 +617,8 @@ class _NotificationSettingsScreenState
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          color: theme.colorScheme.surfaceContainerHighest
+              .withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(

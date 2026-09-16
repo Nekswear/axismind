@@ -180,7 +180,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String thenPrice(Object price) {
-    return 'Попробовать 7 дней бесплатно\nзатем $price';
+    return 'затем $price';
   }
 
   @override
@@ -280,7 +280,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get journalUpdateFailed => 'Не удалось обновить запись';
 
   @override
-  String get journalDeleteConfirm => 'Удалить запись?';
+  String get journalDeleteConfirm => 'Удалить';
 
   @override
   String get journalDeleteConfirmSub => 'Это действие нельзя отменить.';
@@ -1294,4 +1294,185 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get onboardingDesc3 =>
       'Отслеживайте статистику сессий, настраивайте таймеры и сохраняйте свой прогресс в облаке.';
+
+  @override
+  String get goalSettingsTitle => 'Goal Settings';
+
+  @override
+  String get goalSettingsSubtitle =>
+      'Goals help track practice regularity and give bonus XP for completion.';
+
+  @override
+  String get goalsCurrentListTitle => 'Current Goals';
+
+  @override
+  String get goalsMaxLimit => 'Maximum 4 goals';
+
+  @override
+  String get goalsAddBtn => 'Add goal';
+
+  @override
+  String get goalsEditTooltip => 'Edit';
+
+  @override
+  String get goalsDeleteTooltip => 'Delete';
+
+  @override
+  String get goalsDeleteDialogTitle => 'Delete goal?';
+
+  @override
+  String goalsDeleteDialogContent(Object name) {
+    return 'Are you sure you want to delete the goal \"$name\"?';
+  }
+
+  @override
+  String get goalsDialogCancel => 'Cancel';
+
+  @override
+  String get goalsDialogDelete => 'Delete';
+
+  @override
+  String get goalsFormEditTitle => 'Edit goal';
+
+  @override
+  String get goalsFormNewTitle => 'New goal';
+
+  @override
+  String get goalsFormTypeLabel => 'Goal type';
+
+  @override
+  String get goalsFormTargetLabel => 'Target value';
+
+  @override
+  String get goalsFormSave => 'Save';
+
+  @override
+  String get goalsHelperDaily => 'For example: 10 minutes per day';
+
+  @override
+  String get goalsHelperWeeklySessions => 'For example: 5 sessions per week';
+
+  @override
+  String get goalsHelperWeeklyMinutes => 'For example: 60 minutes per week';
+
+  @override
+  String get goalsHelperStreak => 'For example: 7 days in a row';
+
+  @override
+  String get statsScreenTitle => 'Statistics';
+
+  @override
+  String get statsSyncError => 'SyncRepository is not initialized';
+
+  @override
+  String get statsLoadError => 'Failed to load statistics. Please try again.';
+
+  @override
+  String get statsDbError => 'Database error. Please restart the app.';
+
+  @override
+  String get goalTypeDailyMinutes => 'Daily practice';
+
+  @override
+  String get goalTypeWeeklySessions => 'Sessions per week';
+
+  @override
+  String get goalTypeWeeklyMinutes => 'Minutes per week';
+
+  @override
+  String get goalTypeStreakDays => 'Days in a row';
+
+  @override
+  String get goalDialogTitleNew => 'New goal';
+
+  @override
+  String get goalDialogTitleEdit => 'Edit goal';
+
+  @override
+  String get goalDialogSelectType => 'Goal type';
+
+  @override
+  String get goalDialogTargetValue => 'Target value';
+
+  @override
+  String get goalDialogSave => 'Save';
+
+  @override
+  String get goalDialogCancel => 'Cancel';
+
+  @override
+  String get journalSearchHint => 'Поиск по заметкам...';
+
+  @override
+  String get journalTagAll => 'Все';
+
+  @override
+  String get journalEmptyTitle => 'Здесь пока пусто';
+
+  @override
+  String get journalUpdateError => 'Не удалось обновить запись';
+
+  @override
+  String get journalDeleteTitle => 'Удалить запись?';
+
+  @override
+  String get journalDeleteContent => 'Это действие нельзя отменить.';
+
+  @override
+  String get journalDeleteCancel => 'Отмена';
+
+  @override
+  String get journalDeleteSuccess => 'Запись удалена';
+
+  @override
+  String get journalDeleteError => 'Не удалось удалить запись';
+
+  @override
+  String get journalEditBtn => 'Редактировать';
+
+  @override
+  String journalDurationMinSec(Object min, Object sec) {
+    return '$min мин $sec сек';
+  }
+
+  @override
+  String journalDurationSec(Object sec) {
+    return '$sec сек';
+  }
+
+  @override
+  String get journalMonthJan => 'янв';
+
+  @override
+  String get journalMonthFeb => 'фев';
+
+  @override
+  String get journalMonthMar => 'мар';
+
+  @override
+  String get journalMonthApr => 'апр';
+
+  @override
+  String get journalMonthMay => 'май';
+
+  @override
+  String get journalMonthJun => 'июн';
+
+  @override
+  String get journalMonthJul => 'июл';
+
+  @override
+  String get journalMonthAug => 'авг';
+
+  @override
+  String get journalMonthSep => 'сен';
+
+  @override
+  String get journalMonthOct => 'окт';
+
+  @override
+  String get journalMonthNov => 'ноя';
+
+  @override
+  String get journalMonthDec => 'дек';
 }

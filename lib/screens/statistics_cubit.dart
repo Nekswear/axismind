@@ -2,8 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../data/analytics_repository.dart';
-import '../services/app_service_locator.dart';
+import 'package:axismind/data/analytics_repository.dart';
+import 'package:axismind/services/app_service_locator.dart';
 
 // =============================================================================
 // Period enum
@@ -165,8 +165,15 @@ class StatisticsCubit extends Cubit<StatisticsState> {
       if (syncRepo == null) {
         throw Exception('SyncRepository не инициализирован');
       }
+      
       _repository = AnalyticsRepository(syncRepo);
-      _repository!.goalsRepo = locator.goalsRepo;
+      
+      // Безопасная инициализация goalsRepo, если она есть в локаторе
+      try {
+        _repository!.goalsRepo = locator.goalsRepo;
+      } catch (_) {
+        // Пропускаем, если цель репозитория отсутствует в данном контексте
+      }
 
       final now = DateTime.now();
       final days = _chartDays;
@@ -183,7 +190,7 @@ class StatisticsCubit extends Cubit<StatisticsState> {
 
       emit(_buildActiveState(dto));
     } catch (e) {
-      if (e is StaleRequestException) return;
+      if (e.toString().contains('StaleRequest')) return;
 
       final message = _formatError(e);
       emit(StatisticsError(message));
@@ -213,7 +220,7 @@ class StatisticsCubit extends Cubit<StatisticsState> {
 
       emit(_buildActiveState(dto));
     } catch (e) {
-      if (e is StaleRequestException) return;
+      if (e.toString().contains('StaleRequest')) return;
       debugPrint('Ошибка обновления графика: $e');
     }
   }
@@ -304,7 +311,6 @@ class StatisticsCubit extends Cubit<StatisticsState> {
 
   /// Formats an exception into a user-friendly error message.
   String _formatError(Object e) {
-    // Reuse the same formatting logic from ErrorView
     final message = e.toString();
     if (message.contains('SyncRepository')) {
       return 'Не удалось загрузить статистику. Попробуйте снова.';

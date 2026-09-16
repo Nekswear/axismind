@@ -81,7 +81,7 @@
 
   "paywallTitle": "Откройте полный\nпотенциал AxisMind",
   "try7DaysFree": "Попробуйте 7 дней бесплатно",
-  "thenPrice": "Попробовать 7 дней бесплатно\nзатем {price}",
+  "thenPrice": "затем {price}",
   "@thenPrice": {
     "placeholders": {
       "price": {}
@@ -555,7 +555,7 @@
   "guideFinalTitle": "Будьте Свидетелем.",
   "guideFinalQuote": "Ваш ум — ваш главный актив.",
 
-  "onboardingSkip": "Пропустить",
+ "onboardingSkip": "Пропустить",
   "onboardingNext": "Далее",
   "onboardingStart": "Начать практику",
   "onboardingTitle1": "Осознанность и покой",
@@ -563,5 +563,43 @@
   "onboardingTitle2": "Дыхательные практики",
   "onboardingDesc2": "Используйте проверенные техники, такие как Сусокукан, для глубокой концентрации и расслабления.",
   "onboardingTitle3": "Синхронизация и прогресс",
-  "onboardingDesc3": "Отслеживайте статистику сессий, настраивайте таймеры и сохраняйте свой прогресс в облаке."
+  "onboardingDesc3": "Отслеживайте статистику сессий, настраивайте таймеры и сохраняйте свой прогресс в облаке.",
+
+  "journalSearchHint": "Поиск по заметкам...",
+  "journalTagAll": "Все",
+  "journalEmptyTitle": "Здесь пока пусто",
+  "journalEmptySubtitle": "Заверши медитацию,\nчтобы появилась первая запись",
+  "journalUpdateError": "Не удалось обновить запись",
+  "journalDeleteTitle": "Удалить запись?",
+  "journalDeleteContent": "Это действие нельзя отменить.",
+  "journalDeleteCancel": "Отмена",
+  "journalDeleteConfirm": "Удалить",
+  "journalDeleteSuccess": "Запись удалена",
+  "journalDeleteError": "Не удалось удалить запись",
+  "journalEditBtn": "Редактировать",
+  "journalDurationMinSec": "{min} мин {sec} сек",
+  "@journalDurationMinSec": {
+    "placeholders": {
+      "min": {},
+      "sec": {}
+    }
+  },
+  "journalDurationSec": "{sec} сек",
+  "@journalDurationSec": {
+    "placeholders": {
+      "sec": {}
+    }
+  },
+  "journalMonthJan": "янв",
+  "journalMonthFeb": "фев",
+  "journalMonthMar": "мар",
+  "journalMonthApr": "апр",
+  "journalMonthMay": "май",
+  "journalMonthJun": "июн",
+  "journalMonthJul": "июл",
+  "journalMonthAug": "авг",
+  "journalMonthSep": "сен",
+  "journalMonthOct": "окт",
+  "journalMonthNov": "ноя",
+  "journalMonthDec": "дек"
 }

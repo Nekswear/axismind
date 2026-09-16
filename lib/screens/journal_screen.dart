@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/zen_theme.dart';
 import '../data/analytics_repository.dart';
 import '../data/session.dart';
+import '../l10n/app_localizations.dart';
 import '../services/app_service_locator.dart';
 import '../widgets/journal_dialog.dart';
 
@@ -133,6 +134,7 @@ class _JournalScreenState extends State<JournalScreen> {
   }
 
   Future<void> _editSession(Session session) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<JournalResult>(
       context: context,
       barrierDismissible: false,
@@ -158,7 +160,7 @@ class _JournalScreenState extends State<JournalScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Не удалось обновить запись')),
+            SnackBar(content: Text(l10n.journalUpdateError)),
           );
         }
       }
@@ -166,22 +168,23 @@ class _JournalScreenState extends State<JournalScreen> {
   }
 
   Future<void> _deleteSession(Session session) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Удалить запись?'),
-        content: const Text('Это действие нельзя отменить.'),
+        title: Text(l10n.journalDeleteTitle),
+        content: Text(l10n.journalDeleteContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Отмена'),
+            child: Text(l10n.journalDeleteCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.red,
             ),
-            child: const Text('Удалить'),
+            child: Text(l10n.journalDeleteConfirm),
           ),
         ],
       ),
@@ -193,13 +196,13 @@ class _JournalScreenState extends State<JournalScreen> {
         await _refresh();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Запись удалена')),
+            SnackBar(content: Text(l10n.journalDeleteSuccess)),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Не удалось удалить запись')),
+            SnackBar(content: Text(l10n.journalDeleteError)),
           );
         }
       }
@@ -209,10 +212,11 @@ class _JournalScreenState extends State<JournalScreen> {
   @override
   Widget build(BuildContext context) {
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Дневник медитаций'),
+        title: Text(l10n.journalTitle),
         centerTitle: true,
         actions: [
           IconButton(
@@ -244,7 +248,7 @@ class _JournalScreenState extends State<JournalScreen> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: 'Поиск по заметкам...',
+                  hintText: l10n.journalSearchHint,
                   prefixIcon: const Icon(Icons.search, size: 20),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -270,7 +274,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   vertical: 8,
                 ),
                 children: [
-                  _buildTagChip(null, 'Все'),
+                  _buildTagChip(null, l10n.journalTagAll),
                   ..._availableTags.map((tag) => _buildTagChip(tag, tag)),
                 ],
               ),
@@ -359,10 +363,20 @@ class _JournalCard extends StatelessWidget {
     return _moodEmojis[rating - 1];
   }
 
-  String _formatDate(DateTime dt) {
-    const months = [
-      'янв', 'фев', 'мар', 'апр', 'май', 'июн',
-      'июл', 'авг', 'сен', 'окт', 'ноя', 'дек',
+  String _formatDate(DateTime dt, AppLocalizations l10n) {
+    final months = [
+      l10n.journalMonthJan,
+      l10n.journalMonthFeb,
+      l10n.journalMonthMar,
+      l10n.journalMonthApr,
+      l10n.journalMonthMay,
+      l10n.journalMonthJun,
+      l10n.journalMonthJul,
+      l10n.journalMonthAug,
+      l10n.journalMonthSep,
+      l10n.journalMonthOct,
+      l10n.journalMonthNov,
+      l10n.journalMonthDec,
     ];
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
   }
@@ -371,16 +385,17 @@ class _JournalCard extends StatelessWidget {
     return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 
-  String _durationLabel(int seconds) {
+  String _durationLabel(int seconds, AppLocalizations l10n) {
     final min = seconds ~/ 60;
     final sec = seconds % 60;
-    if (min > 0) return '$min мин $sec сек';
-    return '$sec сек';
+    if (min > 0) return l10n.journalDurationMinSec(min, sec);
+    return l10n.journalDurationSec(sec);
   }
 
   @override
   Widget build(BuildContext context) {
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
+    final l10n = AppLocalizations.of(context)!;
     final date = DateTime.parse(session.timestamp);
 
     return Card(
@@ -422,7 +437,7 @@ class _JournalCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          _formatDate(date),
+                          _formatDate(date, l10n),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -440,7 +455,7 @@ class _JournalCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     // Длительность
                     Text(
-                      _durationLabel(session.seconds),
+                      _durationLabel(session.seconds, l10n),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.grey[600],
                       ),
@@ -490,9 +505,8 @@ class _JournalCard extends StatelessWidget {
   }
 
   void _showSessionDetail(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final date = DateTime.parse(session.timestamp);
-    final min = session.seconds ~/ 60;
-    final sec = session.seconds % 60;
 
     showModalBottomSheet(
       context: context,
@@ -533,7 +547,7 @@ class _JournalCard extends StatelessWidget {
                         style: Theme.of(ctx).textTheme.titleMedium,
                       ),
                       Text(
-                        '$min мин $sec сек',
+                        _durationLabel(session.seconds, l10n),
                         style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
                           color: Colors.grey[600],
                         ),
@@ -579,7 +593,7 @@ class _JournalCard extends StatelessWidget {
                       onEdit();
                     },
                     icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: const Text('Редактировать'),
+                    label: Text(l10n.journalEditBtn),
                   ),
                   OutlinedButton.icon(
                     onPressed: () {
@@ -587,7 +601,7 @@ class _JournalCard extends StatelessWidget {
                       onDelete();
                     },
                     icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text('Удалить'),
+                    label: Text(l10n.journalDeleteConfirm),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.red,
                     ),
@@ -609,23 +623,25 @@ class _EmptyJournal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('📖', style: TextStyle(fontSize: 72)),
+            const Text('📖', style: TextStyle(fontSize: 72)),
             const SizedBox(height: 20),
             Text(
-              'Здесь пока пусто',
+              l10n.journalEmptyTitle,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              'Заверши медитацию,\nчтобы появилась первая запись',
+              l10n.journalEmptySubtitle,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[500],
