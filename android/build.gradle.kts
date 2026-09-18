@@ -1,3 +1,9 @@
+plugins {
+    // Подключаем плагин Google Services для всего проекта с apply false, 
+    // чтобы он активировался только там, где мы его явно позовём
+    id("com.google.gms.google-services") version "4.4.2" apply false
+}
+
 allprojects {
     repositories {
         google()

@@ -184,21 +184,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: ZenColors.gold,
                     foregroundColor: ZenColors.background,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
                     ),
                     elevation: 0,
-                    textStyle: const TextStyle(
-                      fontFamily: 'Manrope',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.5,
-                    ),
                   ),
-                  child: Text(
-                    _currentIndex == items.length - 1
-                        ? l10n.onboardingStart
-                        : l10n.onboardingNext,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _currentIndex == items.length - 1
+                          ? l10n.onboardingStart
+                          : l10n.onboardingNext,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      textScaler: MediaQuery.of(context).textScaler.clamp(
+                            minScaleFactor: 1.0,
+                            maxScaleFactor: 1.2,
+                          ),
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.0,
+                        height: 1.1,
+                      ),
+                    ),
                   ),
                 ),
               ),

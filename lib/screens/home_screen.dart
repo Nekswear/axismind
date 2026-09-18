@@ -12,16 +12,16 @@ import '../data/goals_repository.dart';
 import '../data/meditation_goal.dart';
 import '../data/sync_repository.dart';
 import '../domain/progress_calculator.dart';
-import '../services/auth_service.dart';
 import '../engine/timer_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../services/app_service_locator.dart';
+import '../services/auth_service.dart';
 import 'auth_screen.dart';
 import 'journal_screen.dart';
 import 'meditation_guide_screen.dart';
 import 'notification_settings_screen.dart';
-import 'timer_page.dart';
 import 'statistics_page.dart';
+import 'timer_page.dart';
 import 'widgets/glassmorphic_hero.dart';
 import 'widgets/goals_panel.dart';
 import 'widgets/neuro_preset_info.dart';
@@ -68,7 +68,6 @@ class _HomeScreenState extends State<HomeScreen>
     super.initState();
     debugPrint('[DIAG] HomeScreen.initState()');
 
-    // Пытаемся получить сервисы, но не падаем, если их нет
     _tryInitServices();
 
     _pulseController = AnimationController(
@@ -79,7 +78,6 @@ class _HomeScreenState extends State<HomeScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // Загружаем прогрессию сразу
     _loadProgression();
   }
 
@@ -91,7 +89,6 @@ class _HomeScreenState extends State<HomeScreen>
         '[DIAG] AuthService available: ${auth != null}, DB available: ${locator.db != null}',
       );
 
-      // Устанавливаем начальное состояние аутентификации
       _updateAuthState(auth?.currentUser);
 
       _authSubscription = auth?.authStateChanges.listen((user) {
@@ -103,11 +100,9 @@ class _HomeScreenState extends State<HomeScreen>
       });
     } catch (e) {
       debugPrint('[DIAG] Services not available: $e');
-      // Продолжаем без сервисов — показываем статический UI
     }
   }
 
-  /// Обновляет состояние аутентификации из [User] Firebase.
   void _updateAuthState(User? user) {
     setState(() {
       _isAuthenticated = user != null;
@@ -136,7 +131,6 @@ class _HomeScreenState extends State<HomeScreen>
         return;
       }
 
-      // Создаём репозиторий через SyncRepository (с локальной БД)
       if (_repository == null) {
         final syncRepo =
             locator.syncRepo ??
@@ -173,7 +167,6 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  /// Загружает прогресс целей.
   Future<List<GoalWithProgress>> _loadGoalsProgress(
     GoalsRepository? goalsRepo,
   ) async {
@@ -183,7 +176,6 @@ class _HomeScreenState extends State<HomeScreen>
       final goals = await goalsRepo.getGoals();
       if (goals.isEmpty) return [];
 
-      // Получаем метрики для расчёта прогресса
       final todayMinutes = await _getTodayMinutes();
       final weeklyMetrics = await _getWeeklyMetrics();
       final dates = await _repository!.syncRepo.getDistinctSessionDates();
@@ -201,12 +193,10 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  /// Возвращает количество минут медитации за сегодня.
   Future<int> _getTodayMinutes() async {
     try {
       final now = DateTime.now();
       final dateStr = '${now.year}-${_pad(now.month)}-${_pad(now.day)}';
-      // end должен быть следующим днём, т.к. SQL запрос использует timestamp < end
       final tomorrow = now.add(const Duration(days: 1));
       final tomorrowStr =
           '${tomorrow.year}-${_pad(tomorrow.month)}-${_pad(tomorrow.day)}';
@@ -221,14 +211,12 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  /// Возвращает (количество сессий за неделю, сумма минут за неделю).
   Future<(int, int)> _getWeeklyMetrics() async {
     try {
       final now = DateTime.now();
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       final startStr =
           '${weekStart.year}-${_pad(weekStart.month)}-${_pad(weekStart.day)}';
-      // end должен быть следующим днём, т.к. SQL запрос использует timestamp < end
       final tomorrow = now.add(const Duration(days: 1));
       final endStr =
           '${tomorrow.year}-${_pad(tomorrow.month)}-${_pad(tomorrow.day)}';
@@ -256,15 +244,11 @@ class _HomeScreenState extends State<HomeScreen>
     );
 
     if (result == true && mounted) {
-      // После успешного входа — сначала подтягиваем данные из облака,
-      // затем мигрируем локальные данные в облако
       final user = auth.currentUser;
       if (user != null) {
         final syncRepo = AppServiceLocator.instance.syncRepo;
         if (syncRepo != null) {
-          // 1. Сначала скачиваем все облачные сессии в локальную БД
           await syncRepo.syncFromCloud();
-          // 2. Затем загружаем локальные данные в облако
           await syncRepo.migrateLocalToCloud(user.uid);
         }
       }
@@ -337,20 +321,13 @@ class _HomeScreenState extends State<HomeScreen>
     final theme = Theme.of(context);
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
 
-    debugPrint('[DIAG] HomeScreen.build(), _loading=$_loading');
-
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Desktop/Web: ширина > 800 И высота > 600 (чтобы ландшафт на телефоне
-          // не триггерил десктопный макет, где нет мобильной кнопки "Начать практику")
           final isDesktop =
               kIsWeb ||
               (constraints.maxWidth > 800 && constraints.maxHeight > 600);
           final isCompact = constraints.maxHeight < 600;
-          debugPrint(
-            '[DIAG] LayoutBuilder: w=${constraints.maxWidth}, h=${constraints.maxHeight}, isDesktop=$isDesktop, isCompact=$isCompact',
-          );
 
           if (isDesktop) {
             return _buildDesktopLayout(theme, zen);
@@ -400,20 +377,25 @@ class _HomeScreenState extends State<HomeScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Hero-секция с 3D Glassmorphic эффектом
+              // Hero-секция с явным ограничением по Clip
               if (_loading)
                 _buildLoadingState(zen)
               else
-                GlassmorphicHero(
-                  progression: _progression,
-                  xpProgress: _xpProgress,
-                  isCompact: isCompact,
-                  isDesktop: false,
-                  isAuthenticated: _isAuthenticated,
-                  onAuthTap: _openAuthScreen,
-                  onSignOutTap: _signOut,
-                  displayName: _displayName,
-                  photoUrl: _photoUrl,
+                ClipRect(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: GlassmorphicHero(
+                      progression: _progression,
+                      xpProgress: _xpProgress,
+                      isCompact: isCompact,
+                      isDesktop: false,
+                      isAuthenticated: _isAuthenticated,
+                      onAuthTap: _openAuthScreen,
+                      onSignOutTap: _signOut,
+                      displayName: _displayName,
+                      photoUrl: _photoUrl,
+                    ),
+                  ),
                 ),
 
               SizedBox(height: zen.gap(5) * gapScale),
@@ -426,34 +408,59 @@ class _HomeScreenState extends State<HomeScreen>
 
               SizedBox(height: zen.gap(3) * gapScale),
 
-              // CTA-кнопка с пульсацией
-              AnimatedBuilder(
-                animation: _pulseAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _pulseAnimation.value,
-                    child: child,
-                  );
-                },
-                child: SizedBox(
-                  height: isCompact ? 48 : 56,
-                  child: ElevatedButton(
-                    onPressed: _navigateToTimer,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ZenColors.gold,
-                      foregroundColor: ZenColors.background,
-                      padding: const EdgeInsets.symmetric(horizontal: 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      textStyle: TextStyle(
-                        fontFamily: 'Manrope',
-                        fontSize: isCompact ? 14 : 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
+              // CTA-кнопка с гарантированной центровкой и ограничением ширины
+              KeyedSubtree(
+                key: const ValueKey('cta_button_wrapper'),
+                child: Listener(
+                  behavior: HitTestBehavior.opaque,
+                  child: RepaintBoundary(
+                    child: AnimatedBuilder(
+                      animation: _pulseAnimation,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _pulseAnimation.value,
+                          child: child,
+                        );
+                      },
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: isCompact ? 48 : 56,
+                          child: ElevatedButton(
+                            onPressed: _navigateToTimer,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ZenColors.gold,
+                              foregroundColor: ZenColors.background,
+                              elevation: 4,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                AppLocalizations.of(context)!.startPractice,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                textScaler: MediaQuery.of(context).textScaler.clamp(
+                                      minScaleFactor: 1.0,
+                                      maxScaleFactor: 1.2,
+                                    ),
+                                style: TextStyle(
+                                  fontFamily: 'Manrope',
+                                  fontSize: isCompact ? 14 : 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.0,
+                                  height: 1.1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    child: Text(AppLocalizations.of(context)!.startPractice),
                   ),
                 ),
               ),
@@ -618,44 +625,49 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
         SizedBox(height: isCompact ? zen.spacingUnit : zen.spacingUnit * 2),
-        Wrap(
-          spacing: isCompact ? zen.spacingUnit : zen.spacingUnit * 1.5,
-          runSpacing: isCompact ? zen.spacingUnit : zen.spacingUnit * 1.5,
-          alignment: WrapAlignment.center,
-          children: [
-            DurationPreset(
-              minutes: 5,
-              icon: Icons.coffee_outlined,
-              label: AppLocalizations.of(context)!.presetQuick,
-              subtitle: AppLocalizations.of(context)!.presetQuickSub,
-              isSelected: _durationMinutes == 5,
-              onTap: () => setState(() => _durationMinutes = 5),
-            ),
-            DurationPreset(
-              minutes: 10,
-              icon: Icons.self_improvement,
-              label: AppLocalizations.of(context)!.presetStandard,
-              subtitle: AppLocalizations.of(context)!.presetStandardSub,
-              isSelected: _durationMinutes == 10,
-              onTap: () => setState(() => _durationMinutes = 10),
-            ),
-            DurationPreset(
-              minutes: 15,
-              icon: Icons.water_drop_outlined,
-              label: AppLocalizations.of(context)!.presetDeep,
-              subtitle: AppLocalizations.of(context)!.presetDeepSub,
-              isSelected: _durationMinutes == 15,
-              onTap: () => setState(() => _durationMinutes = 15),
-            ),
-            DurationPreset(
-              minutes: 20,
-              icon: Icons.auto_awesome_outlined,
-              label: AppLocalizations.of(context)!.presetMaster,
-              subtitle: AppLocalizations.of(context)!.presetMasterSub,
-              isSelected: _durationMinutes == 20,
-              onTap: () => setState(() => _durationMinutes = 20),
-            ),
-          ],
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              DurationPreset(
+                minutes: 5,
+                icon: Icons.coffee_outlined,
+                label: AppLocalizations.of(context)!.presetQuick,
+                subtitle: AppLocalizations.of(context)!.presetQuickSub,
+                isSelected: _durationMinutes == 5,
+                onTap: () => setState(() => _durationMinutes = 5),
+              ),
+              SizedBox(width: zen.spacingUnit),
+              DurationPreset(
+                minutes: 10,
+                icon: Icons.self_improvement,
+                label: AppLocalizations.of(context)!.presetStandard,
+                subtitle: AppLocalizations.of(context)!.presetStandardSub,
+                isSelected: _durationMinutes == 10,
+                onTap: () => setState(() => _durationMinutes = 10),
+              ),
+              SizedBox(width: zen.spacingUnit),
+              DurationPreset(
+                minutes: 15,
+                icon: Icons.water_drop_outlined,
+                label: AppLocalizations.of(context)!.presetDeep,
+                subtitle: AppLocalizations.of(context)!.presetDeepSub,
+                isSelected: _durationMinutes == 15,
+                onTap: () => setState(() => _durationMinutes = 15),
+              ),
+              SizedBox(width: zen.spacingUnit),
+              DurationPreset(
+                minutes: 20,
+                icon: Icons.auto_awesome_outlined,
+                label: AppLocalizations.of(context)!.presetMaster,
+                subtitle: AppLocalizations.of(context)!.presetMasterSub,
+                isSelected: _durationMinutes == 20,
+                onTap: () => setState(() => _durationMinutes = 20),
+              ),
+            ],
+          ),
         ),
       ],
     );

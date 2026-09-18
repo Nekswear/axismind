@@ -32,41 +32,43 @@ class NeuroPresetInfo extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final description = l10n != null ? _getDescription(l10n) : '';
 
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-      alignment: Alignment.topCenter,
-      child: description.isEmpty
-          ? const SizedBox.shrink()
-          : Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.1),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
+    return ClipRect(
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: Alignment.topCenter,
+        child: description.isEmpty
+            ? const SizedBox.shrink()
+            : Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.1),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    description,
+                    key: ValueKey('neuro_$minutes'),
+                    style: TextStyle(
+                      fontFamily: 'PlayfairDisplay',
+                      fontSize: 15,
+                      height: 1.6,
+                      color: ZenColors.gold.withValues(alpha: 0.8),
                     ),
-                  );
-                },
-                child: Text(
-                  description,
-                  key: ValueKey('neuro_$minutes'),
-                  style: TextStyle(
-                    fontFamily: 'PlayfairDisplay',
-                    fontSize: 15,
-                    height: 1.6,
-                    color: ZenColors.gold.withValues(alpha: 0.8),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
+      ),
     );
   }
 }

@@ -13,21 +13,6 @@ import 'mouse_tilt_controller.dart';
 import 'rank_roadmap.dart';
 
 /// 3D Glassmorphic Hero-карточка пользователя.
-///
-/// **Мобильная версия:** Использует гироскоп ([GyroController]) для
-/// параллакс-эффекта с low-pass фильтром.
-///
-/// **Desktop/Web версия:** Использует [MouseTiltController] для
-/// эффекта «Магнитного Тилта» при движении курсора.
-///
-/// Многослойный `Stack`:
-/// 1. Frosted Glass (BackdropFilter + blur) — только на desktop/web
-/// 2. Золотое свечение (параллакс)
-/// 3. Контент (ранг, XP, streak) — контр-параллакс
-///
-/// **Важно:** На Android `BackdropFilter` с `ImageFilter.blur` вызывает
-/// сбой рендеринга на многих устройствах, поэтому используется fallback
-/// с простым полупрозрачным фоном.
 class GlassmorphicHero extends StatefulWidget {
   final UserProgression progression;
   final XpProgress xpProgress;
@@ -38,11 +23,9 @@ class GlassmorphicHero extends StatefulWidget {
   final bool isAuthenticated;
 
   /// Колбэк для открытия экрана входа.
-  /// Если null — кнопка входа не показывается.
   final VoidCallback? onAuthTap;
 
   /// Колбэк для выхода из аккаунта.
-  /// Если null — кнопка выхода не показывается.
   final VoidCallback? onSignOutTap;
 
   /// Отображаемое имя пользователя (если авторизован).
@@ -99,9 +82,8 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
   void _onTiltUpdate() {
     if (mounted && _mouseTilt != null) {
       setState(() {
-        // Извлекаем углы наклона из матрицы для золотого блика
-        _tiltX = _mouseTilt!.transform[4] * 10; // rotationY
-        _tiltY = _mouseTilt!.transform[1] * 10; // rotationX
+        _tiltX = _mouseTilt!.transform[4] * 10;
+        _tiltY = _mouseTilt!.transform[1] * 10;
       });
     }
   }
@@ -119,48 +101,23 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     final zen = Theme.of(context).extension<ZenStyles>() ?? ZenStyles.defaults;
     final theme = Theme.of(context);
 
-    final cardContent = _buildCardContent(context, theme, zen);
-
-    // Desktop/Web: оборачиваем в MouseRegion
     if (widget.isDesktop && _mouseTilt != null) {
-      return MouseRegion(
-        onHover: (event) {
-          final box = context.findRenderObject() as RenderBox;
-          _mouseTilt!.update(event.localPosition, box.size);
+      return Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerMove: (event) {
+          final box = context.findRenderObject() as RenderBox?;
+          if (box != null) {
+            _mouseTilt!.update(event.localPosition, box.size);
+          }
         },
-        onExit: (_) => _mouseTilt!.reset(),
-        child: _buildGlassCard(zen, cardContent),
+        child: _buildGlassCard(zen, theme),
       );
     }
 
-    return _buildGlassCard(zen, cardContent);
+    return _buildGlassCard(zen, theme);
   }
 
-  Widget _buildGlassCard(ZenStyles zen, Widget content) {
-    // Desktop: используем AnimatedBuilder с MouseTiltController для плавных переходов
-    if (_mouseTilt != null) {
-      return AnimatedBuilder(
-        animation: _mouseTilt!,
-        builder: (context, child) {
-          return _buildGlassCardContent(zen, child!);
-        },
-        child: content,
-      );
-    }
-
-    // Мобильная версия: setState из GyroController перестраивает виджет
-    return _buildGlassCardContent(zen, content);
-  }
-
-  /// Строит содержимое стеклянной карточки с параллакс-трансформациями.
-  ///
-  /// **Важно:** Не используем `Stack` с перекрывающимися детьми — на некоторых
-  /// Android-устройствах это вызывает сбой рендеринга (синий экран с жёлтым овалом).
-  /// Вместо этого используем один `Container` с `BoxDecoration` для фона и градиента,
-  /// а контент размещаем поверх через `ClipRRect`.
-  /// Строит содержимое стеклянной карточки без сдвига всего контейнера целиком,
-  /// чтобы дочерние элементы (кнопки) не теряли точность попадания кликов.
-  Widget _buildGlassCardContent(ZenStyles zen, Widget content) {
+  Widget _buildGlassCard(ZenStyles zen, ThemeData theme) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -169,30 +126,59 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(zen.cardRadius),
-        child: _buildGlassLayer(zen, content),
+        child: _buildGlassLayer(zen, theme),
       ),
     );
   }
 
-  /// Строит слой стекла: [BackdropFilter] на desktop/web,
-  /// простой полупрозрачный фон на Android.
-  /// Параллакс применяется только к фону/градиенту, а сам content остается на месте.
-  Widget _buildGlassLayer(ZenStyles zen, Widget content) {
-    if (widget.isDesktop) {
-      return Stack(
-        children: [
-          // BackdropFilter
-          Positioned.fill(
+  Widget _buildGlassLayer(ZenStyles zen, ThemeData theme) {
+    return Stack(
+      fit: StackFit.loose,
+      children: [
+        // 1. Неинтерактивный размытый фон
+        Positioned.fill(
+          child: IgnorePointer(
             child: BackdropFilter(
               filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(color: ZenColors.surface.withValues(alpha: 0.4)),
+              child: Container(
+                color: ZenColors.surface.withValues(alpha: 0.4),
+              ),
             ),
           ),
-          // Золотой градиент с параллаксом
+        ),
+        // 2. Анимированный золотой градиент (только для Desktop)
+        if (widget.isDesktop && _mouseTilt != null)
           Positioned.fill(
-            child: Transform(
-              transform: Matrix4.identity()
-                ..translateByDouble(_tiltX * 30, _tiltY * 30, 0, 1),
+            child: IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _mouseTilt!,
+                builder: (context, _) {
+                  return Transform(
+                    transform: Matrix4.identity()
+                      ..translateByDouble(_tiltX * 30, _tiltY * 30, 0, 1),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [
+                            ZenColors.gold.withValues(alpha: 0.12),
+                            Colors.transparent,
+                          ],
+                          radius: 1.2,
+                          center: Alignment(
+                            _tiltX.clamp(-0.5, 0.5),
+                            _tiltY.clamp(-0.5, 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          )
+        else
+          Positioned.fill(
+            child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
@@ -210,31 +196,9 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
               ),
             ),
           ),
-          // Контент статичен — клики работают идеально в любой точке
-          Positioned.fill(
-            child: Center(
-              child: SingleChildScrollView(
-                physics: const NeverScrollableScrollPhysics(),
-                child: content,
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Android: единый Container с BoxDecoration (без трансформации контента)
-    return Container(
-      decoration: BoxDecoration(
-        color: ZenColors.surface.withValues(alpha: 0.5),
-        gradient: RadialGradient(
-          colors: [ZenColors.gold.withValues(alpha: 0.12), Colors.transparent],
-          radius: 1.2,
-          center: Alignment(_tiltX.clamp(-0.5, 0.5), _tiltY.clamp(-0.5, 0.5)),
-        ),
-        borderRadius: BorderRadius.circular(zen.cardRadius),
-      ),
-      child: content,
+        // 3. Основное содержимое карточки
+        _buildCardContent(context, theme, zen),
+      ],
     );
   }
 
@@ -246,14 +210,15 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     return Padding(
       padding: EdgeInsets.all(zen.spacingUnit * 3),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           _buildProfileRow(context, theme, zen),
           SizedBox(height: zen.gap(2)),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Кнопка Roadmap
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () => _showRankRoadmap(context),
                 child: Container(
                   width: widget.isCompact ? 36 : 48,
@@ -325,7 +290,6 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     ZenStyles zen,
   ) {
     if (widget.isAuthenticated) {
-      // Авторизован: показываем аватар, имя и кнопку выхода
       return Padding(
         padding: EdgeInsets.only(bottom: zen.spacingUnit * 2),
         child: Row(
@@ -340,7 +304,7 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
               CircleAvatar(
                 radius: 16,
                 backgroundColor: ZenColors.gold.withValues(alpha: 0.2),
-                child: Icon(Icons.person, size: 18, color: ZenColors.gold),
+                child: const Icon(Icons.person, size: 18, color: ZenColors.gold),
               ),
             SizedBox(width: zen.spacingUnit),
             Text(
@@ -352,13 +316,12 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
               ),
             ),
             const Spacer(),
-            // Кнопка выхода
             if (widget.onSignOutTap != null)
               SizedBox(
                 height: 30,
                 child: TextButton.icon(
                   onPressed: widget.onSignOutTap,
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.logout,
                     size: 14,
                     color: ZenColors.textMuted,
@@ -377,31 +340,43 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
       );
     }
 
-    // Не авторизован: показываем кнопку входа (если есть колбэк)
     if (widget.onAuthTap == null) return const SizedBox.shrink();
 
     return Padding(
       padding: EdgeInsets.only(bottom: zen.spacingUnit * 2),
-      child: SizedBox(
-        width: 200,
-        height: 36,
-        child: OutlinedButton.icon(
-          onPressed: widget.onAuthTap,
-          icon: const Icon(Icons.login, size: 16),
-          label: Text(
-            AppLocalizations.of(context)!.authGoogle,
-            style: const TextStyle(fontSize: 12),
-          ),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: ZenColors.gold,
-            side: BorderSide(color: ZenColors.gold.withValues(alpha: 0.5)),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+      child: Center(
+        child: SizedBox(
+          width: 200,
+          height: 38,
+          child: OutlinedButton(
+            onPressed: widget.onAuthTap,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: ZenColors.gold,
+              side: BorderSide(color: ZenColors.gold.withValues(alpha: 0.5)),
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(200, 38),
+              fixedSize: const Size(200, 38),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
             ),
-            textStyle: const TextStyle(
-              fontFamily: 'Manrope',
-              fontWeight: FontWeight.w600,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                const Icon(Icons.login, size: 16, color: ZenColors.gold),
+                const SizedBox(width: 8),
+                Text(
+                  AppLocalizations.of(context)!.authGoogle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: ZenColors.gold,
+                    fontFamily: 'Manrope',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -461,7 +436,6 @@ class _GlassmorphicHeroState extends State<GlassmorphicHero>
     );
   }
 
-  /// Показывает Roadmap рангов.
   void _showRankRoadmap(BuildContext context) {
     RankRoadmap.show(
       context,
